@@ -60,14 +60,20 @@ class LibXmlRpcCallbacks implements CallbackListener {
 				//No use for this Implementation right now (as the MapManager Callback should be used
 				break;
 			case 'Maniaplanet.StartMap_End': //Use the MapManager Callback
-//				$jsonData = json_decode($data[0]);
-//				$this->maniaControl->getMapManager()->handleScriptBeginMap($jsonData->map->uid, $jsonData->restarted);
+				// Disable only on TM2020
+				if ($this->maniaControl->getServer()->titleId != "Trackmania") {
+					$jsonData = json_decode($data[0]);
+					$this->maniaControl->getMapManager()->handleScriptBeginMap($jsonData->map->uid, $jsonData->restarted);
+				}
 				break;
 			case 'Maniaplanet.EndMap_Start':
 				//no need for this implementation, callback handled by Map Manager
 				break;
 			case 'Maniaplanet.EndMap_End': //Use the MapManager Callback
-//				$this->maniaControl->getMapManager()->handleScriptEndMap(); //Verify if better here or at EndMap_End
+				// Disable only on TM2020
+				if ($this->maniaControl->getServer()->titleId != "Trackmania") {
+					$this->maniaControl->getMapManager()->handleScriptEndMap(); //Verify if better here or at EndMap_End
+				}
 				break;
 		}
 
