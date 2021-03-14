@@ -1,5 +1,8 @@
-ManiaControl
+TrackManiaControl
 ============
+
+TrackManiaControl is a fork of ManiaControl, with the drop of support for Maniaplanet games.
+The objective is however to keep the maximum compatibility between the plugins and ManiaControl. For now, the difference between TMC and MC is small, but may not know in the future.
 
 The newly designed and easy to use ManiaPlanet Server Controller.
 
