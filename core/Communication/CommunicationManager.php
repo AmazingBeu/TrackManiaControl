@@ -30,6 +30,7 @@ class CommunicationManager implements CallbackListener, UsageInformationAble {
 	/** Constants */
 	const SETTING_SOCKET_ENABLED  = "Activate Socket";
 	const SETTING_SOCKET_PASSWORD = "Password for the Socket Connection";
+	const SETTING_SOCKET_HOST     = "Socket Host for Server ";
 	const SETTING_SOCKET_PORT     = "Socket Port for Server ";
 
 	const ENCRYPTION_IV     = "kZ2Kt0CzKUjN2MJX";
@@ -191,6 +192,7 @@ class CommunicationManager implements CallbackListener, UsageInformationAble {
 
 		$servers = $this->maniaControl->getServer()->getAllServers();
 		foreach ($servers as $server) {
+			$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SOCKET_HOST . $server->login, "127.0.0.1");
 			$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SOCKET_PORT . $server->login, 31500 + $server->index);
 		}
 
@@ -239,6 +241,7 @@ class CommunicationManager implements CallbackListener, UsageInformationAble {
 			}
 
 			$serverLogin = $this->maniaControl->getServer()->login;
+			$socketHost  = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SOCKET_HOST . $serverLogin);
 			$socketPort  = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SOCKET_PORT . $serverLogin);
 			$password    = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SOCKET_PASSWORD);
 
@@ -293,7 +296,7 @@ class CommunicationManager implements CallbackListener, UsageInformationAble {
 					});
 				});
 				//TODO check if port is closed
-				$this->socket->listen($socketPort, '0.0.0.0');
+				$this->socket->listen($socketPort, $this->maniaControl->getServer()->ip);
 
 				Logger::log("[CommunicationManager] Socket " . $this->maniaControl->getServer()->ip . ":" . $this->socket->getPort() . " Successfully created!");
 			} catch (ConnectionException $e) {
