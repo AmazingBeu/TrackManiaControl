@@ -80,7 +80,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		}
 		
 		// Grow the size limit for plugins settings
-		$mysqli->query("ALTER TABLE `" . self::TABLE_SETTINGS . "` MODIFY `value` VARCHAR(500);");
+		$mysqli->query("ALTER TABLE `" . self::TABLE_SETTINGS . "` MODIFY `value` VARCHAR(1000);");
 		if ($mysqli->error) {
 			// If not Duplicate
 			if ($mysqli->errno !== 1060) {
