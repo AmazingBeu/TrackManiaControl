@@ -4,6 +4,7 @@
 !/.idea
 /configs/*
 !/configs/server.default.xml
+/backup/*
 /logs/
 /ManiaControl.log
 /ManiaControl.pid
