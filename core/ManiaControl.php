@@ -56,8 +56,8 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 	 * Constants
 	 */
 	const VERSION                     = '0.256';
-	const API_VERSION                 = '2013-04-16';
-	const MIN_DEDIVERSION             = '2017-05-03_21_00';
+	const API_VERSION                 = '2038-01-19';
+	const MIN_DEDIVERSION             = '2020-07-01_00_00';
 	const SCRIPT_TIMEOUT              = 40;
 	const URL_WEBSERVICE              = 'https://ws.maniacontrol.com/';
 	const SETTING_PERMISSION_SHUTDOWN = 'Shutdown ManiaControl';
