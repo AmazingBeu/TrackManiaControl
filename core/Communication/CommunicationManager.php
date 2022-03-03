@@ -296,9 +296,9 @@ class CommunicationManager implements CallbackListener, UsageInformationAble {
 					});
 				});
 				//TODO check if port is closed
-				$this->socket->listen($socketPort, $this->maniaControl->getServer()->ip);
+				$this->socket->listen($socketPort, $socketHost);
 
-				Logger::log("[CommunicationManager] Socket " . $this->maniaControl->getServer()->ip . ":" . $this->socket->getPort() . " Successfully created!");
+				Logger::log("[CommunicationManager] Socket " . $this->socket->getHost() . ":" . $this->socket->getPort() . " Successfully created!");
 			} catch (ConnectionException $e) {
 				Logger::log("[CommunicationManager] Exception: " . $e->getMessage());
 			}

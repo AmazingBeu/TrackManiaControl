@@ -50,6 +50,13 @@ class Server extends EventEmitter implements ServerInterface
         $this->emit('connection', array($client));
     }
 
+    public function getHost()
+    {
+        $name = stream_socket_get_name($this->master, false);
+
+        return (int) substr(strrchr($name, ':'), 0);
+    }
+
     public function getPort()
     {
         $name = stream_socket_get_name($this->master, false);
