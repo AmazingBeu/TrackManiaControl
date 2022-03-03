@@ -44,6 +44,7 @@ class PlayerManager implements CallbackListener, TimerListener, CommunicationLis
 	const SETTING_JOIN_LEAVE_COLORING           = 'Enable Join & Leave Coloring';
 	const SETTING_JOIN_LEAVE_MESSAGES           = 'Enable Join & Leave Messages';
 	const SETTING_JOIN_LEAVE_MESSAGES_SPECTATOR = 'Enable Join & Leave Messages for Spectators';
+	const SETTING_VERSION_JOIN_MESSAGE          = 'Enable Maniacontrol welcome message';
 	const STAT_JOIN_COUNT                       = 'Joins';
 	const STAT_SERVERTIME                       = 'Servertime';
 
@@ -96,6 +97,8 @@ class PlayerManager implements CallbackListener, TimerListener, CommunicationLis
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_JOIN_LEAVE_COLORING, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_JOIN_LEAVE_MESSAGES, true);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_JOIN_LEAVE_MESSAGES_SPECTATOR, true);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_VERSION_JOIN_MESSAGE, true);
+
 
 		// Callbacks
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::ONINIT, $this, 'onInit');
@@ -522,7 +525,9 @@ class PlayerManager implements CallbackListener, TimerListener, CommunicationLis
 				$this->maniaControl->getChat()->sendChat($message);
 			}
 
-			$this->maniaControl->getChat()->sendInformation('This server uses ManiaControl v' . ManiaControl::VERSION . '!', $player);
+			if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_VERSION_JOIN_MESSAGE)) {
+				$this->maniaControl->getChat()->sendInformation('This server uses ManiaControl v' . ManiaControl::VERSION . '!', $player);
+			}
 
 			$logMessage = "Player joined: {$player->login} / {$player->nickname} Nation: {$nation} IP: {$player->ipAddress}";
 			Logger::logInfo($logMessage, true);
