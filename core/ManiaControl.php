@@ -547,7 +547,7 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 	 * @param Player $player
 	 */
 	public function commandVersion(array $chatCallback, Player $player) {
-		$message = 'This server is using ManiaControl v' . ManiaControl::VERSION . '!';
+		$message = 'This server is using TrackManiaControl v' . ManiaControl::VERSION . '!';
 		$this->getChat()->sendInformation($message, $player);
 	}
 
@@ -678,7 +678,7 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 			// Loading finished
 			Logger::log('Loading completed!');
 			Logger::log('Link: ' . $this->getServer()->getJoinLink());
-			$this->getChat()->sendInformation('ManiaControl v' . self::VERSION . ' successfully started!');
+			$this->getChat()->sendInformation('TrackManiaControl v' . self::VERSION . ' successfully started!');
 
 			$this->startTime = time();
 
