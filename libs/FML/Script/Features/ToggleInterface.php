@@ -106,7 +106,7 @@ class ToggleInterface extends ScriptFeature
         if ($this->keyCode != null || $this->keyName != null) {
             $script->appendGenericScriptLabel(ScriptLabel::KEYPRESS, $this->getKeyPressScriptText());
         } else {
-            $script->appendGenericScriptLabel(ScriptLabel::TICK, $this->getTickScriptText());
+            $script->appendGenericScriptLabel(ScriptLabel::LOOP, $this->getLoopScriptText());
         }
         return $this;
     }
@@ -156,7 +156,7 @@ if (Event.{$keyProperty} == {$keyValue}) {
      *
      * @return string
      */
-    protected function getTickScriptText()
+    protected function getLoopScriptText()
     {
         $VarIsVisible = $this::VAR_ISVISIBLE;
         $VarWasVisible = $this::VAR_WASVISIBLE;
