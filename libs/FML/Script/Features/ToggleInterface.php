@@ -19,7 +19,8 @@ class ToggleInterface extends ScriptFeature
     /*
      * Constants
      */
-    const VAR_STATE = "FML_ToggleInterface_State";
+    const VAR_ISVISIBLE = "FML_ToggleInterface_IsVisible";
+    const VAR_WASVISIBLE = "FML_ToggleInterface_WasVisible";
 
     /**
      * @var string $keyName Key name
@@ -32,25 +33,18 @@ class ToggleInterface extends ScriptFeature
     protected $keyCode = null;
 
     /**
-     * @var bool $rememberState Remember the current state
-     */
-    protected $rememberState = true;
-
-    /**
      * Construct a new ToggleInterface
      *
      * @api
      * @param string|int $keyNameOrCode (optional) Key name or code
-     * @param bool       $rememberState (optional) Remember the current state
      */
-    public function __construct($keyNameOrCode = null, $rememberState = true)
+    public function __construct($keyNameOrCode = null)
     {
         if (is_string($keyNameOrCode)) {
             $this->setKeyName($keyNameOrCode);
         } else if (is_int($keyNameOrCode)) {
             $this->setKeyCode($keyNameOrCode);
         }
-        $this->setRememberState($rememberState);
     }
 
     /**
@@ -104,37 +98,15 @@ class ToggleInterface extends ScriptFeature
     }
 
     /**
-     * Get if the state should get remembered
-     *
-     * @api
-     * @return bool
-     */
-    public function getRememberState()
-    {
-        return $this->rememberState;
-    }
-
-    /**
-     * Set if the state should get remembered
-     *
-     * @api
-     * @param bool $rememberState Remember the current state
-     * @return static
-     */
-    public function setRememberState($rememberState)
-    {
-        $this->rememberState = (bool)$rememberState;
-        return $this;
-    }
-
-    /**
      * @see ScriptFeature::prepare()
      */
     public function prepare(Script $script)
     {
-        $script->appendGenericScriptLabel(ScriptLabel::KEYPRESS, $this->getKeyPressScriptText());
-        if ($this->rememberState) {
-            $script->appendGenericScriptLabel(ScriptLabel::ONINIT, $this->getOnInitScriptText());
+        $script->appendGenericScriptLabel(ScriptLabel::ONINIT, $this->getOnInitScriptText());
+        if ($this->keyCode != null || $this->keyName != null) {
+            $script->appendGenericScriptLabel(ScriptLabel::KEYPRESS, $this->getKeyPressScriptText());
+        } else {
+            $script->appendGenericScriptLabel(ScriptLabel::TICK, $this->getTickScriptText());
         }
         return $this;
     }
@@ -146,10 +118,11 @@ class ToggleInterface extends ScriptFeature
      */
     protected function getOnInitScriptText()
     {
-        $stateVariableName = $this::VAR_STATE;
+        $VarIsVisible = $this::VAR_ISVISIBLE;
+        $VarWasVisible = $this::VAR_WASVISIBLE;
         return "
-declare persistent {$stateVariableName} as CurrentState for LocalUser = True;
-Page.MainFrame.Visible = CurrentState;
+declare Boolean {$VarIsVisible} for UI = True;
+declare Boolean Last_IsVisible = True;
 ";
     }
 
@@ -169,19 +142,38 @@ Page.MainFrame.Visible = CurrentState;
             $keyProperty = "KeyCode";
             $keyValue    = Builder::getInteger($this->keyCode);
         }
+        $VarIsVisible = $this::VAR_ISVISIBLE;
+        $VarWasVisible = $this::VAR_WASVISIBLE;
         $scriptText = "
 if (Event.{$keyProperty} == {$keyValue}) {
-    Page.MainFrame.Visible = !Page.MainFrame.Visible;
-";
-        if ($this->rememberState) {
-            $stateVariableName = $this::VAR_STATE;
-            $scriptText        .= "
-    declare persistent {$stateVariableName} as CurrentState for LocalUser = True;
-    CurrentState = Page.MainFrame.Visible;
-";
-        }
-        return $scriptText . "
+    {$VarIsVisible} = !{$VarIsVisible};
 }";
+        return $scriptText ;
     }
 
+     /**
+     * Get the key press script text
+     *
+     * @return string
+     */
+    protected function getTickScriptText()
+    {
+        $VarIsVisible = $this::VAR_ISVISIBLE;
+        $VarWasVisible = $this::VAR_WASVISIBLE;
+        return "
+if (Last_IsVisible != {$VarIsVisible}) {
+    Last_IsVisible = {$VarIsVisible};
+    foreach (Control in Page.MainFrame.Controls) {
+        declare Boolean {$VarWasVisible} for Control = False;
+        if (Last_IsVisible && {$VarWasVisible}) {
+            Control.Visible = True;
+            {$VarWasVisible} = False;
+        } else if (!Last_IsVisible){
+            {$VarWasVisible} = Control.Visible;
+            Control.Visible = False;
+        }
+    }
+}
+";
+    }
 }

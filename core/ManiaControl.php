@@ -26,6 +26,7 @@ use ManiaControl\Files\FileUtil;
 use ManiaControl\General\UsageInformationAble;
 use ManiaControl\General\UsageInformationTrait;
 use ManiaControl\Manialinks\ManialinkManager;
+use ManiaControl\Manialinks\ToggleInterfaceManager;
 use ManiaControl\Maps\MapManager;
 use ManiaControl\Players\Player;
 use ManiaControl\Players\PlayerManager;
@@ -127,6 +128,10 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 	 * @see getManialinkManager
 	 */
 	private $manialinkManager = null;
+	/** @var ToggleInterfaceManager $toggleInterfaceManager
+	 * @see getToggleInterfaceManager
+	 */
+	private $toggleInterfaceManager = null;
 	/** @var MapManager $mapManager
 	 * @see getMapManager()
 	 */
@@ -206,6 +211,7 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 		$this->settingManager         = new SettingManager($this);
 		$this->statisticManager       = new StatisticManager($this);
 		$this->manialinkManager       = new ManialinkManager($this);
+		$this->toggleInterfaceManager = new ToggleInterfaceManager($this);
 		$this->actionsMenu            = new ActionsMenu($this);
 		$this->chat                   = new Chat($this);
 		$this->commandManager         = new CommandManager($this);
@@ -453,6 +459,15 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 	 */
 	public function getManialinkManager() {
 		return $this->manialinkManager;
+	}
+
+	/**
+	 * Return the ToggleInterface manager
+	 *
+	 * @return ToggleInterfaceManager
+	 */
+	public function getToggleInterfaceManager() {
+		return $this->toggleInterfaceManager;
 	}
 
 	/**
