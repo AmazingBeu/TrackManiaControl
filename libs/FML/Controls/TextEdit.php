@@ -102,6 +102,30 @@ class TextEdit extends Control implements MultiLineable, Scriptable, Styleable, 
     protected $focusAreaColor = null;
 
     /**
+     * Get the name
+     *
+     * @api
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * Set the name
+     *
+     * @api
+     * @param string $name Entry name
+     * @return static
+     */
+    public function setName($name)
+    {
+        $this->name = (string)$name;
+        return $this;
+    }
+
+    /**
      * Get the default value
      *
      * @api
@@ -400,6 +424,9 @@ class TextEdit extends Control implements MultiLineable, Scriptable, Styleable, 
     public function render(\DOMDocument $domDocument)
     {
         $domElement = parent::render($domDocument);
+        if ($this->name) {
+            $domElement->setAttribute("name", $this->name);
+        }
         if ($this->default !== null) {
             $domElement->setAttribute("default", $this->default);
         }
