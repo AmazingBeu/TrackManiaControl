@@ -8,9 +8,9 @@ use FML\Controls\Quad;
 use FML\Controls\Quads\Quad_Icons128x128_1;
 use FML\Controls\Quads\Quad_Icons128x32_1;
 use FML\Controls\Quads\Quad_Icons64x64_1;
-use FML\Elements\SimpleScript;
 use FML\ManiaLink;
 use FML\Script\Script;
+use FML\Script\ScriptLabel;
 use FML\XmlRpc\TMUIProperties;
 use ManiaControl\Callbacks\CallbackListener;
 use ManiaControl\Callbacks\Callbacks;
@@ -281,15 +281,15 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$label->setTextSize(1);
 
 		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_NICKNAME)) {
-			$nicknameScript = array(
-				'declare CMlLabel Author_Label <=> (Page.GetFirstChild("author_label") as CMlLabel);',
-				'if (Map != Null) {',
-				'	Author_Label.SetText(Map.AuthorNickName);',
-				'}'
-			);
-			$simpleScript = new SimpleScript();
-			$simpleScript->setText(implode(PHP_EOL, $nicknameScript));
-			$frame->addChild($simpleScript);
+			$script->appendGenericScriptLabel(ScriptLabel::ONINIT, '
+			declare CMlLabel Author_Label = (Page.GetFirstChild("author_label") as CMlLabel);
+			declare Ident Last_MapId;
+			');
+			$script->appendGenericScriptLabel(ScriptLabel::TICK, '
+				if (Map != Null && Last_MapId != Map.Id) {
+					Author_Label.Value = Map.AuthorNickName;
+				}
+			');
 		} else {
 			$label->setText($map->authorLogin);
 			$label->setTextColor('fff');
