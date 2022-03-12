@@ -33,18 +33,24 @@ class ToggleInterface extends ScriptFeature
     protected $keyCode = null;
 
     /**
+     * @var int $defaultVisible if is visible by default
+     */
+    protected $defaultVisible = true;
+
+    /**
      * Construct a new ToggleInterface
      *
      * @api
      * @param string|int $keyNameOrCode (optional) Key name or code
      */
-    public function __construct($keyNameOrCode = null)
+    public function __construct($keyNameOrCode = null, $defaultVisible = true)
     {
         if (is_string($keyNameOrCode)) {
             $this->setKeyName($keyNameOrCode);
         } else if (is_int($keyNameOrCode)) {
             $this->setKeyCode($keyNameOrCode);
         }
+        $this->setDefaultVisible($defaultVisible);
     }
 
     /**
@@ -98,14 +104,39 @@ class ToggleInterface extends ScriptFeature
     }
 
     /**
+     * Get the Default visibility property
+     *
+     * @api
+     * @return boolean
+     */
+    public function getDefaultVisible()
+    {
+        return $this->defaultVisible;
+    }
+
+    /**
+     * Set the Default visibility property
+     *
+     * @api
+     * @param boolean $defaultVisible if is visible by default
+     * @return static
+     */
+    public function setDefaultVisible($defaultVisible)
+    {
+        $this->defaultVisible = $defaultVisible;
+        return $this;
+    }
+
+    /**
      * @see ScriptFeature::prepare()
      */
     public function prepare(Script $script)
     {
-        $script->appendGenericScriptLabel(ScriptLabel::ONINIT, $this->getOnInitScriptText());
         if ($this->keyCode != null || $this->keyName != null) {
+            $script->appendGenericScriptLabel(ScriptLabel::ONINIT, $this->getOnInitScriptText(true));
             $script->appendGenericScriptLabel(ScriptLabel::KEYPRESS, $this->getKeyPressScriptText());
         } else {
+            $script->appendGenericScriptLabel(ScriptLabel::ONINIT, $this->getOnInitScriptText());
             $script->appendGenericScriptLabel(ScriptLabel::LOOP, $this->getLoopScriptText());
         }
         return $this;
@@ -116,14 +147,27 @@ class ToggleInterface extends ScriptFeature
      *
      * @return string
      */
-    protected function getOnInitScriptText()
+    protected function getOnInitScriptText($isToggleScript = false)
     {
         $VarIsVisible = $this::VAR_ISVISIBLE;
-        $VarWasVisible = $this::VAR_WASVISIBLE;
-        return "
+
+        $maniascript = "
 declare Boolean {$VarIsVisible} for UI = True;
 declare Boolean Last_IsVisible = True;
-";
+        ";
+
+        if ($isToggleScript) {
+            if ($this->getDefaultVisible()) {
+                $defaultVisible = "True";
+            } else {
+                $defaultVisible = "False";
+            }
+            $maniascript .= "
+{$VarIsVisible} = {$defaultVisible};
+            ";
+        }
+
+        return $maniascript;
     }
 
     /**
@@ -143,7 +187,6 @@ declare Boolean Last_IsVisible = True;
             $keyValue    = Builder::getInteger($this->keyCode);
         }
         $VarIsVisible = $this::VAR_ISVISIBLE;
-        $VarWasVisible = $this::VAR_WASVISIBLE;
         $scriptText = "
 if (Event.{$keyProperty} == {$keyValue}) {
     {$VarIsVisible} = !{$VarIsVisible};

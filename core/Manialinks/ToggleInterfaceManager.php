@@ -27,6 +27,7 @@ class ToggleInterfaceManager implements CallbackListener {
 	 */
 	const MLID                    = 'ToggleInterface.KeyListener';
 	const SETTING_KEYNAME         = 'Key Name (or code) to toggle the ManiaControl UI';
+	const SETTING_DEFAULT_VISIBLE = 'Display by default the UI';
 
 	/*
 	 * Private properties
@@ -46,6 +47,7 @@ class ToggleInterfaceManager implements CallbackListener {
 
 		// Settings
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_KEYNAME, "F9");
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_DEFAULT_VISIBLE, True);
 
 		// Build Manialink
 		$this->buildManiaLink();
@@ -97,7 +99,7 @@ class ToggleInterfaceManager implements CallbackListener {
 	 */
 	private function buildManiaLink() {
 		$manialink = new ManiaLink(self::MLID);
-		$manialink->getScript()->addFeature(new \FML\Script\Features\ToggleInterface($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_KEYNAME)));
+		$manialink->getScript()->addFeature(new \FML\Script\Features\ToggleInterface($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_KEYNAME), $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_DEFAULT_VISIBLE)));
 		$this->manialink = (string) $manialink;
 	}
 }
