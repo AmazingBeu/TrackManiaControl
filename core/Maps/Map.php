@@ -8,6 +8,8 @@ use ManiaControl\General\UsageInformationAble;
 use ManiaControl\General\UsageInformationTrait;
 use ManiaControl\ManiaExchange\MXMapInfo;
 use ManiaControl\Utils\Formatter;
+use ManiaControl\ManiaControl;
+use ManiaControl\Players\Player;
 
 /**
  * ManiaControl Map Model Class
@@ -52,12 +54,19 @@ class Map implements Dumpable, UsageInformationAble {
 	public $lastUpdate  = 0;
 	public $karma       = null;
 
+	/*
+	 * Private properties
+	 */
+	/** @var ManiaControl $maniaControl */
+	private $maniaControl = null;
+
 	/**
 	 * Construct a new map instance from xmlrpc data
 	 *
 	 * @param \Maniaplanet\DedicatedServer\Structures\Map $mpMap
 	 */
-	public function __construct($mpMap = null) {
+	public function __construct(ManiaControl $maniaControl, $mpMap = null) {
+		$this->maniaControl = $maniaControl;
 		$this->startTime = time();
 
 		if (!$mpMap) {
@@ -79,7 +88,12 @@ class Map implements Dumpable, UsageInformationAble {
 		$this->nbCheckpoints = $mpMap->nbCheckpoints;
 		$this->nbLaps        = $mpMap->nbLaps;
 
-		$this->authorNick = $this->authorLogin;
+		$player = $this->maniaControl->getPlayerManager()->getPlayer($this->authorLogin);
+		if ($player) {
+			$this->authorNick = $player->nickname;
+		} else {
+			$this->authorNick = $this->authorLogin;
+		}
 	}
 
 	/**

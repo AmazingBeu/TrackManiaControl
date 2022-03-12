@@ -595,7 +595,7 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 	 * @return Map
 	 */
 	public function initializeMap($rpcMap) {
-		$map = new Map($rpcMap);
+		$map = new Map($this->maniaControl, $rpcMap);
 		$this->saveMap($map);
 		return $map;
 	}
