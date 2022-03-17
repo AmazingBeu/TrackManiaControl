@@ -87,6 +87,15 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 				trigger_error($mysqli->error, E_USER_ERROR);
 			}
 		}
+
+		// Add priority value
+		$mysqli->query("ALTER TABLE `" . self::TABLE_SETTINGS . "` ADD `priority` INT(5) DEFAULT 100;");
+		if ($mysqli->error) {
+			// If not Duplicate
+			if ($mysqli->errno !== 1060) {
+				trigger_error($mysqli->error, E_USER_ERROR);
+			}
+		}
 		return $result;
 	}
 
@@ -290,8 +299,8 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 * @param string|null $description
 	 * @return bool
 	 */
-	public function initSetting($object, $settingName, $defaultValue, $description = null) {
-		$setting = new Setting($object, $settingName, $defaultValue, $description);
+	public function initSetting($object, $settingName, $defaultValue, $description = null, $priority = 100) {
+		$setting = new Setting($object, $settingName, $defaultValue, $description, $priority);
 		return $this->saveSetting($setting, true);
 	}
 
@@ -318,9 +327,10 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 				`description`,
 				`value`,
 				`default`,
-				`set`
+				`set`,
+				`priority`
 				) VALUES (
-				?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?
 				) ON DUPLICATE KEY UPDATE
 				`index` = LAST_INSERT_ID(`index`),
 				`type` = VALUES(`type`),
@@ -328,6 +338,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 				`default` = VALUES(`default`),
 				`set` = VALUES(`set`),
 				`description` = VALUES(`description`),
+				`priority` = VALUES(`priority`),
 				`changed` = NOW();";
 		$settingStatement = $mysqli->prepare($settingQuery);
 		if ($mysqli->error) {
@@ -338,14 +349,15 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		$formattedDefault = $setting->getFormattedDefault();
 		$formattedSet     = $setting->getFormattedSet();
 		$settingStatement->bind_param(
-			'sssssss',
+			'sssssssi',
 			$setting->class,
 			$setting->setting,
 			$setting->type,
 			$setting->description,
 			$formattedValue,
 			$formattedDefault,
-			$formattedSet
+			$formattedSet,
+			$setting->priority
 		);
 		$settingStatement->execute();
 		if ($settingStatement->error) {
@@ -459,7 +471,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		$mysqli    = $this->maniaControl->getDatabase()->getMysqli();
 		$query     = "SELECT * FROM `" . self::TABLE_SETTINGS . "`
 				WHERE `class` = '" . $mysqli->escape_string($className) . "'
-				ORDER BY `setting` ASC;";
+				ORDER BY `priority` ASC, `setting` ASC;";
 		$result    = $mysqli->query($query);
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);
@@ -481,7 +493,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	public function getSettings() {
 		$mysqli = $this->maniaControl->getDatabase()->getMysqli();
 		$query  = "SELECT * FROM `" . self::TABLE_SETTINGS . "`
-				ORDER BY `class` ASC, `setting` ASC;";
+				ORDER BY `class` ASC, `priority` ASC, `setting` ASC;";
 		$result = $mysqli->query($query);
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);

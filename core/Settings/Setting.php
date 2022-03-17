@@ -39,6 +39,7 @@ class Setting implements UsageInformationAble {
 	public $set         = null;
 	public $fetchTime   = null;
 	public $description = null;
+	public $priority    = null;
 
 	/**
 	 * Construct a new setting instance
@@ -47,8 +48,9 @@ class Setting implements UsageInformationAble {
 	 * @param string      $settingName
 	 * @param mixed       $defaultValue
 	 * @param string|null $description
+	 * @param int         $priority
 	 */
-	public function __construct($object, $settingName, $defaultValue, $description = null) {
+	public function __construct($object, $settingName, $defaultValue, $description = null, $priority = 100) {
 		if ($object === false) {
 			// Fetched from Database
 			$this->value   = $this->castValue($this->value);
@@ -71,6 +73,7 @@ class Setting implements UsageInformationAble {
 			}
 			$this->default = $this->value;
 			$this->description = $description;
+			$this->priority = $priority;
 		}
 	}
 
