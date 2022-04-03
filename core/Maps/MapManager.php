@@ -1077,7 +1077,7 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 					}
 					break;
 				case self::SEARCH_BY_AUTHOR:
-					if (strpos(strtolower($map->authorLogin), $searchString) !== false) {
+					if (strpos(strtolower($map->authorLogin), $searchString) !== false || strpos(strtolower($map->authorNick), $searchString) !== false) {
 						array_push($result, $map);
 					}
 			}

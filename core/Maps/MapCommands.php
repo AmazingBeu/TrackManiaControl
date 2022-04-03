@@ -418,7 +418,7 @@ class MapCommands implements CommandListener, ManialinkPageAnswerListener, Callb
 			return;
 		}
 
-		$this->maniaControl->getMapManager()->getMapList()->showMapList($player, $mapList);
+		$this->maniaControl->getMapManager()->getMapList()->showMapList($player, $mapList, -1, $author);
 	}
 
 	/**

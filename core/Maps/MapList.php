@@ -124,7 +124,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	 * @param Map[]  $mapList
 	 * @param int    $pageIndex
 	 */
-	public function showMapList(Player $player, $mapList = null, $pageIndex = -1) {
+	public function showMapList(Player $player, $mapList = null, $pageIndex = -1, $entryvalue = "") {
 		$width   = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$height  = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
 		$buttonY = -$height / 2 + 9;
@@ -210,7 +210,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 		$labelLine->setY(-7);
 		$labelLine->render();
 
-		$searchFrame = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultMapSearch(self::ACTION_SEARCH_MAP_NAME, self::ACTION_SEARCH_AUTHOR, self::ACTION_RESET);
+		$searchFrame = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultMapSearch(self::ACTION_SEARCH_MAP_NAME, self::ACTION_SEARCH_AUTHOR, self::ACTION_RESET, $entryvalue);
 		$headFrame->addChild($searchFrame);
 
 		// Predefine description Label
@@ -690,7 +690,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 		} else {
 			$maps = null;
 		}
-		$this->showMapList($player, $maps);
+		$this->showMapList($player, $maps, -1, $searchString);
 
 	}
 
@@ -711,7 +711,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 			$maps = null;
 		}
 
-		$this->showMapList($player, $maps);
+		$this->showMapList($player, $maps, -1, $searchString);
 	}
 
 	/**
