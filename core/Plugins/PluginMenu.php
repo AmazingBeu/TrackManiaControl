@@ -24,6 +24,8 @@ use ManiaControl\ManiaControl;
 use ManiaControl\Manialinks\ManialinkPageAnswerListener;
 use ManiaControl\Players\Player;
 use ManiaControl\Settings\Setting;
+use ManiaControl\Settings\SettingManager;
+
 
 /**
  * Configurator for enabling and disabling Plugins
@@ -40,6 +42,8 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 	const ACTION_PREFIX_DISABLEPLUGIN               = 'PluginMenu.Disable.';
 	const ACTION_PREFIX_SETTINGS                    = 'PluginMenu.Settings.';
 	const ACTION_PREFIX_SETTING                     = 'PluginMenuSetting.';
+	const ACTION_PREFIX_SETTING_LINK                = 'PluginMenuSettingLink.';
+	const ACTION_PREFIX_MANAGE_SETTING_LINK         = 'PluginMenu.ManageSettingsLink.';
 	const ACTION_BACK_TO_PLUGINS                    = 'PluginMenu.BackToPlugins';
 	const ACTION_PREFIX_UPDATEPLUGIN                = 'PluginMenu.Update.';
 	const ACTION_UPDATEPLUGINS                      = 'PluginMenu.Update.All';
@@ -126,10 +130,16 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 
 		$paging->setLabel($pageCountLabel);
 
-		$settingClass = $player->getCache($this, self::CACHE_SETTING_CLASS);
-		if ($settingClass) {
+		$SubMenu = $player->getCache($this, self::CACHE_SETTING_CLASS);
+		if ($SubMenu) {
 			// Show Settings Menu
-			return $this->getPluginSettingsMenu($frame, $width, $height, $paging, $player, $settingClass);
+			if (strpos($SubMenu, self::ACTION_PREFIX_SETTINGS) === 0) {
+				$settingClass = substr($SubMenu, strlen(self::ACTION_PREFIX_SETTINGS));
+				return $this->getPluginSettingsMenu($frame, $width, $height, $paging, $player, $settingClass);
+			} else if (strpos($SubMenu, self::ACTION_PREFIX_MANAGE_SETTING_LINK) === 0) {
+				$settingClass = substr($SubMenu, strlen(self::ACTION_PREFIX_MANAGE_SETTING_LINK));
+				return $this->getManageSettingsLink($frame, $width, $height, $paging, $player, $settingClass);
+			}
 		}
 
 		// Display normal Plugin List
@@ -255,6 +265,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 	private function getPluginSettingsMenu(Frame $frame, $width, $height, Paging $paging, Player $player, $settingClass) {
 		// TODO: centralize menu code to use by mc settings and plugin settings
 		$settings = $this->maniaControl->getSettingManager()->getSettingsByClass($settingClass);
+		$isunlinkable = $this->maniaControl->getSettingManager()->getSettingValue($this->maniaControl->getSettingManager(), SettingManager::SETTING_ALLOW_UNLINK_SERVER);
 
 		$pageSettingsMaxCount = 10;
 		$posY                 = 0;
@@ -272,6 +283,11 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		$headLabel->setTextSize(3);
 		$headLabel->setText($settingClass);
 		$headLabel->setTextColor('ff0');
+
+		if (count($settings) > 64) {
+			Logger::logWarning("You can't send more than 64 fields in Manialink Action");
+			$this->maniaControl->getChat()->sendError("Some settings may not be saved because it has more than 64", $player);
+		}
 
 		foreach ($settings as $setting) {
 			if ($index % $pageSettingsMaxCount === 0) {
@@ -303,6 +319,17 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 			$descriptionLabel->setTextSize(2);
 			$descriptionLabel->setTranslate(true);
 			$nameLabel->addTooltipLabelFeature($descriptionLabel, $setting->description);
+
+			if ($isunlinkable) {
+				$quadlink = new Quad();
+				$settingFrame->addChild($quadlink);
+				$quadlink->setPosition(-0.48 * $width, 0.2, -0.01);
+				$quadlink->setSize(4, 4);
+				$quadlink->setColorize("ccccccaa");
+				$quadlink->setStyle("UICommon64_1");
+				$quadlink->setSubStyle("Padlock_light");
+				$quadlink->setStyleSelected($setting->linked);
+			}
 
 			if ($setting->type === Setting::TYPE_BOOL) {
 				// Boolean checkbox
@@ -346,6 +373,109 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		$backButton->setPosition(-$width / 2 + 5, -$height / 2 + 5);
 		$backButton->setAction(self::ACTION_BACK_TO_PLUGINS);
 
+		if ($isunlinkable) {
+			$mapNameButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
+				'Manage settings link',
+				30,
+				5,
+				self::ACTION_PREFIX_MANAGE_SETTING_LINK . $settingClass
+			);
+			$frame->addChild($mapNameButton);
+			$mapNameButton->setPosition(-$width / 2 + 60, -35);
+		}
+
+		return $frame;
+	}
+	
+	/**
+	 * getManageSettingsLink
+	 *
+	 * @param  Frame $frame
+	 * @param  float $width
+	 * @param  float $height
+	 * @param  Paging $paging
+	 * @param  Player $player
+	 * @param  mixed $settingClass
+	 * @return void
+	 */
+	public function getManageSettingsLink(Frame $frame, $width, $height, Paging $paging, Player $player, $settingClass) {
+		$settings = $this->maniaControl->getSettingManager()->getSettingsByClass($settingClass);
+
+		$pageSettingsMaxCount = 10;
+		$posY                 = 0;
+		$index                = 0;
+		$settingHeight        = 5.;
+		$pageFrame            = null;
+
+		if (count($settings) > 64) {
+			Logger::logWarning("You can't send more than 64 fields in Manialink Action");
+			$this->maniaControl->getChat()->sendError("Some settings may not be saved because it has more than 64", $player);
+		}
+
+		//Headline Label
+		$headLabel = new Label_Text();
+		$frame->addChild($headLabel);
+		$headLabel->setHorizontalAlign($headLabel::LEFT);
+		$headLabel->setPosition($width * -0.46, $height * 0.41);
+		$headLabel->setSize($width * 0.6, $settingHeight);
+		$headLabel->setStyle($headLabel::STYLE_TextCardSmall);
+		$headLabel->setTextSize(3);
+		$headLabel->setText($settingClass);
+		$headLabel->setTextColor('ff0');
+
+		foreach ($settings as $setting) {
+			if ($index % $pageSettingsMaxCount === 0) {
+				$pageFrame = new Frame();
+				$frame->addChild($pageFrame);
+				$paging->addPageControl($pageFrame);
+				$posY = $height * 0.41 - $settingHeight * 1.5;
+			}
+
+			$settingFrame = new Frame();
+			$pageFrame->addChild($settingFrame);
+			$settingFrame->setY($posY);
+
+			$nameLabel = new Label_Text();
+			$settingFrame->addChild($nameLabel);
+			$nameLabel->setHorizontalAlign($nameLabel::LEFT);
+			$nameLabel->setX($width * -0.46);
+			$nameLabel->setSize($width * 0.6, $settingHeight);
+			$nameLabel->setStyle($nameLabel::STYLE_TextCardSmall);
+			$nameLabel->setTextSize(2);
+			$nameLabel->setText($setting->setting);
+			$nameLabel->setTextColor('fff');
+
+			$descriptionLabel = new Label_Text();
+			$pageFrame->addChild($descriptionLabel);
+			$descriptionLabel->setHorizontalAlign($descriptionLabel::LEFT);
+			$descriptionLabel->setPosition(-0.45 * $width, -0.35 * $height);
+			$descriptionLabel->setSize(0.9 * $width, $settingHeight);
+			$descriptionLabel->setTextSize(2);
+			$descriptionLabel->setTranslate(true);
+			$nameLabel->addTooltipLabelFeature($descriptionLabel, $setting->description);
+
+			$quad = new Quad();
+			$quad->setPosition($width * 0.33, 0.2, -0.01);
+			$quad->setSize(4, 4);
+			$checkBox = new CheckBox(self::ACTION_PREFIX_SETTING_LINK . $setting->index, $setting->linked, $quad);
+			$checkBox->setEnabledDesign("UICommon64_1", "Padlock_light");
+			$checkBox->setDisabledDesign("UICommon64_1", "Padlock_light");
+			$settingFrame->addChild($checkBox);
+
+			$posY -= $settingHeight;
+
+			$index++;
+		}
+
+		$backButton = new Label_Button();
+		$frame->addChild($backButton);
+		$backButton->setStyle($backButton::STYLE_CardMain_Quit);
+		$backButton->setHorizontalAlign($backButton::LEFT);
+		$backButton->setScale(0.5);
+		$backButton->setText('Back');
+		$backButton->setPosition(-$width / 2 + 5, -$height / 2 + 5);
+		$backButton->setAction(self::ACTION_PREFIX_SETTINGS . $settingClass);
+
 		return $frame;
 	}
 
@@ -359,7 +489,8 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		$enable   = (strpos($actionId, self::ACTION_PREFIX_ENABLEPLUGIN) === 0);
 		$disable  = (strpos($actionId, self::ACTION_PREFIX_DISABLEPLUGIN) === 0);
 		$settings = (strpos($actionId, self::ACTION_PREFIX_SETTINGS) === 0);
-		if (!$enable && !$disable && !$settings) {
+		$managelink = (strpos($actionId, self::ACTION_PREFIX_MANAGE_SETTING_LINK) === 0);
+		if (!$enable && !$disable && !$settings && !$managelink) {
 			return;
 		}
 
@@ -395,10 +526,9 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 			} else {
 				$this->maniaControl->getChat()->sendError('Error deactivating ' . $pluginClass::getName() . '!', $player);
 			}
-		} else if ($settings) {
+		} else if ($settings || $managelink) {
 			// Open Settings Menu
-			$pluginClass = substr($actionId, strlen(self::ACTION_PREFIX_SETTINGS));
-			$player->setCache($this, self::CACHE_SETTING_CLASS, $pluginClass);
+			$player->setCache($this, self::CACHE_SETTING_CLASS, $actionId);
 		}
 
 		// Reopen the Menu
@@ -414,25 +544,45 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 			$this->maniaControl->getAuthenticationManager()->sendNotAllowed($player);
 			return;
 		}
-		if (!$configData[3] || strpos($configData[3][0]['Name'], self::ACTION_PREFIX_SETTING) !== 0) {
+
+		if (!$configData[3] || (strpos($configData[3][0]['Name'], self::ACTION_PREFIX_SETTING) !== 0 && strpos($configData[3][0]['Name'], self::ACTION_PREFIX_SETTING_LINK) !== 0)) {
 			return;
 		}
 
-		$prefixLength = strlen(self::ACTION_PREFIX_SETTING);
 
 		foreach ($configData[3] as $settingData) {
-			$settingIndex  = (int)substr($settingData['Name'], $prefixLength);
-			$settingObject = $this->maniaControl->getSettingManager()->getSettingObjectByIndex($settingIndex);
-			if (!$settingObject) {
+			if (!$settingData || !isset($settingData['Value'])) {
+				continue;
+			}
+			$data = explode(".", $settingData["Name"]);
+			$type = $data[0];
+			$index = $data[1];
+
+			$settingObjectByIndex = $this->maniaControl->getSettingManager()->getSettingObjectByIndex($index);
+			if (!$settingObjectByIndex) {
 				continue;
 			}
 
-			if (!$settingData || $settingData['Value'] == $settingObject->value) {
-				continue;
+			if ($type . "." == self::ACTION_PREFIX_SETTING_LINK) {
+				if ($settingData['Value'] && !$settingObjectByIndex->linked) {
+					$this->maniaControl->getSettingManager()->deleteSettingUnlinked($settingObjectByIndex);		
+					$setting = $this->maniaControl->getSettingManager()->getSettingObject($settingObjectByIndex->class, $settingObjectByIndex->setting);
+					$setting->linked = True;
+				} else if (!$settingData['Value'] && $settingObjectByIndex->linked) {
+					$setting = $settingObjectByIndex;
+					$setting->linked = false;
+					$this->maniaControl->getSettingManager()->setSettingUnlinked($setting);
+				} else {
+					continue;
+				}
+			} else {
+				$setting = $settingObjectByIndex;
+				if ($settingData['Value'] == $setting->value) {
+					continue;
+				}
+				$setting->value = $settingData['Value'];
 			}
-
-			$settingObject->value = $settingData['Value'];
-			$this->maniaControl->getSettingManager()->saveSetting($settingObject);
+			$this->maniaControl->getSettingManager()->saveSetting($setting);
 		}
 
 		$this->maniaControl->getChat()->sendSuccess('Plugin Settings saved!', $player);

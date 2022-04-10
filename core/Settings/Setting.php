@@ -34,6 +34,8 @@ class Setting implements UsageInformationAble {
 	public $class       = null;
 	public $setting     = null;
 	public $type        = null;
+	public $linked      = null;
+	public $serverIndex = null;
 	public $value       = null;
 	public $default     = null;
 	public $set         = null;
@@ -58,6 +60,8 @@ class Setting implements UsageInformationAble {
 			if ($this->set) {
 				$this->set = $this->castValue($this->set, $this->type);
 			}
+			$this->linked   = $this->castValue($this->linked);
+			$this->serverIndex   = $this->castValue($this->serverIndex);
 			$this->fetchTime = time();
 		} else {
 			// Created by Values
@@ -74,6 +78,8 @@ class Setting implements UsageInformationAble {
 			$this->default = $this->value;
 			$this->description = $description;
 			$this->priority = $priority;
+			$this->linked = true;
+			$this->serverIndex = 0;
 		}
 	}
 

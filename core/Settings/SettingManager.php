@@ -23,8 +23,10 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	/*
 	 * Constants
 	 */
-	const TABLE_SETTINGS     = 'mc_settings';
-	const CB_SETTING_CHANGED = 'SettingManager.SettingChanged';
+	const TABLE_SETTINGS                = 'mc_settings';
+	const CB_SETTING_CHANGED            = 'SettingManager.SettingChanged';
+
+	const SETTING_ALLOW_UNLINK_SERVER   = 'Allow to unlink settings with multiple servers';
 
 	/*
 	 * Private properties
@@ -45,6 +47,8 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 
 		// Callbacks
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::AFTERINIT, $this, 'handleAfterInit');
+
+		$this->initSetting($this, self::SETTING_ALLOW_UNLINK_SERVER, false);
 	}
 
 	/**
@@ -90,6 +94,18 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 
 		// Add priority value
 		$mysqli->query("ALTER TABLE `" . self::TABLE_SETTINGS . "` ADD `priority` INT(5) DEFAULT 100;");
+		if ($mysqli->error) {
+			// If not Duplicate
+			if ($mysqli->errno !== 1060) {
+				trigger_error($mysqli->error, E_USER_ERROR);
+			}
+		}
+
+		// Add link status
+		$mysqli->query("ALTER TABLE `" . self::TABLE_SETTINGS . "` ADD COLUMN `linked` TINYINT(1) DEFAULT 1 AFTER `type`,
+						ADD COLUMN `serverIndex` INT(11)  DEFAULT 0 AFTER `linked`,
+						DROP INDEX `settingId`,
+						ADD UNIQUE KEY `settingId` (`class`,`setting`,`serverIndex`);");
 		if ($mysqli->error) {
 			// If not Duplicate
 			if ($mysqli->errno !== 1060) {
@@ -245,14 +261,26 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 
 		// Fetch setting
 		$mysqli       = $this->maniaControl->getDatabase()->getMysqli();
-		$settingQuery = "SELECT * FROM `" . self::TABLE_SETTINGS . "`
-				WHERE `class` = '" . $mysqli->escape_string($settingClass) . "'
-				AND `setting` = '" . $mysqli->escape_string($settingName) . "';";
-		$result       = $mysqli->query($settingQuery);
+		$settingStatement = $mysqli->prepare("SELECT * FROM `" . self::TABLE_SETTINGS . "`
+				WHERE `class` = ? 
+				AND `setting` = ?
+				AND (`serverIndex` = ? OR `serverIndex` = 0) ORDER BY `serverIndex` DESC ;");
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);
 			return null;
 		}
+
+		$serverInfo      = $this->maniaControl->getServer();
+		if ($serverInfo == null) {
+			$serverIndex = "";
+		} else {
+			$serverIndex = $serverInfo->index;
+		}
+		$settingStatement->bind_param('ssi', $settingClass, $settingName, $serverIndex);
+		if (!$settingStatement->execute()) {
+			trigger_error('Error executing MySQL query: ' . $settingStatement->error);
+		}
+		$result = $settingStatement->get_result();
 		if ($result->num_rows <= 0) {
 			$result->free();
 			if ($default === null) {
@@ -314,11 +342,17 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	public function saveSetting(Setting $setting, $init = false) {
 		$mysqli = $this->maniaControl->getDatabase()->getMysqli();
 		if ($init) {
+			$existingsetting = $this->getSettingObject($setting->class, $setting->setting);
+			if ($existingsetting !== null && !$existingsetting->linked){
+				$setting->linked = false;
+			}
+
 			// Init - Keep old value if the default didn't change
-			$valueUpdateString = '`value` = IF(`default` = VALUES(`default`), `value`, VALUES(`default`))';
+			$valueUpdateString = '`value` = IF(`default` = VALUES(`default`), `value`, VALUES(`default`)),
+					`serverIndex` = IF(`serverIndex` IS NULL, 0, `serverIndex`)';
 		} else {
 			// Set - Update value in any case
-			$valueUpdateString = '`value` = VALUES(`value`)';
+			$valueUpdateString = '`value` = VALUES(`value`), `serverIndex` = VALUES(`serverIndex`)';
 		}
 		$settingQuery     = "INSERT INTO `" . self::TABLE_SETTINGS . "` (
 				`class`,
@@ -326,15 +360,18 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 				`type`,
 				`description`,
 				`value`,
+				`serverIndex`,
+				`linked`,
 				`default`,
 				`set`,
 				`priority`
 				) VALUES (
-				?, ?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 				) ON DUPLICATE KEY UPDATE
 				`index` = LAST_INSERT_ID(`index`),
 				`type` = VALUES(`type`),
 				{$valueUpdateString},
+				`linked` = VALUES(`linked`),
 				`default` = VALUES(`default`),
 				`set` = VALUES(`set`),
 				`description` = VALUES(`description`),
@@ -348,13 +385,22 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		$formattedValue   = $setting->getFormattedValue();
 		$formattedDefault = $setting->getFormattedDefault();
 		$formattedSet     = $setting->getFormattedSet();
+		$serverInfo      = $this->maniaControl->getServer();
+
+		if ($setting->linked || $serverInfo == null || $serverInfo->index == null) {
+			$serverIndex = 0;
+		} else {
+			$serverIndex = $serverInfo->index;
+		}
 		$settingStatement->bind_param(
-			'sssssssi',
+			'sssssiissi',
 			$setting->class,
 			$setting->setting,
 			$setting->type,
 			$setting->description,
 			$formattedValue,
+			$serverIndex,
+			$setting->linked,
 			$formattedDefault,
 			$formattedSet,
 			$setting->priority
@@ -397,6 +443,44 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		}
 		return null;
 	}
+	
+	/**
+	 * setSettingUnlinked
+	 *
+	 * @param  mixed $object
+	 * @param  string $settingName
+	 * @return void
+	 */
+	public function setSettingUnlinked($object, $settingName = "") {
+		if ($object instanceof Setting) {
+			$settingClass   = $object->class;
+			$settingName = $object->setting;
+		} else {
+			$settingClass = ClassUtil::getClass($object);
+		}
+
+		// Fetch setting
+		$mysqli       = $this->maniaControl->getDatabase()->getMysqli();
+		$settingStatement = $mysqli->prepare("UPDATE `" . self::TABLE_SETTINGS . "`
+				SET `linked` = 0, `changed` = NOW()
+				WHERE `class` = ? 
+				AND `setting` = ?");
+		if ($mysqli->error) {
+			trigger_error($mysqli->error);
+			return null;
+		}
+		
+		$settingStatement->bind_param('ss', $settingClass, $settingName);
+		if (!$settingStatement->execute()) {
+			trigger_error('Error executing MySQL query: ' . $settingStatement->error);
+		}
+		$result = $settingStatement->get_result();
+
+		if (isset($this->storedSettings[$settingClass . $settingName])) {
+			unset($this->storedSettings[$settingClass . $settingName]);
+		}
+		return $result;
+	}
 
 	/**
 	 * Reset a Setting to its Default Value
@@ -407,24 +491,38 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 */
 	public function resetSetting($object, $settingName = null) {
 		if ($object instanceof Setting) {
-			$className   = $object->class;
+			$settingClass   = $object->class;
 			$settingName = $object->setting;
 		} else {
-			$className = ClassUtil::getClass($object);
+			$settingClass = ClassUtil::getClass($object);
 		}
 		$mysqli       = $this->maniaControl->getDatabase()->getMysqli();
-		$settingQuery = "UPDATE `" . self::TABLE_SETTINGS . "`
+		$settingStatement = $mysqli->prepare("UPDATE `" . self::TABLE_SETTINGS . "`
 				SET `value` = `default`
-				WHERE `class` = '" . $mysqli->escape_string($className) . "'
-				AND `setting` = '" . $mysqli->escape_string($settingName) . "';";
-		$result       = $mysqli->query($settingQuery);
+				WHERE `class` = ?
+				AND `setting` = ?
+				AND (`serverIndex` = ? OR `serverIndex` = 0) ORDER BY `serverIndex` DESC LIMIT 1;"); // TODO : by server if linked or not
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);
-			return false;
+			return null;
 		}
-		if (isset($this->storedSettings[$className . $settingName])) {
-			unset($this->storedSettings[$className . $settingName]);
+
+		$serverInfo      = $this->maniaControl->getServer();
+		if ($serverInfo == null) {
+			$serverIndex = 0;
+		} else {
+			$serverIndex = $serverInfo->index;
 		}
+		$settingStatement->bind_param('ssi', $settingClass, $settingName, $serverIndex);
+		if (!$settingStatement->execute()) {
+			trigger_error('Error executing MySQL query: ' . $settingStatement->error);
+		}
+		$result = $settingStatement->get_result();
+
+		if (isset($this->storedSettings[$settingClass . $settingName])) {
+			unset($this->storedSettings[$settingClass . $settingName]);
+		}
+
 		return $result;
 	}
 
@@ -461,6 +559,45 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	}
 
 	/**
+	 * Delete unlinked settings
+	 *
+	 * @param mixed  $object
+	 * @param string $settingName
+	 * @return bool
+	 */
+	public function deleteSettingUnlinked($object, $settingName = null) {
+		if ($object instanceof Setting) {
+			$settingClass   = $object->class;
+			$settingName = $object->setting;
+		} else {
+			$settingClass = ClassUtil::getClass($object);
+		}
+
+		// Fetch setting
+		$mysqli       = $this->maniaControl->getDatabase()->getMysqli();
+		$settingStatement = $mysqli->prepare("DELETE FROM `" . self::TABLE_SETTINGS . "`
+				WHERE `class` = ? 
+				AND `setting` = ?
+				AND `serverIndex` != 0");
+		if ($mysqli->error) {
+			trigger_error($mysqli->error);
+			return null;
+		}
+
+		$settingStatement->bind_param('ss', $settingClass, $settingName);
+		if (!$settingStatement->execute()) {
+			trigger_error('Error executing MySQL query: ' . $settingStatement->error);
+		}
+		$result = $settingStatement->get_result();
+
+		if (isset($this->storedSettings[$settingClass . $settingName])) {
+			unset($this->storedSettings[$settingClass . $settingName]);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Get all Settings for the given Class
 	 *
 	 * @param mixed $object
@@ -469,14 +606,27 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	public function getSettingsByClass($object) {
 		$className = ClassUtil::getClass($object);
 		$mysqli    = $this->maniaControl->getDatabase()->getMysqli();
-		$query     = "SELECT * FROM `" . self::TABLE_SETTINGS . "`
-				WHERE `class` = '" . $mysqli->escape_string($className) . "'
-				ORDER BY `priority` ASC, `setting` ASC;";
-		$result    = $mysqli->query($query);
+		// LIMIT is required to keep unlinked setting
+		$settingStatement = $mysqli->prepare("SELECT * FROM (SELECT * FROM `" . self::TABLE_SETTINGS . "` 
+												WHERE class = ? AND (`serverIndex` = ? OR `serverIndex` = 0)
+												ORDER BY `priority` ASC, `setting` ASC, `serverIndex` DESC 
+												LIMIT 9999999) 
+												as t GROUP BY `setting`; ");
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);
 			return null;
 		}
+		$serverInfo      = $this->maniaControl->getServer();
+		if ($serverInfo == null) {
+			$serverIndex = 0;
+		} else {
+			$serverIndex = $serverInfo->index;
+		}
+		$settingStatement->bind_param('si', $className, $serverIndex);
+		if (!$settingStatement->execute()) {
+			trigger_error('Error executing MySQL query: ' . $settingStatement->error);
+		}
+		$result = $settingStatement->get_result();
 		$settings = array();
 		while ($setting = $result->fetch_object(Setting::CLASS_NAME, array(false, null, null))) {
 			$settings[$setting->index] = $setting;
@@ -487,10 +637,11 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 
 	/**
 	 * Get all Settings
+	 * CAREFUL: could have multiple time the same setting if in unlinked mode
 	 *
 	 * @return Setting[]
 	 */
-	public function getSettings() {
+	public function getSettings() { 
 		$mysqli = $this->maniaControl->getDatabase()->getMysqli();
 		$query  = "SELECT * FROM `" . self::TABLE_SETTINGS . "`
 				ORDER BY `class` ASC, `priority` ASC, `setting` ASC;";
