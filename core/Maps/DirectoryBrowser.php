@@ -245,7 +245,8 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 			return false;
 		}
 		$mapFiles = array();
-		$dirFiles = scandir($directory);
+		$dirFiles = scandir($directory, SCANDIR_SORT_NONE);
+		natcasesort($dirFiles);
 		foreach ($dirFiles as $fileName) {
 			if (FileUtil::isHiddenFile($fileName)) {
 				continue;
