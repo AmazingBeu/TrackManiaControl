@@ -609,9 +609,9 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		// LIMIT is required to keep unlinked setting
 		$settingStatement = $mysqli->prepare("SELECT * FROM (SELECT * FROM `" . self::TABLE_SETTINGS . "` 
 												WHERE class = ? AND (`serverIndex` = ? OR `serverIndex` = 0)
-												ORDER BY `priority` ASC, `setting` ASC, `serverIndex` DESC 
+												ORDER BY `serverIndex` DESC 
 												LIMIT 9999999) 
-												as t GROUP BY `setting`; ");
+												as t GROUP BY `setting` ORDER BY `priority` ASC, `setting`;");
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);
 			return null;
