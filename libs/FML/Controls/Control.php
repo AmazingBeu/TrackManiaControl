@@ -846,9 +846,9 @@ abstract class Control implements Identifiable, Renderable, ScriptFeatureable
      * @param string $eventLabel (optional) Event on which the player profile will be opened
      * @return static
      */
-    public function addPlayerProfileFeature($login, $eventLabel = ScriptLabel::MOUSECLICK)
+    public function addPlayerProfileFeature($login, $eventLabel = ScriptLabel::MOUSECLICK, $titleId = "Trackmania")
     {
-        $playerProfile = new PlayerProfile($login, $this, $eventLabel);
+        $playerProfile = new PlayerProfile($login, $this, $eventLabel, $titleId) ;
         $this->addScriptFeature($playerProfile);
         return $this;
     }

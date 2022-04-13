@@ -34,6 +34,11 @@ class PlayerProfile extends ScriptFeature
     protected $labelName = null;
 
     /**
+     * @var string $titleId Script Label name
+     */
+    protected $titleId = null;
+
+    /**
      * Construct a new Player Profile
      *
      * @api
@@ -41,7 +46,7 @@ class PlayerProfile extends ScriptFeature
      * @param Control $control   (optional) Profile Control
      * @param string  $labelName (optional) Script Label name
      */
-    public function __construct($login = null, Control $control = null, $labelName = ScriptLabel::MOUSECLICK)
+    public function __construct($login = null, Control $control = null, $labelName = ScriptLabel::MOUSECLICK, $titleId = "Trackmania")
     {
         if ($login) {
             $this->setLogin($login);
@@ -51,6 +56,9 @@ class PlayerProfile extends ScriptFeature
         }
         if ($labelName) {
             $this->setLabelName($labelName);
+        }
+        if ($titleId) {
+            $this->setTitleId($titleId);
         }
     }
 
@@ -131,6 +139,30 @@ class PlayerProfile extends ScriptFeature
     }
 
     /**
+     * Get the Script Label name
+     *
+     * @api
+     * @return string
+     */
+    public function getTitleId()
+    {
+        return $this->titleId;
+    }
+
+    /**
+     * Set the Script Label name
+     *
+     * @api
+     * @param string $labelName Script Label name
+     * @return static
+     */
+    public function setTitleId($titleId)
+    {
+        $this->titleId = (string)$titleId;
+        return $this;
+    }
+
+    /**
      * @see ScriptFeature::prepare()
      */
     public function prepare(Script $script)
@@ -148,18 +180,26 @@ class PlayerProfile extends ScriptFeature
     {
         $login = Builder::escapeText($this->login);
 
+        if ($this->titleId == "Trackmania") {
+            $apicall = "declare Text LibTMxSMRaceScoresTable_OpenProfileLogin for ClientUI = \"\";
+            LibTMxSMRaceScoresTable_OpenProfileLogin = {$login};";
+        } else {
+            $apicall = "ShowProfile({$login});";
+        }
+
         if ($this->control) {
             // Control event
             $controlId = Builder::escapeText($this->control->getId());
+
             return "
 if (Event.Control.ControlId == {$controlId}) {
-	ShowProfile({$login});
+	{$apicall}
 }";
         }
 
         // Other events
         return "
-ShowProfile({$login});";
+{$apicall}";
     }
 
 }
