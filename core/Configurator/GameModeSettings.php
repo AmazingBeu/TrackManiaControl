@@ -78,7 +78,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 
 		// Settings
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_HIDE_SETTINGS_WITH_DESCRIPTION_HIDDEN, true);
-		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_LOAD_DEFAULT_SETTINGS_STARTUP, true);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_LOAD_DEFAULT_SETTINGS_STARTUP, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_LOAD_DEFAULT_SETTINGS_MAP_BEGIN, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SORT_SETTINGS, true);
 
@@ -273,7 +273,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 	 * Handle Begin Map Callback
 	 */
 	public function onBeginMap() {
-		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_LOAD_DEFAULT_SETTINGS_MAP_BEGIN)) {
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_LOAD_DEFAULT_SETTINGS_STARTUP)) {
 			$this->loadSettingsFromDatabase();
 		}
 	}
