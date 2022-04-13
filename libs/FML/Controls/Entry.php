@@ -315,7 +315,7 @@ class Entry extends Control implements NewLineable, Scriptable, Styleable, TextF
      */
     public function setTextSize($textSize)
     {
-        $this->textSize = (int)$textSize;
+        $this->textSize = (float)$textSize;
         return $this;
     }
 

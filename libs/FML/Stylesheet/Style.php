@@ -367,7 +367,7 @@ class Style implements BackgroundColorable, BgColorable, Colorable, Renderable, 
      */
     public function setTextSize($textSize)
     {
-        $this->textSize = (int)$textSize;
+        $this->textSize = (float)$textSize;
         return $this;
     }
 

@@ -521,7 +521,7 @@ class Label extends Control implements Actionable, Linkable, NewLineable, MultiL
      */
     public function setTextSize($textSize)
     {
-        $this->textSize = (int)$textSize;
+        $this->textSize = (float)$textSize;
         return $this;
     }
 

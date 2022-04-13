@@ -347,7 +347,7 @@ class TextEdit extends Control implements MultiLineable, Scriptable, Styleable, 
      */
     public function setTextSize($textSize)
     {
-        $this->textSize = (int)$textSize;
+        $this->textSize = (float)$textSize;
         return $this;
     }
 

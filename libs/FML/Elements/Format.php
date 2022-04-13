@@ -145,7 +145,7 @@ class Format implements BackgroundColorable, BgColorable, Renderable, Styleable,
      */
     public function setTextSize($textSize)
     {
-        $this->textSize = (int)$textSize;
+        $this->textSize = (float)$textSize;
         return $this;
     }
 
