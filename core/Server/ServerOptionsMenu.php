@@ -38,6 +38,7 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 	const CB_SERVER_OPTION_CHANGED                 = 'ServerOptionsMenu.OptionChanged';
 	const CB_SERVER_OPTIONS_CHANGED                = 'ServerOptionsMenu.OptionsChanged';
 	const SETTING_PERMISSION_CHANGE_SERVER_OPTIONS = 'Change Server Options';
+	const SETTING_LOAD_DEFAULT_SETTINGS_STARTUP    = 'Load Stored Server Options on Startup';
 	const TABLE_SERVER_OPTIONS                     = 'mc_server_options';
 	const ACTION_PREFIX_OPTION                     = 'ServerOptionsMenu.';
 
@@ -67,6 +68,9 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 
 		// Permissions
 		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_CHANGE_SERVER_OPTIONS, AuthenticationManager::AUTH_LEVEL_SUPERADMIN);
+
+		// Settings
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_LOAD_DEFAULT_SETTINGS_STARTUP, false);
 
 		//TODO remove to somewhere cleaner
 		//Communication Listenings
@@ -173,7 +177,9 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 	 * Handle OnInit callback
 	 */
 	public function onInit() {
-		$this->loadOptionsFromDatabase();
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_LOAD_DEFAULT_SETTINGS_STARTUP)) {
+			$this->loadOptionsFromDatabase();
+		}
 	}
 
 	/**
@@ -255,6 +261,16 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 		$pagerSize     = 9.;
 		$optionHeight  = 5.;
 		$labelTextSize = 2;
+
+		$tipNextValues = new Label_Text();
+		$frame->addChild($tipNextValues);
+		$tipNextValues->setPosition(- $width * 0.45, $height * -0.44, 1);
+		$tipNextValues->setTextSize(0.5);
+		$tipNextValues->setTextFont("GameFontSemiBold");
+		$tipNextValues->setHorizontalAlign($tipNextValues::LEFT);
+		$tipNextValues->setAutoNewLine(true);
+		$tipNextValues->setSize(45,10);
+		$tipNextValues->setText("All options starting by \"Next\" are applied after a map change");
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
