@@ -4,6 +4,7 @@ namespace ManiaControl\Maps;
 
 use FML\Controls\Frame;
 use FML\Controls\Label;
+use FML\Controls\Entry;
 use FML\Controls\Labels\Label_Text;
 use FML\Controls\Quads\Quad_BgsPlayerCard;
 use FML\Controls\Quads\Quad_Icons64x64_1;
@@ -11,6 +12,7 @@ use FML\Controls\Quads\Quad_UIConstruction_Buttons;
 use FML\Controls\Quads\Quad_UIConstructionBullet_Buttons;
 use FML\ManiaLink;
 use FML\Script\Features\Paging;
+use ManiaControl\Files\AsyncHttpRequest;
 use ManiaControl\Files\FileUtil;
 use ManiaControl\Logger;
 use ManiaControl\ManiaControl;
@@ -39,6 +41,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	const ACTION_INSPECT_FILE  = 'MapsDirBrowser.InspectFile.';
 	const ACTION_ADD_FILE      = 'MapsDirBrowser.AddFile.';
 	const ACTION_ERASE_FILE    = 'MapsDirBrowser.EraseFile.';
+	const ACTION_DOWNLOAD_FILE = 'MapsDirBrowser.DownloadFile';
 	const WIDGET_NAME          = 'MapsDirBrowser.Widget';
 	const CACHE_FOLDER_PATH    = 'FolderPath';
 
@@ -64,6 +67,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_INSPECT_FILE), $this, 'handleInspectFile');
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_ADD_FILE), $this, 'handleAddFile');
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_ERASE_FILE), $this, 'handleEraseFile');
+		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_DOWNLOAD_FILE), $this, 'handleDownloadFile');
 	}
 
 	/**
@@ -225,6 +229,33 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 					$index++;
 				}
 			}
+
+			$label = new Label_Text();
+			$frame->addChild($label);
+			$label->setPosition(-$width / 2 + 5, -$height / 2 + 8.5);
+			$label->setHorizontalAlign($label::LEFT);
+			$label->setTextSize(1);
+			$label->setText('Download from URL: ');
+	
+			$entry = new Entry();
+			$frame->addChild($entry);
+			$entry->setStyle(Label_Text::STYLE_TextValueSmall);
+			$entry->setHorizontalAlign($entry::LEFT);
+			$entry->setPosition(-$width / 2 + 35, -$height / 2 + 8.5);
+			$entry->setTextSize(1);
+			$entry->setSize($width * 0.35, 4);
+			$entry->setName('SearchString');
+
+			//Search for Map-Name
+			$mapNameButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
+				'Download',
+				18,
+				5,
+				self::ACTION_DOWNLOAD_FILE
+			);
+			$frame->addChild($mapNameButton);
+			$mapNameButton->setPosition(-$width / 2 + 100, -$height / 2 + 8.5);
+
 		} else {
 			$errorLabel = new Label();
 			$frame->addChild($errorLabel);
@@ -408,6 +439,120 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				$fileName
 			);
 			$this->maniaControl->getChat()->sendError($message, $player);
+		}
+	}
+
+
+
+	/**
+	 * Handle 'handleDownloadFile' page action
+	 *
+	 * @param array  $actionCallback
+	 * @param Player $player
+	 */
+	public function handleDownloadFile(array $actionCallback, Player $player) {
+		$url = trim($actionCallback[1][3][0]["Value"]);
+		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
+		if (filter_var($url, FILTER_VALIDATE_URL)) {
+			
+			$asyncHttpRequest = new AsyncHttpRequest($this->maniaControl, $url);
+			$asyncHttpRequest->setCallable(function ($file, $error, $headers) use ($url, $folderPath, $player) {
+				if (!$file || $error) {
+					$message = "Impossible to download the file: " .  $error;
+					$this->maniaControl->getChat()->sendError($message, $player);
+					Logger::logError($message);
+					return;
+				}
+				$filePath = "";
+				
+				$contentdispositionheader = "";
+				foreach ($headers as $key => $value) {
+					if (strtolower($key) === "content-disposition") {
+						$contentdispositionheader = $value;
+						break;
+					}
+				}
+
+				if ($contentdispositionheader !== "") {
+					$value = $contentdispositionheader;
+
+					if (strpos($value, ';') !== false) {
+						
+						list($type, $attr_parts) = explode(';', $value, 2);
+				
+						$attr_parts = explode(';', $attr_parts);
+						$attributes = array();
+				
+						foreach ($attr_parts as $part) {
+							if (strpos($part, '=') === false) {
+								continue;
+							}
+				
+							list($key, $value) = explode('=', $part, 2);
+				
+							$attributes[trim($key)] = trim($value);
+						}
+				
+						$attrNames = ['filename*' => true, 'filename' => false];
+						$filename = null;
+						$isUtf8 = false;
+						foreach ($attrNames as $attrName => $utf8) {
+							if (!empty($attributes[$attrName])) {
+								$filename = trim($attributes[$attrName]);
+								$isUtf8 = $utf8;
+								break;
+							}
+						}
+
+						if ($filename !== null) {
+							if ($isUtf8 && strpos($filename, "utf-8''") === 0 && $filename = substr($filename, strlen("utf-8''"))) {
+								$filePath = $folderPath . rawurldecode($filename);
+							}
+							if (substr($filename, 0, 1) === '"' && substr($filename, -1, 1) === '"') {
+								$filePath = $folderPath . substr($filename, 1, -1);
+							} else {
+								$filePath = $folderPath . $filename;
+							}
+						}
+					}
+
+					if (!$this->isMapFileName($filePath)) {
+						$message = "File is not a map: " . $filename;
+						$this->maniaControl->getChat()->sendError($message, $player);
+						Logger::logError($message);
+						return;
+					}
+				} else {
+					$path = parse_url($url, PHP_URL_PATH);
+
+					// extracted basename
+					$filePath = $folderPath . basename($path);
+
+					if (!$this->isMapFileName($filePath)) {
+						$filePath .= ".Map.Gbx";
+					}
+				}
+
+				if ($filePath != "") {
+					if (file_exists($filePath)) {
+						$index = 1;
+						while (file_exists(substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx")) {
+							$index++;
+						}
+						$filePath = substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx";
+					}
+					$bytes = file_put_contents($filePath, $file);
+					if (!$bytes || $bytes <= 0) {
+						$message = "Impossible to determine filename";
+						$this->maniaControl->getChat()->sendError($message, $player);
+						Logger::logError($message);
+						return;
+					}
+				}
+				$this->showManiaLink($player, $folderPath);
+			});
+
+			$asyncHttpRequest->getData();
 		}
 	}
 }
