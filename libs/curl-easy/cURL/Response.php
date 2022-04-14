@@ -30,7 +30,7 @@ class Response
             }
             $this->headers = $headers_arr;
 
-            $this->content = substr($content, $header_size);;
+            $this->content = substr($content, $header_size);
         }
     }
     
