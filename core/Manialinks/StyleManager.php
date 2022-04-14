@@ -129,7 +129,7 @@ class StyleManager implements UsageInformationAble {
 		$frame->addChild($label);
 		$label->setPosition(-$width / 2 + 5, 0);
 		$label->setHorizontalAlign($label::LEFT);
-		$label->setTextSize(1.3);
+		$label->setTextSize(1);
 		$label->setText('Search: ');
 
 		$entry = new Entry();
@@ -245,7 +245,7 @@ class StyleManager implements UsageInformationAble {
 
 			$pageCountLabel = new Label_Text();
 			$frame->addChild($pageCountLabel);
-			$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT)->setPosition($width * 0.40, $height * -0.44, 1)->setStyle($pageCountLabel::STYLE_TextTitle1)->setTextSize(1.3);
+			$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT)->setPosition($width * 0.40, $height * -0.44, 1)->setStyle($pageCountLabel::STYLE_TextTitle1)->setTextSize(1);
 
 			if ($paging) {
 				$paging->addButtonControl($pagerNext)->addButtonControl($pagerPrev)->setLabel($pageCountLabel);

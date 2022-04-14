@@ -168,7 +168,7 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 			$rightLabel = new Label_Text();
 			$playerFrame->addChild($rightLabel);
 			$rightLabel->setX($posX + 13.9);
-			$rightLabel->setTextSize(0.8);
+			$rightLabel->setTextSize(0);
 			$rightLabel->setZ(10);
 			$rightLabel->setText($this->maniaControl->getAuthenticationManager()->getAuthLevelAbbreviation($admin));
 			$description = $this->maniaControl->getAuthenticationManager()->getAuthLevelName($admin) . " " . $admin->nickname;

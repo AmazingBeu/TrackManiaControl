@@ -209,7 +209,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 		$descriptionLabel->setPosition($playerPos->getX() - count($this->playerMenuItems) * $itemSize * 1.05 - 5, $playerPos->getY());
 		$descriptionLabel->setAlign($descriptionLabel::RIGHT, $descriptionLabel::TOP);
 		$descriptionLabel->setSize(40, 4);
-		$descriptionLabel->setTextSize(1.4);
+		$descriptionLabel->setTextSize(1);
 		$descriptionLabel->setTextColor('fff');
 
 		// Player Menu
@@ -285,7 +285,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 		$descriptionLabel->setPosition($adminPos->getX() - count($this->adminMenuItems) * $itemSize * 1.05 - 5, $adminPos->getY());
 		$descriptionLabel->setAlign($descriptionLabel::RIGHT, $descriptionLabel::TOP);
 		$descriptionLabel->setSize(40, 4);
-		$descriptionLabel->setTextSize(1.4);
+		$descriptionLabel->setTextSize(1);
 		$descriptionLabel->setTextColor('fff');
 
 		// Admin Menu

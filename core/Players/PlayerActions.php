@@ -554,7 +554,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			$label->setStyle($label::STYLE_TextCardMedium);
 			$label->setText($line);
 			$label->setTextColor('ff0');
-			$label->setTextSize(1.3);
+			$label->setTextSize(1);
 			$posY -= 4;
 		}
 

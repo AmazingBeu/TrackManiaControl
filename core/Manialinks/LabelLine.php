@@ -23,7 +23,7 @@ class LabelLine implements UsageInformationAble {
 
 	private $horizontalAlign = Label::LEFT;
 	private $style           = Label_Text::STYLE_TextCardSmall;
-	private $textSize        = 1.5;
+	private $textSize        = 1;
 	private $textColor       = 'FFF';
 	private $posZ            = 0;
 	private $prefix          = '';

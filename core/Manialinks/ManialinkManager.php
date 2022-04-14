@@ -376,7 +376,7 @@ class ManialinkManager implements ManialinkPageAnswerListener, CallbackListener,
 		// define standard properties
 		$hAlign    = (isset($properties['hAlign']) ? $properties['hAlign'] : Control::LEFT);
 		$style     = (isset($properties['style']) ? $properties['style'] : Label_Text::STYLE_TextCardSmall);
-		$textSize  = (isset($properties['textSize']) ? $properties['textSize'] : 1.5);
+		$textSize  = (isset($properties['textSize']) ? $properties['textSize'] : 1);
 		$textColor = (isset($properties['textColor']) ? $properties['textColor'] : 'FFF');
 		$posZ      = (isset($properties['posZ']) ? $properties['posZ'] : 0);
 

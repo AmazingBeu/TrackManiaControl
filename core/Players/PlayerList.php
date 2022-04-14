@@ -300,7 +300,7 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 			$playerFrame->addChild($rightLabel);
 			$rightLabel->setX($posX + 13.9);
 			$rightLabel->setText($this->maniaControl->getAuthenticationManager()->getAuthLevelAbbreviation($listPlayer->authLevel));
-			$rightLabel->setTextSize(0.8);
+			$rightLabel->setTextSize(0);
 			$rightLabel->setTextColor('fff');
 
 			$description = $this->maniaControl->getAuthenticationManager()->getAuthLevelName($listPlayer) . ' ' . $listPlayer->nickname;
@@ -464,7 +464,7 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 		//Settings
 		$posX      = $width / 2 + 0.2;
 		$width     = 35;
-		$textSize  = 1.5;
+		$textSize  = 1;
 		$textColor = 'fff';
 		$quadWidth = $width - 7;
 

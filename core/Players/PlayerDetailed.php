@@ -97,7 +97,7 @@ class PlayerDetailed {
 		$mainLabel = new Label_Text();
 		$frame->addChild($mainLabel);
 		$mainLabel->setPosition($posX, $posY);
-		$mainLabel->setTextSize(1.2);
+		$mainLabel->setTextSize(1);
 		$mainLabel->setHorizontalAlign($mainLabel::LEFT);
 		$mainLabel->setText('Login: ');
 		$mainLabel->setWidth($colWidth);
@@ -150,7 +150,7 @@ class PlayerDetailed {
 		$frame->addChild($mainLabel);
 		$mainLabel->setPosition($posX + $colWidth, $posY);
 		$mainLabel->setText($target->login);
-		$mainLabel->setTextSize(1.2);
+		$mainLabel->setTextSize(1);
 		$mainLabel->setHorizontalAlign($mainLabel::LEFT);
 		$mainLabel->setWidth($colWidth);
 
@@ -266,7 +266,7 @@ class PlayerDetailed {
 			$label->setPosition($posX + $this->padding, $posY);
 			$label->setText($statProperties->name);
 			$label->setHorizontalAlign($label::LEFT);
-			$label->setTextSize(1.5);
+			$label->setTextSize(1);
 			$label->setWidth($colWidth / 2 - $this->padding);
 
 			$label = new Label_Text();
@@ -274,7 +274,7 @@ class PlayerDetailed {
 			$label->setPosition($posX + $colWidth - $this->padding, $posY);
 			$label->setHorizontalAlign(Label_Text::RIGHT);
 			$label->setText($value);
-			$label->setTextSize(1.5);
+			$label->setTextSize(1);
 			$label->setWidth($colWidth / 2 - $this->padding);
 
 			$posY -= 4;

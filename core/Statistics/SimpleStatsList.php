@@ -322,7 +322,7 @@ class SimpleStatsList implements ManialinkPageAnswerListener, CallbackListener, 
 
 		$pageCountLabel = new Label_Text();
 		$frame->addChild($pageCountLabel);
-		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT)->setPosition($width * 0.40, $height * -0.44, 1)->setStyle($pageCountLabel::STYLE_TextTitle1)->setTextSize(1.3);
+		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT)->setPosition($width * 0.40, $height * -0.44, 1)->setStyle($pageCountLabel::STYLE_TextTitle1)->setTextSize(1);
 
 		$paging->addButtonControl($pagerNext)->addButtonControl($pagerPrev)->setLabel($pageCountLabel);
 

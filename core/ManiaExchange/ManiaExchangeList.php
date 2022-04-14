@@ -305,7 +305,7 @@ class ManiaExchangeList implements CallbackListener, ManialinkPageAnswerListener
 				$awardLabel->setX($posX + 98.5);
 				$awardLabel->setHorizontalAlign($awardLabel::LEFT);
 				$awardLabel->setText($map->awards);
-				$awardLabel->setTextSize(1.3);
+				$awardLabel->setTextSize(1);
 			}
 
 			//Map Karma
