@@ -6,6 +6,7 @@ class Response
     protected $ch;
     protected $error;
     protected $content = null;
+    protected $headers;
     
     /**
      * Constructs response
@@ -17,8 +18,19 @@ class Response
     {
         $this->ch = $request->getHandle();
         
-        if (is_string($content)) {
-            $this->content = $content;
+        if ($content != null) {
+            $header_size = $this->getInfo(CURLINFO_HEADER_SIZE);
+
+            foreach (explode("\r\n", substr($content, 0, $header_size)) as $value) {
+                if(false !== ($matches = explode(':', $value, 2))) {
+                    if (count($matches) === 2) {
+                        $headers_arr["{$matches[0]}"] = trim($matches[1]);
+                    }
+                }                
+            }
+            $this->headers = $headers_arr;
+
+            $this->content = substr($content, $header_size);;
         }
     }
     
@@ -75,5 +87,15 @@ class Response
     public function hasError()
     {
         return isset($this->error);
+    }
+
+    /**
+     * Returns headers of request
+     * 
+     * @return array    Headers
+     */
+    public function getHeaders()
+    {
+        return $this->headers;
     }
 }

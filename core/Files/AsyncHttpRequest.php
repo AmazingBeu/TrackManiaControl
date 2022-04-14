@@ -57,7 +57,8 @@ class AsyncHttpRequest implements UsageInformationAble {
 		        ->set(CURLOPT_USERAGENT, 'ManiaControl v' . ManiaControl::VERSION)// user-agent
 		        ->set(CURLOPT_RETURNTRANSFER, true)//
 		        ->set(CURLOPT_FOLLOWLOCATION, true)// support redirect
-		        ->set(CURLOPT_SSL_VERIFYPEER, false);
+		        ->set(CURLOPT_SSL_VERIFYPEER, false)
+				->set(CURLOPT_HEADER, true);
 		return $request;
 	}
 
@@ -121,8 +122,9 @@ class AsyncHttpRequest implements UsageInformationAble {
 				$error = $event->response->getError()->getMessage();
 			} else {
 				$content = $event->response->getContent();
+				$headers = $event->response->getHeaders();
 			}
-			call_user_func($this->function, $content, $error);
+			call_user_func($this->function, $content, $error, $headers);
 		});
 
 		$fileReader = $this->maniaControl->getFileReader();
