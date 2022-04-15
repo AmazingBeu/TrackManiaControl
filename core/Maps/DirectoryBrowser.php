@@ -468,7 +468,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				$contentdispositionheader = "";
 				foreach ($headers as $key => $value) {
 					if (strtolower($key) === "content-disposition") {
-						$contentdispositionheader = $value;
+						$contentdispositionheader = urldecode($value);
 						break;
 					}
 				}
