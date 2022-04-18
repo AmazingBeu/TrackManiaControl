@@ -118,6 +118,7 @@ class AsyncHttpRequest implements UsageInformationAble {
 		$request->addListener('complete', function (Event $event) {
 			$error   = null;
 			$content = null;
+			$headers = null;
 			if ($event->response->hasError()) {
 				$error = $event->response->getError()->getMessage();
 			} else {
