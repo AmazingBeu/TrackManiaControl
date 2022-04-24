@@ -40,6 +40,8 @@ class Chat implements CallbackListener, CommunicationListener, UsageInformationA
 	const SETTING_PRIVATE_PREFIX                     = 'Private Messages Prefix';
 	const CHAT_BUFFER_SIZE                           = 200;
 
+	const CB_SERVERCHAT                              = "Chat.ServerChat";
+
 	/*
 	 * Private properties
 	 */
@@ -251,12 +253,14 @@ class Chat implements CallbackListener, CommunicationListener, UsageInformationA
 				$login = Player::parseLogin($login);
 			}
 			try {
+				$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_SERVERCHAT, [$chatMessage, $login]);
 				return $this->maniaControl->getClient()->chatSendServerMessage($chatMessage, $login, $multiCall);
 			} catch (UnknownPlayerException $e) {
 				return false;
 			}
 		}
 
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_SERVERCHAT, [$chatMessage, null]);
 		return $this->maniaControl->getClient()->chatSendServerMessage($chatMessage, null, $multiCall);
 	}
 
