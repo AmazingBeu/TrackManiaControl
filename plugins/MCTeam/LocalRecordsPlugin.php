@@ -293,6 +293,7 @@ class LocalRecordsPlugin implements CallbackListener, CallQueueListener, Command
 
 		$frame = new Frame();
 		$frame->setPosition($posX, $posY);
+		$frame->setZ(-1.);
 
 		$backgroundQuad = new Quad();
 		$frame->addChild($backgroundQuad);
@@ -302,6 +303,7 @@ class LocalRecordsPlugin implements CallbackListener, CallQueueListener, Command
 		$backgroundQuad->setSize($width * 1.05, $height);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
 		$backgroundQuad->setAction(self::ACTION_SHOW_RECORDSLIST);
+		$backgroundQuad->setZ(-1.);
 
 		$titleLabel = new Label();
 		$frame->addChild($titleLabel);
@@ -838,7 +840,7 @@ class LocalRecordsPlugin implements CallbackListener, CallQueueListener, Command
 		$labelLine = new LabelLine($headFrame);
 		$labelLine->addLabelEntryText('Rank', $posX + 5);
 		$labelLine->addLabelEntryText('Nickname', $posX + 18);
-		$labelLine->addLabelEntryText('Login', $posX + 70);
+		$labelLine->addLabelEntryText('Login', $posX + 60);
 		$labelLine->addLabelEntryText('Time', $posX + 101);
 		$labelLine->render();
 
@@ -880,7 +882,7 @@ class LocalRecordsPlugin implements CallbackListener, CallQueueListener, Command
 			$labelLine = new LabelLine($recordFrame);
 			$labelLine->addLabelEntryText($listRecord->rank, $posX + 5, 13);
 			$labelLine->addLabelEntryText('$fff' . $listRecord->nickname, $posX + 18, 52);
-			$labelLine->addLabelEntryText($listRecord->login, $posX + 70, 31);
+			$labelLine->addLabelEntryText($listRecord->login, $posX + 60, 31);
 			$labelLine->addLabelEntryText(Formatter::formatTime($listRecord->time), $posX + 101, $width / 2 - ($posX + 110));
 			$labelLine->render();
 

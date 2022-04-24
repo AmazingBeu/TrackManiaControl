@@ -197,6 +197,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 		$iconFrame->addChild($backgroundQuad);
 		$backgroundQuad->setSize($itemSize * $itemMarginFactorX, $itemSize * $itemMarginFactorY);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
+		$backgroundQuad->setZ(-1.);
 
 		$itemQuad = new Quad_Icons64x64_1();
 		$iconFrame->addChild($itemQuad);
@@ -224,6 +225,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 		$backgroundQuad->setHorizontalAlign($backgroundQuad::RIGHT);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
 		$backgroundQuad->setSize(count($this->playerMenuItems) * $itemSize * 1.05 + 2, $itemSize * $itemMarginFactorY);
+		$backgroundQuad->setZ(-1.);
 
 		$itemQuad->addToggleFeature($popoutFrame);
 
@@ -273,6 +275,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 		$iconFrame->addChild($backgroundQuad);
 		$backgroundQuad->setSize($itemSize * $itemMarginFactorX, $itemSize * $itemMarginFactorY);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
+		$backgroundQuad->setZ(-1.);
 
 		$itemQuad = new Quad_Icons64x64_1();
 		$iconFrame->addChild($itemQuad);
@@ -300,6 +303,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 		$backgroundQuad->setHorizontalAlign($backgroundQuad::RIGHT);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
 		$backgroundQuad->setSize(count($this->adminMenuItems) * $itemSize * 1.05 + 2, $itemSize * $itemMarginFactorY);
+		$backgroundQuad->setZ(-1.);
 
 		$itemQuad->addToggleFeature($popoutFrame);
 

@@ -592,6 +592,7 @@ class KarmaPlugin implements CallbackListener, TimerListener, Plugin {
 		}
 		// we have a vote-message
 		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_ALLOW_ON_LOCAL)) {
+			/** @var \MCTeam\LocalRecordsPlugin */
 			$localRecordPlugin = $this->maniaControl->getPluginManager()->getPlugin(self::DEFAULT_LOCAL_RECORDS_PLUGIN);
 			if (!$localRecordPlugin) {
 				return;
@@ -924,6 +925,7 @@ class KarmaPlugin implements CallbackListener, TimerListener, Plugin {
 		$frame->addChild($backgroundQuad);
 		$backgroundQuad->setSize($width, $height);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
+		$backgroundQuad->setZ(-1.);
 
 		$titleLabel = new Label();
 		$frame->addChild($titleLabel);

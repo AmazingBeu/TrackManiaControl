@@ -261,7 +261,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$frame->addChild($backgroundQuad);
 		$backgroundQuad->setSize($width, $height);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
-		//$backgroundQuad->addMapInfoFeature();
+		$backgroundQuad->setZ(-1.);
 
 		$map = $this->maniaControl->getMapManager()->getCurrentMap();
 
@@ -371,6 +371,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$frame->addChild($backgroundQuad);
 		$backgroundQuad->setSize($width, $height);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
+		$backgroundQuad->setZ(-1.);
 
 		$label = new Label_Text();
 		$frame->addChild($label);
@@ -410,6 +411,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$frame->addChild($backgroundQuad);
 		$backgroundQuad->setSize($width, $height);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
+		$backgroundQuad->setZ(-1.);
 
 		$serverName = $this->maniaControl->getClient()->getServerName();
 
@@ -553,6 +555,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$frame->addChild($backgroundQuad);
 		$backgroundQuad->setSize($width, $height);
 		$backgroundQuad->setStyles($quadStyle, $quadSubstyle);
+		$backgroundQuad->setZ(-1.);
 
 		// Check if the Next Map is a queued Map
 		$queuedMap = $this->maniaControl->getMapManager()->getMapQueue()->getNextMap();
