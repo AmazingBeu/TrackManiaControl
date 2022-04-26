@@ -37,10 +37,6 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 	 * Constants
 	 */
 	const MLID_MENU                    = 'ActionsMenu.MLID';
-	const SETTING_MENU_POSX            = 'Menu Position: X';
-	const SETTING_MENU_POSY_SHOOTMANIA = 'Shootmania Menu Position: Y';
-	const SETTING_MENU_POSY_TRACKMANIA = 'Trackmania Menu Position: Y';
-	const SETTING_MENU_ITEMSIZE        = 'Menu Item Size';
 	const ACTION_OPEN_ADMIN_MENU       = 'ActionsMenu.OpenAdminMenu';
 	const ACTION_OPEN_PLAYER_MENU      = 'ActionsMenu.OpenPlayerMenu';
 	const ADMIN_MENU_ID                = 'ActionsMenu.AdminMenu';
@@ -65,18 +61,11 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 	public function __construct(ManiaControl $maniaControl) {
 		$this->maniaControl = $maniaControl;
 
-		// Settings
-		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MENU_POSX, 156.);
-		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MENU_POSY_SHOOTMANIA, -37.);
-		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MENU_POSY_TRACKMANIA, 17.);
-		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MENU_ITEMSIZE, 6.);
-
 		// Callbacks
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::AFTERINIT, $this, 'handleAfterInit');
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(PlayerManager::CB_PLAYERCONNECT, $this, 'handlePlayerJoined');
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(AuthenticationManager::CB_AUTH_LEVEL_CHANGED, $this, 'handlePlayerJoined');
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(SettingManager::CB_SETTING_CHANGED, $this, 'handleSettingChanged');
-
 	}
 
 	/**
@@ -173,7 +162,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 	}
 
 	private function buildPlayerMenuManiaLink() {
-		$itemSize          = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MENU_ITEMSIZE);
+		$itemSize          = $this->maniaControl->getSettingManager()->getSettingValue($this->maniaControl->getManialinkManager()->getSidebarMenuManager(), SidebarMenuManager::SETTING_MENU_ITEMSIZE);
 		$quadStyle         = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle      = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
 		$itemMarginFactorX = 1.3;
@@ -253,7 +242,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 	}
 
 	private function buildAdminMenuManiaLink() {
-		$itemSize          = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MENU_ITEMSIZE);
+		$itemSize          = $this->maniaControl->getSettingManager()->getSettingValue($this->maniaControl->getManialinkManager()->getSidebarMenuManager(), SidebarMenuManager::SETTING_MENU_ITEMSIZE);
 		$quadStyle         = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle      = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
 		$itemMarginFactorX = 1.3;
@@ -390,7 +379,7 @@ class ActionsMenu implements SidebarMenuEntryListener, CallbackListener, Maniali
 	 * @param Setting $setting
 	 */
 	public function handleSettingChanged(Setting $setting) {
-		if (!$setting->belongsToClass($this)) {
+		if (!$setting->belongsToClass($this->maniaControl->getManialinkManager()->getSidebarMenuManager())) {
 			return;
 		}
 
