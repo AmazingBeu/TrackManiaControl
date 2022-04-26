@@ -42,18 +42,19 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 	const PLUGIN_AUTHOR  = 'MCTeam';
 
 	// MapWidget Properties
-	const MLID_MAP_WIDGET                = 'WidgetPlugin.MapWidget';
-	const SETTING_MAP_WIDGET_ACTIVATED   = 'Map-Widget Activated';
-	const SETTING_MAP_WIDGET_NICKNAME    = 'Map-Widget display Author Nickname instead of Login';
-	const SETTING_MAP_WIDGET_POSX        = 'Map-Widget-Position: X';
-	const SETTING_MAP_WIDGET_POSY        = 'Map-Widget-Position: Y';
-	const SETTING_MAP_WIDGET_HEIGHT      = 'Map-Widget-Size: Height';
-	const SETTING_MAP_WIDGET_WIDTH       = 'Map-Widget-Size: Width';
-	const SETTING_MAP_WIDGET_TIME_AUTHOR = 'Map-Widget-Time: Show Author';
-	const SETTING_MAP_WIDGET_TIME_GOLD   = 'Map-Widget-Time: Show Gold';
-	const SETTING_MAP_WIDGET_TIME_SILVER = 'Map-Widget-Time: Show Silver';
-	const SETTING_MAP_WIDGET_TIME_BRONZE = 'Map-Widget-Time: Show Bronze';
-	const SETTING_DISPLAY_MX_LOGO		 = 'Map-Widget Display ManiaExchange logo if available';
+	const MLID_MAP_WIDGET                          = 'WidgetPlugin.MapWidget';
+	const SETTING_USE_SERVER_DEFAULT_LABEL_STYLE   = 'Use Server default Label Style';
+	const SETTING_MAP_WIDGET_ACTIVATED             = 'Map-Widget Activated';
+	const SETTING_MAP_WIDGET_NICKNAME              = 'Map-Widget display Author Nickname instead of Login';
+	const SETTING_MAP_WIDGET_POSX                  = 'Map-Widget-Position: X';
+	const SETTING_MAP_WIDGET_POSY                  = 'Map-Widget-Position: Y';
+	const SETTING_MAP_WIDGET_HEIGHT                = 'Map-Widget-Size: Height';
+	const SETTING_MAP_WIDGET_WIDTH                 = 'Map-Widget-Size: Width';
+	const SETTING_MAP_WIDGET_TIME_AUTHOR           = 'Map-Widget-Time: Show Author';
+	const SETTING_MAP_WIDGET_TIME_GOLD             = 'Map-Widget-Time: Show Gold';
+	const SETTING_MAP_WIDGET_TIME_SILVER           = 'Map-Widget-Time: Show Silver';
+	const SETTING_MAP_WIDGET_TIME_BRONZE           = 'Map-Widget-Time: Show Bronze';
+	const SETTING_MAP_WIDGET_DISPLAY_MX_LOGO       = 'Map-Widget Display ManiaExchange logo if available';
 
 	// ClockWidget Properties
 	const MLID_CLOCK_WIDGET              = 'WidgetPlugin.ClockWidget';
@@ -147,6 +148,8 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(SettingManager::CB_SETTING_CHANGED, $this, 'updateSettings');
 
 		// Settings
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_USE_SERVER_DEFAULT_LABEL_STYLE, false, "", 50);
+
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_ACTIVATED, true);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_NICKNAME, true);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_POSX, 160 - 20);
@@ -157,7 +160,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_TIME_GOLD, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_TIME_SILVER, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_TIME_BRONZE, false);
-		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_DISPLAY_MX_LOGO, true);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_DISPLAY_MX_LOGO, true);
 
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SERVERINFO_WIDGET_ACTIVATED, true);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SERVERINFO_WIDGET_POSX, -160 + 17.5);
@@ -245,9 +248,14 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$posY         = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_POSY);
 		$width        = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_WIDTH);
 		$height       = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_HEIGHT);
-		$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
+
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_USE_SERVER_DEFAULT_LABEL_STYLE)) {
+			$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
+		} else {
+			$labelStyle = "";
+		}
 
 		$maniaLink = new ManiaLink(self::MLID_MAP_WIDGET);
 		$script    = new Script();
@@ -335,7 +343,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 			$label->setTextSize(1);
 		}
 
-		if (isset($map->mx->pageurl) && $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_DISPLAY_MX_LOGO)) {
+		if (isset($map->mx->pageurl) && $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_DISPLAY_MX_LOGO)) {
 			$quad = new Quad();
 			$frame->addChild($quad);
 			$quad->setImageFocusUrl($this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON_MOVER));
@@ -359,9 +367,14 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$posY         = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CLOCK_WIDGET_POSY);
 		$width        = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CLOCK_WIDGET_WIDTH);
 		$height       = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CLOCK_WIDGET_HEIGHT);
-		$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
+
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_USE_SERVER_DEFAULT_LABEL_STYLE)) {
+			$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
+		} else {
+			$labelStyle = "";
+		}
 
 		$maniaLink = new ManiaLink(self::MLID_CLOCK_WIDGET);
 
@@ -401,9 +414,14 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$posY         = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SERVERINFO_WIDGET_POSY);
 		$width        = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SERVERINFO_WIDGET_WIDTH);
 		$height       = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SERVERINFO_WIDGET_HEIGHT);
-		$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
+
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_USE_SERVER_DEFAULT_LABEL_STYLE)) {
+			$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
+		} else {
+			$labelStyle = "";
+		}
 
 		$maniaLink = new ManiaLink(self::MLID_SERVERINFO_WIDGET);
 
@@ -548,7 +566,12 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$height       = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_NEXTMAP_WIDGET_HEIGHT);
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
-		$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
+
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_USE_SERVER_DEFAULT_LABEL_STYLE)) {
+			$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
+		} else {
+			$labelStyle = "";
+		}
 
 		$maniaLink = new ManiaLink(self::MLID_NEXTMAP_WIDGET);
 
