@@ -129,13 +129,24 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 */
 	private function deleteUnusedSettings() {
 		$mysqli       = $this->maniaControl->getDatabase()->getMysqli();
-		$settingQuery = "DELETE FROM `" . self::TABLE_SETTINGS . "`
-				WHERE `changed` < NOW() - INTERVAL 1 HOUR;";
-		$result       = $mysqli->query($settingQuery);
+		$settingStatement = $mysqli->prepare("DELETE FROM `" . self::TABLE_SETTINGS . "`
+				WHERE ((`linked` = 1 AND `serverIndex` = ?) OR `linked` = 0) AND `changed` < NOW() - INTERVAL 1 HOUR;");
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);
-			return false;
+			return null;
 		}
+
+		$serverInfo      = $this->maniaControl->getServer();
+		if ($serverInfo === null) {
+			return;
+		} else {
+			$serverIndex = $serverInfo->index;
+		}
+		$settingStatement->bind_param('i', $serverIndex);
+		if (!$settingStatement->execute()) {
+			trigger_error('Error executing MySQL query: ' . $settingStatement->error);
+		}
+		$result = $settingStatement->get_result();
 		if ($result) {
 			$this->clearStorage();
 			return true;
