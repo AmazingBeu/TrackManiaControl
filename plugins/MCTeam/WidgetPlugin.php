@@ -53,6 +53,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 	const SETTING_MAP_WIDGET_TIME_GOLD   = 'Map-Widget-Time: Show Gold';
 	const SETTING_MAP_WIDGET_TIME_SILVER = 'Map-Widget-Time: Show Silver';
 	const SETTING_MAP_WIDGET_TIME_BRONZE = 'Map-Widget-Time: Show Bronze';
+	const SETTING_DISPLAY_MX_LOGO		 = 'Map-Widget Display ManiaExchange logo if available';
 
 	// ClockWidget Properties
 	const MLID_CLOCK_WIDGET              = 'WidgetPlugin.ClockWidget';
@@ -156,6 +157,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_TIME_GOLD, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_TIME_SILVER, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAP_WIDGET_TIME_BRONZE, false);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_DISPLAY_MX_LOGO, true);
 
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SERVERINFO_WIDGET_ACTIVATED, true);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SERVERINFO_WIDGET_POSX, -160 + 17.5);
@@ -243,6 +245,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$posY         = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_POSY);
 		$width        = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_WIDTH);
 		$height       = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MAP_WIDGET_HEIGHT);
+		$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
 
@@ -272,6 +275,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$label->setText(Formatter::stripDirtyCodes($map->name));
 		$label->setTextColor('fff');
 		$label->setSize($width - 5, $height);
+		$label->setStyle($labelStyle);
 
 		$label = new Label_Text('author_label');
 		$frame->addChild($label);
@@ -331,7 +335,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 			$label->setTextSize(1);
 		}
 
-		if (isset($map->mx->pageurl)) {
+		if (isset($map->mx->pageurl) && $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_DISPLAY_MX_LOGO)) {
 			$quad = new Quad();
 			$frame->addChild($quad);
 			$quad->setImageFocusUrl($this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON_MOVER));
@@ -355,6 +359,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$posY         = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CLOCK_WIDGET_POSY);
 		$width        = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CLOCK_WIDGET_WIDTH);
 		$height       = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CLOCK_WIDGET_HEIGHT);
+		$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
 
@@ -380,6 +385,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$label->setTextSize(1);
 		$label->setTextColor('fff');
 		$label->addClockFeature(false);
+		$label->setStyle($labelStyle);
 
 		// Send manialink
 		$this->maniaControl->getManialinkManager()->sendManialink($maniaLink, $login);
@@ -395,6 +401,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$posY         = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SERVERINFO_WIDGET_POSY);
 		$width        = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SERVERINFO_WIDGET_WIDTH);
 		$height       = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SERVERINFO_WIDGET_HEIGHT);
+		$labelStyle   = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultLabelStyle();
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
 
@@ -428,6 +435,7 @@ class WidgetPlugin implements CallbackListener, TimerListener, Plugin {
 		$label->setTextSize(1.3);
 		$label->setText(Formatter::stripDirtyCodes($serverName));
 		$label->setTextColor('fff');
+		$label->setStyle($labelStyle);
 
 		// Player Quad / Label
 		$label = new Label_Text();
