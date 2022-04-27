@@ -166,6 +166,8 @@ declare Boolean Last_IsVisible = True;
 {$VarIsVisible} = {$defaultVisible};
             ";
         }
+        // Hide as start of the script
+        $maniascript .= $this->getLoopScriptText();
 
         return $maniascript;
     }
