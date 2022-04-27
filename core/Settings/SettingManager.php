@@ -130,7 +130,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 * @return bool
 	 */
 	private function deleteUnusedSettings() {
-		if ($this->getSettingValue($this, self::SETTING_DELETE_UNUSED_SETTING_AT_START)) {
+		if (!$this->getSettingValue($this, self::SETTING_DELETE_UNUSED_SETTING_AT_START)) {
 			return;
 		}
 
