@@ -26,7 +26,8 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	const TABLE_SETTINGS                = 'mc_settings';
 	const CB_SETTING_CHANGED            = 'SettingManager.SettingChanged';
 
-	const SETTING_ALLOW_UNLINK_SERVER   = 'Allow to unlink settings with multiple servers';
+	const SETTING_ALLOW_UNLINK_SERVER               = 'Allow to unlink settings with multiple servers';
+	const SETTING_DELETE_UNUSED_SETTING_AT_START    = 'Delete unused settings at ManiaControl start';
 
 	/*
 	 * Private properties
@@ -49,6 +50,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::AFTERINIT, $this, 'handleAfterInit');
 
 		$this->initSetting($this, self::SETTING_ALLOW_UNLINK_SERVER, false);
+		$this->initSetting($this, self::SETTING_DELETE_UNUSED_SETTING_AT_START, true);
 	}
 
 	/**
@@ -128,6 +130,10 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 * @return bool
 	 */
 	private function deleteUnusedSettings() {
+		if ($this->getSettingValue($this, self::SETTING_DELETE_UNUSED_SETTING_AT_START)) {
+			return;
+		}
+
 		$mysqli       = $this->maniaControl->getDatabase()->getMysqli();
 		$settingStatement = $mysqli->prepare("DELETE FROM `" . self::TABLE_SETTINGS . "`
 				WHERE ((`linked` = 0 AND `serverIndex` = ?) OR `linked` = 1) AND `changed` < NOW() - INTERVAL 1 HOUR;");
