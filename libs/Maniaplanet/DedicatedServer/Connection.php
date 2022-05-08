@@ -1725,6 +1725,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Enable or disable peer-to-peer upload from server.
 	 * Only available to Admin.
 	 * @param bool $enable
@@ -1741,6 +1742,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns if the peer-to-peer upload from server is enabled.
 	 * @param bool $multicall
 	 * @return bool
@@ -1751,6 +1753,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Enable or disable peer-to-peer download for server.
 	 * Only available to Admin.
 	 * @param bool $enable
@@ -1767,6 +1770,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns if the peer-to-peer download for server is enabled.
 	 * @param bool $multicall
 	 * @return bool
@@ -2034,6 +2038,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Enable the autosaving on the server of validation replays, every time a player makes a new time.
 	 * Only available to SuperAdmin.
 	 * @param bool $enable
@@ -2060,6 +2065,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns if autosaving of validation replays is enabled on the server.
 	 * @param bool $multicall
 	 * @return bool
@@ -2126,6 +2132,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new ladder mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -2143,6 +2150,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next ladder mode on server.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -2153,6 +2161,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the ladder points limit for the players allowed on this server.
 	 * @param bool $multicall
 	 * @return Structures\LadderLimits
@@ -2165,6 +2174,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set the network vehicle quality.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -2182,6 +2192,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next network vehicle quality on server.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -2418,6 +2429,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new password for the referee mode.
 	 * Only available to Admin.
 	 * @param string $password
@@ -2434,6 +2446,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the password for referee mode if called as Admin or Super Admin, else returns if a password is needed or not.
 	 * @param bool $multicall
 	 * @return string|bool
@@ -2444,6 +2457,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set the referee validation mode.
 	 * Only available to Admin.
 	 * @param int $mode 0: validate the top3 players, 1: validate all players
@@ -2460,6 +2474,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the referee validation mode.
 	 * @param bool $multicall
 	 * @return int
@@ -2470,6 +2485,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set whether the game should use a variable validation seed or not.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -2487,6 +2503,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next value of UseChangingValidationSeed.
 	 * @param bool $multicall
 	 * @return bool[] {bool CurrentValue, bool NextValue}
@@ -2872,6 +2889,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new game mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -2889,6 +2907,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current game mode.
 	 * @param bool $multicall
 	 * @return int

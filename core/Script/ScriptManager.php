@@ -124,8 +124,14 @@ class ScriptManager implements UsageInformationAble {
 	 */
 	public function isScriptMode() {
 		if (is_null($this->isScriptMode)) {
-			$gameMode           = $this->maniaControl->getClient()->getGameMode();
-			$this->isScriptMode = ($gameMode === 0);
+			// GetGameMode method has been removed in the API version "2022-03-21". So if the function return a "FaultException", consider it in script mode
+			try {
+				$gameMode           = $this->maniaControl->getClient()->getGameMode();
+				$this->isScriptMode = ($gameMode === 0 || !is_int($gameMode));
+			} catch (\Throwable $th) {
+				$this->isScriptMode = true;
+			}
+			
 		}
 		return $this->isScriptMode;
 	}
