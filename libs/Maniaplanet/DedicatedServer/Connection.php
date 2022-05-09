@@ -17,6 +17,7 @@ class Connection
 	const API_2011_10_06 = '2011-10-06';
 	const API_2012_06_19 = '2012-06-19';
 	const API_2013_04_16 = '2013-04-16';
+	const API_2022_03_21 = '2022-03-21';
 
 	/** @var Connection[] */
 	protected static $instances = array();
@@ -44,7 +45,7 @@ class Connection
 	 * @param string $apiVersion
 	 * @return Connection
 	 */
-	static function factory($host='127.0.0.1', $port=5000, $timeout=5, $user='SuperAdmin', $password='SuperAdmin', $apiVersion=self::API_2013_04_16)
+	static function factory($host='127.0.0.1', $port=5000, $timeout=5, $user='SuperAdmin', $password='SuperAdmin', $apiVersion=self::API_2022_03_21)
 	{
 		$key = $host.':'.$port;
 		if(!isset(self::$instances[$key]))
@@ -1521,6 +1522,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns true if this is a relay server.
 	 * @param bool $multicall
 	 * @return bool
@@ -2542,6 +2544,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Sets whether the server is in warm-up phase or not.
 	 * Only available to Admin.
 	 * @param bool $enable
@@ -2558,6 +2561,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns whether the server is in warm-up phase.
 	 * @param bool $multicall
 	 * @return bool
@@ -2825,6 +2829,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * In legacy Rounds or Laps mode, force the end of round without waiting for all players to giveup/finish.
 	 * Only available to Admin.
 	 * @param bool $multicall
@@ -2836,6 +2841,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set new game settings using the struct passed as parameters.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -2853,6 +2859,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns a struct containing the current game settings.
 	 * @param bool $multicall
 	 * @return Structures\GameInfos
@@ -2865,6 +2872,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns a struct containing the game settings for the next map.
 	 * @param bool $multicall
 	 * @return Structures\GameInfos
@@ -2877,6 +2885,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns a struct containing two other structures, the first containing the current game settings and the second the game settings for next map.
 	 * @param bool $multicall
 	 * @return Structures\GameInfos[] {Structures\GameInfos CurrentGameInfos, Structures\GameInfos NextGameInfos}
@@ -2918,6 +2927,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new chat time value (actually the duration of the podium).
 	 * Only available to Admin.
 	 * @param int $chatTime In milliseconds, 0: no podium displayed
@@ -2934,6 +2944,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next chat time.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -2944,6 +2955,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new finish timeout value for legacy laps and rounds based modes.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -2971,6 +2983,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set whether to enable the automatic warm-up phase in all modes.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -2988,6 +3001,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get whether the automatic warm-up phase is enabled in all modes.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -2998,6 +3012,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set whether to disallow players to respawn.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3015,6 +3030,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get whether players are disallowed to respawn.
 	 * @param bool $multicall
 	 * @return bool[] {bool CurrentValue, bool NextValue}
@@ -3082,6 +3098,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new time limit for legacy time attack mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3099,6 +3116,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next time limit for legacy time attack mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3109,6 +3127,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new synchronized start period for legacy time attack mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3126,6 +3145,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and synchronized start period for legacy time attack mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3136,6 +3156,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new time limit for legacy laps mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3153,6 +3174,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next time limit for legacy laps mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3163,6 +3185,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new number of laps for legacy laps mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3180,6 +3203,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next number of laps for legacy laps mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3190,6 +3214,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new number of laps for legacy rounds mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3207,6 +3232,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next number of laps for rounds mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3217,6 +3243,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new points limit for legacy rounds mode (value set depends on UseNewRulesRound).
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3234,6 +3261,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next points limit for rounds mode (values returned depend on UseNewRulesRound).
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3244,6 +3272,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set the points used for the scores in legacy rounds mode.
 	 * Only available to Admin.
 	 * @param int[] $points Array of decreasing integers for the players from the first to last
@@ -3263,6 +3292,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Gets the points used for the scores in legacy rounds mode.
 	 * @param bool $multicall
 	 * @return int[]
@@ -3273,6 +3303,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set if new rules are used for legacy rounds mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3290,6 +3321,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get if the new rules are used for legacy rounds mode (Current and next values).
 	 * @param bool $multicall
 	 * @return bool[] {bool CurrentValue, bool NextValue}
@@ -3300,6 +3332,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new points limit for team mode (value set depends on UseNewRulesTeam).
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3317,6 +3350,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next points limit for team mode (values returned depend on UseNewRulesTeam).
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3327,6 +3361,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set a new number of maximum points per round for team mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3344,6 +3379,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the current and next number of maximum points per round for team mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3354,6 +3390,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set if new rules are used for team mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3371,6 +3408,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get if the new rules are used for team mode (Current and next values).
 	 * @param bool $multicall
 	 * @return bool[] {bool CurrentValue, bool NextValue}
@@ -3381,6 +3419,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set the points needed for victory in Cup mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3398,6 +3437,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the points needed for victory in Cup mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3408,6 +3448,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Sets the number of rounds before going to next map in Cup mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3425,6 +3466,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the number of rounds before going to next map in Cup mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3435,6 +3477,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set whether to enable the automatic warm-up phase in Cup mode.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3452,6 +3495,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get whether the automatic warm-up phase is enabled in Cup mode.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -3462,6 +3506,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Set the number of winners to determine before the match is considered over.
 	 * Only available to Admin.
 	 * Requires a map restart to be taken into account.
@@ -3479,6 +3524,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Get the number of winners to determine before the match is considered over.
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
@@ -4097,6 +4143,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Enable control of the game flow: the game will wait for the caller to validate state transitions.
 	 * Only available to Admin.
 	 * @param bool $enable
@@ -4113,6 +4160,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Allows the game to proceed.
 	 * Only available to Admin.
 	 * @param bool $multicall
@@ -4124,6 +4172,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns whether the manual control of the game flow is enabled.
 	 * Only available to Admin.
 	 * @param bool $multicall
@@ -4135,6 +4184,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns the transition that is currently blocked, or '' if none.
 	 * (That's exactly the value last received by the callback.)
 	 * Only available to Admin.
@@ -4147,6 +4197,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Returns the current match ending condition.
 	 * @param bool $multicall
 	 * @return string 'Playing', 'ChangeMap' or 'Finished'
@@ -4192,6 +4243,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Join the server on lan.
 	 * Only available on client.
 	 * Only available to Admin.
@@ -4212,6 +4264,7 @@ class Connection
 	}
 
 	/**
+	 * @deprecated since version 2022-03-21
 	 * Join the server on internet.
 	 * Only available on client.
 	 * Only available to Admin.
