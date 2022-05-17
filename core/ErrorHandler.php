@@ -20,10 +20,11 @@ class ErrorHandler {
 	/*
 	 * Constants
 	 */
-	const MC_DEBUG_NOTICE              = 'ManiaControl.DebugNotice';
-	const SETTING_RESTART_ON_EXCEPTION = 'Automatically restart on Exceptions';
-	const LOG_SUPPRESSED_ERRORS        = false;
-	const LONG_LOOP_REPORT_TIME        = 5;
+	const MC_DEBUG_NOTICE                   = 'ManiaControl.DebugNotice';
+	const SETTING_RESTART_ON_EXCEPTION      = 'Automatically restart on Exceptions';
+	const SETTING_REPORT_ON_MANIACONTROLCOM = 'Report errors on Maniacontrol.com';
+	const LOG_SUPPRESSED_ERRORS             = false;
+	const LONG_LOOP_REPORT_TIME             = 5;
 
 	/*
 	 * Private properties
@@ -49,6 +50,7 @@ class ErrorHandler {
 	 */
 	public function init() {
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_RESTART_ON_EXCEPTION, true);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_REPORT_ON_MANIACONTROLCOM, true);
 	}
 
 	/**
@@ -113,7 +115,9 @@ class ErrorHandler {
 		}
 		Logger::log($logMessage);
 
-		if (!DEV_MODE && !$isUserError && !$suppressed) {
+		$settingManager = $this->maniaControl->getSettingManager();
+
+		if (!DEV_MODE && !$isUserError && !$suppressed && (!$settingManager || $settingManager->getSettingValue($this, self::SETTING_REPORT_ON_MANIACONTROLCOM))) {
 			// Report error
 			$report            = array();
 			$report['Type']    = 'Error';
@@ -472,7 +476,9 @@ class ErrorHandler {
 		$logMessage = $message . PHP_EOL . 'Class: ' . $exceptionClass . PHP_EOL . 'Trace:' . PHP_EOL . $traceString;
 		Logger::log($logMessage);
 
-		if (!DEV_MODE) {
+		$settingManager = $this->maniaControl->getSettingManager();
+
+		if (!DEV_MODE && (!$settingManager || $settingManager->getSettingValue($this, self::SETTING_REPORT_ON_MANIACONTROLCOM))) {
 			$report                    = array();
 			$report['Type']            = 'Exception';
 			$report['Message']         = $message;
@@ -503,7 +509,7 @@ class ErrorHandler {
 				$report['ServerLogin'] = $server->login;
 			}
 
-			if (($settingManager = $this->maniaControl->getSettingManager()) && ($updateManager = $this->maniaControl->getUpdateManager())) {
+			if ($settingManager && ($updateManager = $this->maniaControl->getUpdateManager())) {
 				$report['UpdateChannel']       = $settingManager->getSettingValue($updateManager, $updateManager::SETTING_UPDATECHECK_CHANNEL);
 				$report['ManiaControlVersion'] = ManiaControl::VERSION . ' #' . $updateManager->getBuildDate();
 			} else {
