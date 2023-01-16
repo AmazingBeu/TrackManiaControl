@@ -47,7 +47,7 @@ abstract class Builder
      * @param bool   $addApostrophes (optional) Add apostrophes before and after the text
      * @return string
      */
-    public static function escapeText($text, $addApostrophes = true)
+    public static function escapeText($text = "", $addApostrophes = true)
     {
         $dangers      = array('\\', '"', "\n");
         $replacements = array('\\\\', '\\"', '\\n');
