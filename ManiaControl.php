@@ -9,6 +9,8 @@
 
 // Enable error reporting
 error_reporting(E_ALL);
+// Change MySQLi report to match with policy before PHP 8.1
+mysqli_report(MYSQLI_REPORT_OFF);
 
 // Run configuration
 define('LOG_NAME_USE_DATE', true); // Use current date as suffix for log file name in logs folder

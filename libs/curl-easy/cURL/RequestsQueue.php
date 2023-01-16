@@ -131,7 +131,7 @@ class RequestsQueue extends EventDispatcher implements RequestsQueueInterface, \
 	 *
 	 * @return int    Handles count
 	 */
-	public function count() {
+	public function count(): int {
 		return count($this->queue);
 	}
 
