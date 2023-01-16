@@ -49,6 +49,10 @@ abstract class Builder
      */
     public static function escapeText($text = "", $addApostrophes = true)
     {
+        if ($text === null) {
+            if ($addApostrophes) return "\"\"";
+            return "";
+        } 
         $dangers      = array('\\', '"', "\n");
         $replacements = array('\\\\', '\\"', '\\n');
         $escapedText  = str_ireplace($dangers, $replacements, $text);
