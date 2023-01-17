@@ -40,11 +40,11 @@ class OnRespawnStructure extends BasePlayerTimeStructure {
 		$this->numberOfRespawns = (int) $jsonObj->nbrespawns;
 		$this->raceTime         = (int) $jsonObj->racetime;
 		$this->lapTime          = (int) $jsonObj->laptime;
-		$this->stuntsScore      = $jsonObj->stuntsscore;
+		if (isset($jsonObj->stuntsscore)) $this->stuntsScore      = $jsonObj->stuntsscore;
 		$this->checkPointInRace = (int) $jsonObj->checkpointinrace;
 		$this->checkPointInLap  = (int) $jsonObj->checkpointinlap;
 		$this->speed            = $jsonObj->speed;
-		$this->distance         = $jsonObj->distance;
+		if (isset($jsonObj->distance)) $this->distance         = $jsonObj->distance;
 	}
 
 	/**

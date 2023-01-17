@@ -20,6 +20,8 @@ class PlayerInfo extends Player
 	/** @var bool */
 	public $isInOfficialMode;
 	/** @var int */
+	public $ladderScore;
+	/** @var int */
 	public $ladderRanking;
 	/** @var int */
 	public $spectatorStatus;

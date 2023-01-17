@@ -18,6 +18,8 @@ class Map extends AbstractStructure
 	/** var string */
 	public $author;
 	/** var string */
+	public $authorNickname;
+	/** var string */
 	public $environnement;
 	/** var string */
 	public $mood;

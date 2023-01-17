@@ -7,6 +7,7 @@
 
 namespace Maniaplanet\DedicatedServer\Structures;
 
+#[\AllowDynamicProperties] // Allow Dynamic Properties for php 8.2 and above
 class ServerOptions extends AbstractStructure
 {
 	/** @var string */
@@ -17,6 +18,8 @@ class ServerOptions extends AbstractStructure
 	public $password;
 	/** @var string */
 	public $passwordForSpectator;
+	/** @var string */
+	public $nextCallVoteTimeOut;
 	/** @var float */
 	public $callVoteRatio;
 

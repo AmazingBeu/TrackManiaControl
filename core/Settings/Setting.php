@@ -42,6 +42,7 @@ class Setting implements UsageInformationAble {
 	public $fetchTime   = null;
 	public $description = null;
 	public $priority    = null;
+	public $changed     = null;
 
 	/**
 	 * Construct a new setting instance

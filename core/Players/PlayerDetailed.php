@@ -32,6 +32,14 @@ class PlayerDetailed {
 	/** @var ManiaControl $maniaControl */
 	private $maniaControl = null;
 
+	private $width;
+	private $height;
+
+	private $contentY;
+	private $infoColWidth;
+	private $margin;
+	private $padding;
+
 	/**
 	 * Create a new Player Detailed Instance
 	 *
@@ -43,8 +51,6 @@ class PlayerDetailed {
 		// Settings
 		$this->width        = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$this->height       = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
-		$this->quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultMainWindowStyle();
-		$this->quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultMainWindowSubStyle();
 
 		//Class variables
 		$this->contentY     = $this->height / 2 - 15;

@@ -88,9 +88,13 @@ class Map implements Dumpable, UsageInformationAble {
 		$this->nbCheckpoints = $mpMap->nbCheckpoints;
 		$this->nbLaps        = $mpMap->nbLaps;
 
+		$this->authorNick    = $mpMap->authorNickname;
+		
 		$player = $this->maniaControl->getPlayerManager()->getPlayer($this->authorLogin);
 		if ($player) {
 			$this->authorNick = $player->nickname;
+		} else if ($mpMap->authorNickname !== "") {
+			$this->authorNick = $mpMap->authorNickname;
 		} else {
 			$this->authorNick = $this->authorLogin;
 		}

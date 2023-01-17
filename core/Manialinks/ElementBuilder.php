@@ -48,6 +48,8 @@ class ElementBuilder {
 	/**
 	 * Private Properties
 	 */
+	/** @var ManiaControl $maniaControl */
+	private $maniaControl = null;
 	/** @var array $actions */
 	private $actions = array();
 	/** @var array $columns */
@@ -173,6 +175,7 @@ class ElementBuilder {
 	 * @param float $textSize
 	 */
 	public function buildKarmaGauge($map, $width, $height, $textSize = 0.9) {
+		/** @var \MCTeam\KarmaPlugin $karmaPlugin */
 		$karmaPlugin = $this->maniaControl->getPluginManager()->getPlugin(self::DEFAULT_KARMA_PLUGIN);
 		if (!$karmaPlugin) {
 			return null;
