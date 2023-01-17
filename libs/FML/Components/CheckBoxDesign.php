@@ -73,7 +73,7 @@ class CheckBoxDesign implements Imageable, Styleable, SubStyleable
     public function setStyle($style)
     {
         $this->style = (string)$style;
-        $this->url   = null;
+        $this->imageUrl   = null;
         return $this;
     }
 
@@ -91,7 +91,7 @@ class CheckBoxDesign implements Imageable, Styleable, SubStyleable
     public function setSubStyle($subStyle)
     {
         $this->subStyle = (string)$subStyle;
-        $this->url      = null;
+        $this->imageUrl      = null;
         return $this;
     }
 
