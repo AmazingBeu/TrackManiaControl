@@ -336,7 +336,7 @@ class ManialinkManager implements ManialinkPageAnswerListener, CallbackListener,
 			}
 		} else {
 			$emptyManialink = new ManiaLink($manialinkId);
-			$this->sendManialink($emptyManialink, $logins);
+			$this->sendManialink($emptyManialink, $logins, 0, false, false);
 		}
 	}
 
