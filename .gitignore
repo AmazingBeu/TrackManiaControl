@@ -8,6 +8,12 @@
 /logs/
 /ManiaControl.log
 /ManiaControl.pid
-!/plugins/
-/plugins/*
+/plugins/
 !/plugins/MCTeam/
+/libs/
+!/libs/curl-easy
+!/libs/Evenement
+!/libs/FML
+!/libs/Maniaplanet
+!/libs/React
+!/libs/Symfony
