@@ -54,6 +54,11 @@ class CheckBoxFeature extends ScriptFeature
     protected $disabledDesign = null;
 
     /**
+     * @var string $customScript Script executed when clicking on the checkbox
+     */
+    protected $customScript = "";
+
+    /**
      * Construct a new CheckBox Feature
      *
      * @api
@@ -200,6 +205,30 @@ class CheckBoxFeature extends ScriptFeature
     }
 
     /**
+     * Get script launched when clicking on the checkbox
+     *
+     * @api
+     * @return string
+     */
+    public function getCustomScript()
+    {
+        return $this->customScript;
+    }
+
+    /**
+     * Set script launched when clicking on the checkbox
+     *
+     * @api
+     * @param string $customScript script 
+     * @return static
+     */
+    public function setCustomScript(string $customScript)
+    {
+        $this->customScript = $customScript;
+        return $this;
+    }
+
+    /**
      * @see ScriptFeature::prepare()
      */
     public function prepare(Script $script)
@@ -290,6 +319,7 @@ EntryId = \"{$entryId}\";
 if (Event.ControlId == \"{$quadId}\") {
 	declare Quad_CheckBox <=> (Event.Control as CMlQuad);
 	" . self::FUNCTION_UPDATE_QUAD_DESIGN . "(Quad_CheckBox);
+    " . $this->customScript . "
 }";
     }
 

@@ -294,10 +294,7 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 
 		foreach ($serverOptionsArray as $name => $value) {
 			// Continue on CurrentMaxPlayers...
-			$pos = strpos($name, 'Current'); // TODO: display 'Current...' somewhere
-			if ($pos !== false) {
-				continue;
-			}
+			if (str_contains($name, 'Current')) continue; // TODO: display 'Current...' somewhere
 
 			if ($index % 13 === 0) {
 				$pageFrame = new Frame();
@@ -331,6 +328,25 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 					$optionsFrame->setY($posY - $optionHeight * 1.5);
 					$posY -= $optionHeight * 3.;
 					$index += 3;
+				} else if (str_contains($name, 'Password')) {
+					$entry->setTextFormat("Password");
+					$entry->setId($name);
+
+					$quad = new Quad();
+					$quad->setPosition(-4, 0, -0.01)->setSize(4, 4);
+					$checkBox = new CheckBox(null, false, $quad);
+					$checkBox->setEnabledDesign("UICommon64_1", "Eye_light");
+					$checkBox->setDisabledDesign("UICommon64_1", "Eye_light");
+					$checkBox->setCustomScript("
+					declare CMlEntry Entry <=> (Quad_CheckBox.Parent.Parent.GetFirstChild(\"$name\") as CMlEntry);
+					if (Entry != Null) {
+						if (Quad_CheckBox.StyleSelected) {
+							Entry.TextFormat = CMlEntry::ETextFormat::Basic;
+						} else {
+							Entry.TextFormat = CMlEntry::ETextFormat::Password;
+						}
+					}");
+					$optionsFrame->addChild($checkBox);
 				}
 			}
 

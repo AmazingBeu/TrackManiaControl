@@ -144,6 +144,30 @@ class CheckBox implements Renderable, ScriptFeatureable
     }
 
     /**
+     * Set script launched when clicking on the checkbox
+     *
+     * @api
+     * @param string $customScript script 
+     * @return static
+     */
+    public function setCustomScript(string $customScript)
+    {
+        $this->feature->setCustomScript($customScript);
+        return $this;
+    }
+
+    /**
+     * Get script launched when clicking on the checkbox
+     *
+     * @api
+     * @return string
+     */
+    public function getCustomScript()
+    {
+        return $this->feature->getCustomScript();
+    }
+
+    /**
      * Set the disabled design
      *
      * @api
