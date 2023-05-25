@@ -294,7 +294,7 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 
 		foreach ($serverOptionsArray as $name => $value) {
 			// Continue on CurrentMaxPlayers...
-			if (str_contains($name, 'Current')) continue; // TODO: display 'Current...' somewhere
+			if (strpos($name, 'Current') !== false) continue; // TODO: display 'Current...' somewhere
 
 			if ($index % 13 === 0) {
 				$pageFrame = new Frame();
@@ -328,7 +328,7 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 					$optionsFrame->setY($posY - $optionHeight * 1.5);
 					$posY -= $optionHeight * 3.;
 					$index += 3;
-				} else if (str_contains($name, 'Password')) {
+				} else if (strpos($name, 'Password') !== false) {
 					$entry->setTextFormat("Password");
 					$entry->setId($name);
 
