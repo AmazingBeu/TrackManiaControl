@@ -21,6 +21,10 @@ class OnWayPointEventStructure extends BasePlayerTimeStructure {
 	private $stuntsScore;
 	private $checkPointInRace;
 	private $checkPointInLap;
+	private $curRaceCheckpoints;
+	private $curLapCheckpoints;
+	private $isInfiniteLaps;
+	private $isIndependentLaps;
 	private $isEndRace;
 	private $isEndLap;
 	private $blockId;
@@ -37,16 +41,20 @@ class OnWayPointEventStructure extends BasePlayerTimeStructure {
 	public function __construct(ManiaControl $maniaControl, $data) {
 		parent::__construct($maniaControl, $data);
 
-		$this->raceTime         = (int) $this->getPlainJsonObject()->racetime;
-		$this->lapTime          = (int) $this->getPlainJsonObject()->laptime;
-		$this->stuntsScore      = isset($this->getPlainJsonObject()->stuntsscore) ? $this->getPlainJsonObject()->stuntsscore : null;
-		$this->checkPointInRace = (int) $this->getPlainJsonObject()->checkpointinrace;
-		$this->checkPointInLap  = (int) $this->getPlainJsonObject()->checkpointinlap;
-		$this->isEndRace        = Formatter::parseBoolean($this->getPlainJsonObject()->isendrace);
-		$this->isEndLap         = Formatter::parseBoolean($this->getPlainJsonObject()->isendlap);
-		$this->blockId          = $this->getPlainJsonObject()->blockid;
-		$this->speed            = $this->getPlainJsonObject()->speed;
-		$this->distance         = isset($this->getPlainJsonObject()->distance) ? $this->getPlainJsonObject()->distance : null;
+		$this->raceTime             = (int) $this->getPlainJsonObject()->racetime;
+		$this->lapTime              = (int) $this->getPlainJsonObject()->laptime;
+		$this->stuntsScore          = isset($this->getPlainJsonObject()->stuntsscore) ? $this->getPlainJsonObject()->stuntsscore : null;
+		$this->checkPointInRace     = (int) $this->getPlainJsonObject()->checkpointinrace;
+		$this->checkPointInLap      = (int) $this->getPlainJsonObject()->checkpointinlap;
+		$this->curRaceCheckpoints   = isset($this->getPlainJsonObject()->curracecheckpoints) ? $this->getPlainJsonObject()->curracecheckpoints : null;
+		$this->curLapCheckpoints    = isset($this->getPlainJsonObject()->curlapcheckpoints) ? $this->getPlainJsonObject()->curlapcheckpoints : null;
+		$this->isInfiniteLaps       = isset($this->getPlainJsonObject()->isinfinitelaps) ? Formatter::parseBoolean($this->getPlainJsonObject()->isinfinitelaps) : null;
+		$this->isIndependentLaps    = isset($this->getPlainJsonObject()->isindependentlaps) ? Formatter::parseBoolean($this->getPlainJsonObject()->isindependentlaps) : null;
+		$this->isEndRace            = Formatter::parseBoolean($this->getPlainJsonObject()->isendrace);
+		$this->isEndLap             = Formatter::parseBoolean($this->getPlainJsonObject()->isendlap);
+		$this->blockId              = $this->getPlainJsonObject()->blockid;
+		$this->speed                = $this->getPlainJsonObject()->speed;
+		$this->distance             = isset($this->getPlainJsonObject()->distance) ? $this->getPlainJsonObject()->distance : null;
 
 		if ($this->checkPointInRace > 0) {
 			$currentMap      = $this->maniaControl->getMapManager()->getCurrentMap();
@@ -92,6 +100,38 @@ class OnWayPointEventStructure extends BasePlayerTimeStructure {
 	 */
 	public function getCheckPointInLap() {
 		return $this->checkPointInLap;
+	}
+
+	/**
+	 * @api
+	 * @return array|null
+	 */
+	public function getCurRaceCheckpoints() {
+		return $this->curRaceCheckpoints;
+	}
+
+	/**
+	 * @api
+	 * @return array|null
+	 */
+	public function getCurLapCheckpoints() {
+		return $this->curLapCheckpoints;
+	}
+
+	/**
+	 * @api
+	 * @return bool|null
+	 */
+	public function getIsInfiniteLaps() {
+		return $this->isInfiniteLaps;
+	}
+
+	/**
+	 * @api
+	 * @return bool|null
+	 */
+	public function getIsIndependentLaps() {
+		return $this->isIndependentLaps;
 	}
 
 	/**
