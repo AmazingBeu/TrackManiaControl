@@ -27,6 +27,11 @@ class TextEdit extends Control implements MultiLineable, Scriptable, Styleable, 
     const FORMAT_NewPassword = "NewPassword";
 
     /**
+     * @var string $name TextEdit name
+     */
+    protected $name = null;
+
+    /**
      * @var string $default Default value
      */
     protected $default = null;
