@@ -4,7 +4,6 @@ namespace ManiaControl\Configurator;
 
 use FML\Components\CheckBox;
 use FML\Controls\Entry;
-use FML\Controls\TextEdit;
 use FML\Controls\Frame;
 use FML\Controls\Label;
 use FML\Controls\Labels\Label_Text;
@@ -128,6 +127,20 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 				PRIMARY KEY (`index`),
 				UNIQUE KEY `setting` (`serverIndex`, `settingName`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='GameMode-Settings' AUTO_INCREMENT=1;";
+		$statement = $mysqli->prepare($query);
+		if ($mysqli->error) {
+			trigger_error($mysqli->error, E_USER_ERROR);
+			return false;
+		}
+		$statement->execute();
+		if ($statement->error) {
+			trigger_error($statement->error, E_USER_ERROR);
+			return false;
+		}
+		$statement->close();
+
+		$query = "ALTER TABLE `" . self::TABLE_GAMEMODE_SETTINGS . "` MODIFY `settingValue` VARCHAR(1000);";
+		// Grow the size limit for plugins settings
 		$statement = $mysqli->prepare($query);
 		if ($mysqli->error) {
 			trigger_error($mysqli->error, E_USER_ERROR);
@@ -440,7 +453,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 				$quad->setX(0.27 * $width);
 				$checkBox = new CheckBox(self::ACTION_PREFIX_SETTING . $settingName, $settingValue, $quad);
 				$settingFrame->addChild($checkBox);
-			} else if (is_numeric($settingValue)) {
+			} else {
 				// Value entry
 				$entry = new Entry();
 				$settingFrame->addChild($entry);
@@ -449,20 +462,8 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 				$entry->setSize(0.3 * $width, 0.9 * $settingHeight);
 				$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 				$entry->setTextSize(1);
+				$entry->setMaxLength(1000);
 				$entry->setX(0.275 * $width);
-			} else {
-				// Standard entry
-				$textedit = new TextEdit();
-				$settingFrame->addChild($textedit);
-				$textedit->setX(0.275 * $width);
-				$textedit->setSize(0.3 * $width, 0.9 * $settingHeight);
-				$textedit->setStyle(Label_Text::STYLE_TextValueSmall);
-				$textedit->setTextSize(1);
-				$textedit->setName(self::ACTION_PREFIX_SETTING . $settingName);
-				$textedit->setDefault($settingValue);
-				$textedit->setHorizontalAlign(TextEdit::CENTER);
-				$textedit->setVerticalAlign(TextEdit::CENTER);
-				$textedit->setMaxLines(1);
 			}
 
 			if ($isScriptMode) {

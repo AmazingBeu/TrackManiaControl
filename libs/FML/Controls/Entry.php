@@ -49,6 +49,11 @@ class Entry extends Control implements NewLineable, Scriptable, Styleable, TextF
     protected $autoNewLine = null;
 
     /**
+     * @var string $maxLength Text format
+     */
+    protected $maxLength = null;
+
+    /**
      * @var string $textFormat Text format
      */
     protected $textFormat = null;
@@ -189,6 +194,30 @@ class Entry extends Control implements NewLineable, Scriptable, Styleable, TextF
     public function setAutoNewLine($autoNewLine)
     {
         $this->autoNewLine = (bool)$autoNewLine;
+        return $this;
+    }
+
+    /**
+     * Get text format
+     *
+     * @api
+     * @return int
+     */
+    public function getMaxLength()
+    {
+        return $this->maxLength;
+    }
+
+    /**
+     * Set text format
+     *
+     * @api
+     * @param int $maxLength Max Length
+     * @return static
+     */
+    public function setMaxLength($maxLength)
+    {
+        $this->maxLength = $maxLength;
         return $this;
     }
 
@@ -442,6 +471,9 @@ class Entry extends Control implements NewLineable, Scriptable, Styleable, TextF
         }
         if ($this->selectText) {
             $domElement->setAttribute("selecttext", 1);
+        }
+        if ($this->maxLength) {
+            $domElement->setAttribute("maxlen", $this->maxLength);
         }
         if ($this->autoNewLine) {
             $domElement->setAttribute("autonewline", 1);

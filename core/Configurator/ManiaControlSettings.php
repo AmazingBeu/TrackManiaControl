@@ -10,7 +10,6 @@ use FML\Controls\Labels\Label_Button;
 use FML\Controls\Labels\Label_Text;
 use FML\Controls\Quad;
 use FML\Controls\Quads\Quad_Icons64x64_1;
-use FML\Controls\TextEdit;
 use FML\Script\Features\Paging;
 use FML\Script\Script;
 use ManiaControl\Admin\AuthenticationManager;
@@ -219,7 +218,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 				$label->setTextSize(1);
 				$valuePicker = new ValuePicker($settingName, $setting->set, $setting->value, $label);
 				$settingFrame->addChild($valuePicker);
-			} else if ($setting->type === Setting::TYPE_INT) {
+			} else {
 				// Standard entry
 				$entry = new Entry();
 				$settingFrame->addChild($entry);
@@ -227,21 +226,9 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 				$entry->setSize($width * 0.3, $settingHeight * 0.9);
 				$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 				$entry->setTextSize(1);
+				$entry->setMaxLength(1000);
 				$entry->setName($settingName);
 				$entry->setDefault($setting->value);
-			} else {
-				// Standard TextEdit
-				$textedit = new TextEdit();
-				$settingFrame->addChild($textedit);
-				$textedit->setX($width * 0.33);
-				$textedit->setSize($width * 0.3, $settingHeight * 0.9);
-				$textedit->setStyle(Label_Text::STYLE_TextValueSmall);
-				$textedit->setTextSize(1);
-				$textedit->setName(self::ACTION_PREFIX_SETTING . $setting->index);
-				$textedit->setDefault($setting->value);
-				$textedit->setHorizontalAlign(TextEdit::CENTER);
-				$textedit->setVerticalAlign(TextEdit::CENTER);
-				$textedit->setMaxLines(1);
 			}
 
 			$posY -= $settingHeight;

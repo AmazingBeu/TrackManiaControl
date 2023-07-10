@@ -5,7 +5,6 @@ namespace ManiaControl\Plugins;
 use FML\Components\CheckBox;
 use FML\Components\ValuePicker;
 use FML\Controls\Entry;
-use FML\Controls\TextEdit;
 use FML\Controls\Frame;
 use FML\Controls\Label;
 use FML\Controls\Labels\Label_Button;
@@ -348,19 +347,6 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 				$label->setTextSize(1);
 				$valuePicker = new ValuePicker(self::ACTION_PREFIX_SETTING . $setting->index, $setting->set, $setting->value, $label);
 				$settingFrame->addChild($valuePicker);
-			} else if ($setting->type === Setting::TYPE_STRING) {
-				// Standard entry
-				$textedit = new TextEdit();
-				$settingFrame->addChild($textedit);
-				$textedit->setX($width * 0.33);
-				$textedit->setSize($width * 0.3, $settingHeight * 0.9);
-				$textedit->setStyle(Label_Text::STYLE_TextValueSmall);
-				$textedit->setTextSize(1);
-				$textedit->setName(self::ACTION_PREFIX_SETTING . $setting->index);
-				$textedit->setDefault($setting->value);
-				$textedit->setHorizontalAlign(TextEdit::CENTER);
-				$textedit->setVerticalAlign(TextEdit::CENTER);
-				$textedit->setMaxLines(1);
 			} else {
 				// Value entry
 				$entry = new Entry();
@@ -368,6 +354,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 				$entry->setX($width * 0.33);
 				$entry->setSize($width * 0.3, $settingHeight * 0.9);
 				$entry->setTextSize(1);
+				$entry->setMaxLength(1000);
 				$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 				$entry->setName(self::ACTION_PREFIX_SETTING . $setting->index);
 				$entry->setDefault($setting->value);
