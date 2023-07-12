@@ -70,6 +70,13 @@ class OnScoresStructure extends CommonScoresStructure {
 					$playerScore->setPrevStuntsScore($jsonPlayer->prevstuntsscore);
 				}
 
+				// New attribute added in TM2020
+				if (property_exists($jsonPlayer, 'team')) {
+					// player->teamid can be wrong if the mode forced the team, so this is the best value
+					$player->teamId = $jsonPlayer->team;
+					$playerScore->setTeamId($jsonPlayer->team);
+				}
+
 				$this->playerScores[$jsonPlayer->login] = $playerScore;
 			}
 		}

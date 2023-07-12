@@ -16,6 +16,7 @@ use ManiaControl\Callbacks\Structures\Common\Models\CommonPlayerScore;
  */
 class PlayerScore extends CommonPlayerScore {
 
+	private $teamid;
 	private $bestRaceTime;
 	private $bestLapTime;
 	private $stuntScore;
@@ -27,6 +28,26 @@ class PlayerScore extends CommonPlayerScore {
 	private $prevRaceRespawns;
 	private $prevRaceCheckpoints;
 	private $prevStuntsScore;
+
+	/**
+	 * Returns the TeamId
+	 *
+	 * @api
+	 * @return int
+	 */
+	public function getTeamId() {
+		return $this->teamid;
+	}
+
+	/**
+	 * Sets the TeamId
+	 *
+	 * @api
+	 * @param int $teamid
+	 */
+	public function setTeamId($teamid) {
+		$this->teamid = $teamid;
+	}
 
 	/**
 	 * Returns the Rank
