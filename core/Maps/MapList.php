@@ -111,6 +111,8 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	 */
 	public function checkUpdates(array $chatCallback, Player $player) {
 		// Update Mx Infos
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_CHECK_UPDATE)) return;
+
 		$this->maniaControl->getMapManager()->getMXManager()->fetchManiaExchangeMapInformation();
 
 		// Reshow the Maplist
@@ -340,7 +342,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 					$description = $map->getEscapedName() . ' is on Map-Queue Position: ' . $queuedMaps[$map->uid];
 					$label->addTooltipLabelFeature($descriptionLabel, $description);
 				}
-			} else {
+			} else if ($this->maniaControl->getAuthenticationManager()->checkPermission($player, MapQueue::SETTING_PERMISSION_ADD_TO_QUEUE)) {
 				// Map-Queue-Map-Button
 				$queueLabel = new Label_Button();
 				$mapFrame->addChild($queueLabel);
@@ -584,6 +586,8 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				}
 				break;
 			case self::ACTION_SWITCH_MAP:
+				if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_SKIP_MAP)) return;
+
 				// Don't queue on Map-Change
 				$this->maniaControl->getMapManager()->getMapQueue()->dontQueueNextMapChange();
 				try {

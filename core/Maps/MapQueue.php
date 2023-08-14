@@ -36,6 +36,7 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 	const SETTING_MAPLIMIT_ADMIN            = 'Maximum maps per admin (Admin+) in the Map-Queue (-1 = unlimited)';
 	const SETTING_MESSAGE_FORMAT            = 'Message Format';
 	const SETTING_BUFFERSIZE                = 'Size of the Map-Queue buffer (recently played maps)';
+	const SETTING_PERMISSION_ADD_TO_QUEUE   = 'Add map to queue';
 	const SETTING_PERMISSION_CLEAR_MAPQUEUE = 'Clear MapQueue';
 	const SETTING_PERMISSION_QUEUE_BUFFER   = 'Queue maps in buffer';
 
@@ -74,6 +75,7 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_BUFFERSIZE, 10);
 
 		// Permissions
+		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_ADD_TO_QUEUE, AuthenticationManager::AUTH_LEVEL_PLAYER, AuthenticationManager::AUTH_LEVEL_PLAYER);
 		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_CLEAR_MAPQUEUE, AuthenticationManager::AUTH_LEVEL_MODERATOR);
 		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_QUEUE_BUFFER, AuthenticationManager::AUTH_LEVEL_ADMIN);
 
@@ -283,6 +285,8 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 			return;
 		}
 
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, self::SETTING_PERMISSION_ADD_TO_QUEUE)) return;
+
 		// Check if the Player is muted
 		if ($player->isMuted()) {
 			$this->maniaControl->getChat()->sendError('Muted Players are not allowed to queue a map.', $player);
@@ -369,6 +373,10 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 		if (!isset($this->queuedMaps[$uid])) {
 			return;
 		}
+
+		$queuer = $this->maniaControl->getMapManager()->getMapQueue()->getQueuer($uid);
+		if (($queuer === null || $queuer->login !== $player->login) && !$this->maniaControl->getAuthenticationManager()->checkPermission($player, self::SETTING_PERMISSION_CLEAR_MAPQUEUE)) return;
+
 		/** @var Map $map */
 		$map = $this->queuedMaps[$uid][1];
 		unset($this->queuedMaps[$uid]);

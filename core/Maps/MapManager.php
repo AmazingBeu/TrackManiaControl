@@ -195,6 +195,8 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 	 * @param string      $uid
 	 */
 	public function updateMap($admin, $uid) {
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($admin, self::SETTING_PERMISSION_ADD_MAP)) return;
+
 		$this->updateMapTimestamp($uid);
 
 		if (!isset($uid) || !isset($this->maps[$uid])) {
@@ -272,6 +274,8 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 	 * @return bool
 	 */
 	public function removeMap($admin, $uid, $eraseFile = false, $message = true) {
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($admin, self::SETTING_PERMISSION_REMOVE_MAP)) return;
+
 		if (!isset($this->maps[$uid])) {
 			if ($admin) {
 				$this->maniaControl->getChat()->sendError('Map does not exist!', $admin);
