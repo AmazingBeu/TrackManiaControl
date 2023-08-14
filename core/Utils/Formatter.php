@@ -177,7 +177,7 @@ abstract class Formatter implements UsageInformationAble {
 		                 'Cambodia'                 => 'CAM', 'Cameroon' => 'CAR', // actually CMR
 		                 'Canada'                   => 'CAN', 'Cape Verde' => 'CPV', 'Central African Republic' => 'CAF', 'Chad' => 'CHA', 'Chile' => 'CHI', 'China' => 'CHN',
 		                 'Chinese Taipei'           => 'TPE', 'Colombia' => 'COL', 'Congo' => 'CGO', 'Costa Rica' => 'CRC', 'Croatia' => 'CRO', 'Cuba' => 'CUB', 'Cyprus' => 'CYP',
-		                 'Czech Republic'           => 'CZE', 'Czech republic' => 'CZE', 'DR Congo' => 'COD', 'Denmark' => 'DEN', 'Djibouti' => 'DJI', 'Dominica' => 'DMA',
+		                 'Czech Republic'           => 'CZE', 'Czech republic' => 'CZE', 'Czechia' => 'CZE', 'DR Congo' => 'COD', 'Denmark' => 'DEN', 'Djibouti' => 'DJI', 'Dominica' => 'DMA',
 		                 'Dominican Republic'       => 'DOM', 'Ecuador' => 'ECU', 'Egypt' => 'EGY', 'El Salvador' => 'ESA', 'Eritrea' => 'ERI', 'Estonia' => 'EST', 'Ethiopia' => 'ETH',
 		                 'Fiji'                     => 'FIJ', 'Finland' => 'FIN', 'France' => 'FRA', 'Gabon' => 'GAB', 'Gambia' => 'GAM', 'Georgia' => 'GEO', 'Germany' => 'GER', 'Ghana' => 'GHA',
 		                 'Greece'                   => 'GRE', 'Grenada' => 'GRN', 'Guam' => 'GUM', 'Guatemala' => 'GUA', 'Guinea' => 'GUI', 'Guinea-Bissau' => 'GBS', 'Guyana' => 'GUY',
