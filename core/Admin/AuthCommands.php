@@ -154,7 +154,7 @@ class AuthCommands implements CommandListener, UsageInformationAble {
 			return;
 		}
 
-		if ($target->authLevel >= AuthenticationManager::AUTH_LEVEL_MASTERADMIN) {
+		if ($player !== $target && $target->authLevel >= AuthenticationManager::AUTH_LEVEL_MASTERADMIN) {
 			$this->maniaControl->getChat()->sendError('You cannot remove rights of a MasterAdmin!', $player);
 			return;
 		}
@@ -164,7 +164,7 @@ class AuthCommands implements CommandListener, UsageInformationAble {
 			return;
 		}
 
-		if ($player->authLevel <= $target->authLevel) {
+		if ($player !== $target && $player->authLevel <= $target->authLevel) {
 			$this->maniaControl->getChat()->sendError('You cannot remove rights of a higher privileged player!', $player);
 			return;
 		}
