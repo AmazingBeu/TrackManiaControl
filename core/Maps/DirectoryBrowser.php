@@ -506,7 +506,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 
 						if ($filename !== null) {
 							if ($isUtf8 && strpos($filename, "utf-8''") === 0 && $filename = substr($filename, strlen("utf-8''"))) {
-								$filePath = $folderPath . rawurldecode($filename);
+								$filePath = $folderPath . FileUtil::getClearedFileName(rawurldecode($filename));
 							}
 							if (substr($filename, 0, 1) === '"' && substr($filename, -1, 1) === '"') {
 								$filePath = $folderPath . substr($filename, 1, -1);
