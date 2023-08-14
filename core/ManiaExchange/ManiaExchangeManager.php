@@ -54,6 +54,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 	 */
 	/** @var ManiaControl $maniaControl */
 	private $maniaControl  = null;
+	private $enabled = true;
 	private $mxIdUidVector = array();
 
 	/**
@@ -65,6 +66,22 @@ class ManiaExchangeManager implements UsageInformationAble {
 		$this->maniaControl = $maniaControl;
 
 		//$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MX_KEY, "");
+	}
+
+	/**
+	 * Set the status of the plugin
+	 *
+	 * @param bool $status
+	 */
+	public function setStatus(bool $status) {
+		$this->enabled = $status;
+	}
+
+	/**
+	 * Get the status of the plugin
+	 */
+	public function getStatus() {
+		return $this->enabled;
 	}
 
 	/**
@@ -84,6 +101,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 	 * @param mixed $maps
 	 */
 	public function fetchManiaExchangeMapInformation($maps = null) {
+		if (!$this->enabled) return;
 		if ($maps) {
 			// Fetch Information for a single map
 			$maps = array($maps);
@@ -160,7 +178,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 	 * @param string $string
 	 */
 	public function fetchMaplistByMixedUidIdString($string) {
-
+		if (!$this->enabled) return;
 		// For TM2020
 		if ($this->maniaControl->getServer()->titleId == "Trackmania") {
 			// Get Title Prefix
@@ -217,6 +235,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 	 * @param array $mxMapInfos
 	 */
 	public function updateMapObjectsWithManiaExchangeIds(array $mxMapInfos) {
+		if (!$this->enabled) return;
 		$mysqli = $this->maniaControl->getDatabase()->getMysqli();
 		// Save map data
 		$saveMapQuery     = "UPDATE `" . MapManager::TABLE_MAPS . "`
@@ -269,6 +288,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 	 * @param callable $function
 	 */
 	public function fetchMapInfo($mapId, callable $function) {
+		if (!$this->enabled) return;
 		// For TM2020
 		if ($this->maniaControl->getServer()->titleId == "Trackmania") {
 			// Get Title Prefix
@@ -335,6 +355,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 	 * @see \ManiaControl\ManiaExchange\ManiaExchangeMapSearch
 	 */
 	public function fetchMapsAsync(callable $function, $name = '', $author = '', $env = '', $maxMapsReturned = 100, $sortOrder = ManiaExchangeMapSearch::SEARCH_ORDER_UPDATED_NEWEST) {
+		if (!$this->enabled) return;
 		$mapSearch = new ManiaExchangeMapSearch($this->maniaControl);
 		$mapSearch->setMapName($name);
 		$mapSearch->setAuthorName($author);

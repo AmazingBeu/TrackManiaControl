@@ -8,6 +8,7 @@ use FML\Controls\Quads\Quad_UIConstruction_Buttons;
 use ManiaControl\Admin\AuthenticationManager;
 use ManiaControl\Callbacks\CallbackListener;
 use ManiaControl\Callbacks\CallbackManager;
+use ManiaControl\Callbacks\Callbacks;
 use ManiaControl\Commands\CommandListener;
 use ManiaControl\Logger;
 use ManiaControl\ManiaControl;
@@ -49,7 +50,6 @@ class MapCommands implements CommandListener, ManialinkPageAnswerListener, Callb
 	 */
 	public function __construct(ManiaControl $maniaControl) {
 		$this->maniaControl = $maniaControl;
-		$this->initActionsMenuButtons();
 
 		// Admin commands
 		$this->maniaControl->getCommandManager()->registerCommandListener(array('nextmap', 'next', 'skip'), $this, 'command_NextMap', true, 'Skips to the next map.');
@@ -68,6 +68,7 @@ class MapCommands implements CommandListener, ManialinkPageAnswerListener, Callb
 		$this->maniaControl->getCommandManager()->registerCommandListener(array('xmaps', 'xlist'), $this, 'command_xList', false, 'Shows maps from ManiaExchange.');
 
 		// Callbacks
+		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::AFTERINIT, $this, 'handleAfterInit');
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(CallbackManager::CB_MP_PLAYERMANIALINKPAGEANSWER, $this, 'handleManialinkPageAnswer');
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerListener(self::ACTION_OPEN_XLIST, $this, 'command_xList');
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerListener(self::ACTION_OPEN_MAPLIST, $this, 'command_List');
@@ -75,16 +76,22 @@ class MapCommands implements CommandListener, ManialinkPageAnswerListener, Callb
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerListener(self::ACTION_SKIP_MAP, $this, 'command_NextMap');
 	}
 
+	public function handleAfterInit() {
+		$this->initActionsMenuButtons();
+	}
+
 	/**
 	 * Add all Actions Menu Buttons
 	 */
 	private function initActionsMenuButtons() {
 		// Menu Open xList
-		$itemQuad = new Quad();
-		$itemQuad->setImageUrl($this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON));
-		$itemQuad->setImageFocusUrl($this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON_MOVER));
-		$itemQuad->setAction(self::ACTION_OPEN_XLIST);
-		$this->maniaControl->getActionsMenu()->addPlayerMenuItem($itemQuad, 5, 'Open MX List');
+		if ($this->maniaControl->getMapManager()->getMXManager()->getStatus()) {
+			$itemQuad = new Quad();
+			$itemQuad->setImageUrl($this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON));
+			$itemQuad->setImageFocusUrl($this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON_MOVER));
+			$itemQuad->setAction(self::ACTION_OPEN_XLIST);
+			$this->maniaControl->getActionsMenu()->addPlayerMenuItem($itemQuad, 5, 'Open MX List');
+		}
 
 		// Menu Open List
 		$itemQuad = new Quad_Icons64x64_1();

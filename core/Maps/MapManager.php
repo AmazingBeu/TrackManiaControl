@@ -19,6 +19,8 @@ use ManiaControl\ManiaExchange\ManiaExchangeList;
 use ManiaControl\ManiaExchange\ManiaExchangeManager;
 use ManiaControl\ManiaExchange\MXMapInfo;
 use ManiaControl\Players\Player;
+use ManiaControl\Settings\Setting;
+use ManiaControl\Settings\SettingManager;
 use ManiaControl\Utils\Formatter;
 use Maniaplanet\DedicatedServer\InvalidArgumentException;
 use Maniaplanet\DedicatedServer\Xmlrpc\AlreadyInListException;
@@ -56,6 +58,7 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 	const SETTING_AUTOSAVE_MAPLIST        = 'Autosave Maplist file';
 	const SETTING_MAPLIST_FILE            = 'File to write Maplist in';
 	const SETTING_WRITE_OWN_MAPLIST_FILE  = 'Write a own Maplist File for every Server called serverlogin.txt';
+	const SETTING_ENABLE_MX  = 'Enable MX features';
 
 	const SEARCH_BY_AUTHOR   = 'Author';
 	const SEARCH_BY_MAP_NAME = 'Mapname';
@@ -116,6 +119,7 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 		// Callbacks
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::ONINIT, $this, 'handleOnInit');
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::AFTERINIT, $this, 'handleAfterInit');
+		$this->maniaControl->getCallbackManager()->registerCallbackListener(SettingManager::CB_SETTING_CHANGED, $this, 'updateSettings');
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(CallbackManager::CB_MP_MAPLISTMODIFIED, $this, 'mapsModified');
 
 		// Permissions
@@ -131,6 +135,9 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_AUTOSAVE_MAPLIST, true);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAPLIST_FILE, "MatchSettings/tracklist.txt");
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_WRITE_OWN_MAPLIST_FILE, false);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_ENABLE_MX, true);
+
+		$this->mxManager->setStatus($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_ENABLE_MX, true));
 
 		//Initlaize Communication Listenings
 		$this->initalizeCommunicationListenings();
@@ -210,6 +217,19 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 			$this->addMapFromMx($mxId, $admin->login, true);
 		} else {
 			$this->addMapFromMx($mxId, null, true);
+		}
+	}
+
+	/**
+	 * Update Settings
+	 *
+	 * @param ?Setting $setting
+	 */
+	public function updateSettings(Setting $setting = null) {
+		if (!isset($setting) || !$setting->belongsToClass($this)) return;
+
+		if ($setting->setting === self::SETTING_ENABLE_MX) {
+			$this->mxManager->setStatus($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_ENABLE_MX, true));
 		}
 	}
 

@@ -71,6 +71,7 @@ class ManiaExchangeList implements CallbackListener, ManialinkPageAnswerListener
 	 * @param array $callback
 	 */
 	public function handleManialinkPageAnswer(array $callback) {
+		if (!$this->maniaControl->getMapManager()->getMXManager()->getStatus()) return;
 		$actionId    = $callback[1][2];
 		$actionArray = explode('.', $actionId);
 		if (count($actionArray) <= 2) {
@@ -101,6 +102,7 @@ class ManiaExchangeList implements CallbackListener, ManialinkPageAnswerListener
 	 * @param Player $player
 	 */
 	public function showListCommand(array $chatCallback, Player $player) {
+		if (!$this->maniaControl->getMapManager()->getMXManager()->getStatus()) return;
 		$this->mapListShown[$player->login] = true;
 		$params                             = explode(' ', $chatCallback[1][2]);
 		$searchString                       = '';
@@ -141,6 +143,7 @@ class ManiaExchangeList implements CallbackListener, ManialinkPageAnswerListener
 	 * @param string                       $searchString
 	 */
 	private function getMXMapsAndShowList(Player $player, $author = '', $environment = '', $searchString = '') {
+		if (!$this->maniaControl->getMapManager()->getMXManager()->getStatus()) return;
 		//TODO do more clean solution
 		if($environment == ""){
 			$titleId           = $this->maniaControl->getServer()->titleId;
@@ -191,6 +194,7 @@ class ManiaExchangeList implements CallbackListener, ManialinkPageAnswerListener
 	 * @internal param array $chatCallback
 	 */
 	private function showManiaExchangeList(array $maps, Player $player) {
+		if (!$this->maniaControl->getMapManager()->getMXManager()->getStatus()) return;
 		// Start offsets
 		$width  = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$height = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
@@ -340,6 +344,7 @@ class ManiaExchangeList implements CallbackListener, ManialinkPageAnswerListener
 	 * @param        $openedWidget
 	 */
 	public function handleWidgetOpened(Player $player, $openedWidget) {
+		if (!$this->maniaControl->getMapManager()->getMXManager()->getStatus()) return;
 		//unset when another main widget got opened
 		if ($openedWidget !== 'ManiaExchangeList') {
 			unset($this->mapListShown[$player->login]);
@@ -355,5 +360,4 @@ class ManiaExchangeList implements CallbackListener, ManialinkPageAnswerListener
 	public function closeWidget(Player $player) {
 		unset($this->mapListShown[$player->login]);
 	}
-
 }

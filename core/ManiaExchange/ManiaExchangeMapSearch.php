@@ -140,6 +140,8 @@ class ManiaExchangeMapSearch implements UsageInformationAble {
 	 * @param callable $function
 	 */
 	public function fetchMapsAsync(callable $function) {
+		if (!$this->maniaControl->getMapManager()->getMXManager()->getStatus()) return;
+
 		// compile search URL
 		$parameters = "";
 
