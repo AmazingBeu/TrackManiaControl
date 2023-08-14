@@ -48,6 +48,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 	const ACTION_PREFIX_UPDATEPLUGIN                = 'PluginMenu.Update.';
 	const ACTION_UPDATEPLUGINS                      = 'PluginMenu.Update.All';
 	const SETTING_PERMISSION_CHANGE_PLUGIN_SETTINGS = 'Change Plugin Settings';
+	const SETTING_CHECK_UPDATE_WHEN_OPENING         = 'Check update when opening the menu';
 	const CACHE_SETTING_CLASS                       = 'PluginMenuCache.SettingClass';
 
 	/*
@@ -63,6 +64,9 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 	 */
 	public function __construct(ManiaControl $maniaControl) {
 		$this->maniaControl = $maniaControl;
+
+		// Settings
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_CHECK_UPDATE_WHEN_OPENING, true);
 
 		// Callbacks
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(CallbackManager::CB_MP_PLAYERMANIALINKPAGEANSWER, $this, 'handleManialinkPageAnswer');
@@ -145,7 +149,10 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		// Display normal Plugin List
 		// Plugin pages
 		$posY          = 0.;
-		$pluginUpdates = $this->maniaControl->getUpdateManager()->getPluginUpdateManager()->getPluginsUpdates();
+
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CHECK_UPDATE_WHEN_OPENING)) {
+			$pluginUpdates = $this->maniaControl->getUpdateManager()->getPluginUpdateManager()->getPluginsUpdates();
+		}
 
 		usort($pluginClasses, function ($pluginClassA, $pluginClassB) {
 			/** @var Plugin $pluginClassA */
