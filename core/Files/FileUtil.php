@@ -57,7 +57,7 @@ abstract class FileUtil {
 	public static function getClearedFileName($fileName) {
 		$fileName = Formatter::stripCodes($fileName);
 		$fileName = Formatter::utf8($fileName);
-		$fileName = preg_replace('/[^0-9A-Za-z\-\+\.\_\ ]/', null, $fileName);
+		$fileName = preg_replace('/[^0-9A-Za-z\-\+\.\_\ ]/', '', $fileName);
 		$fileName = preg_replace('/ /', '_', $fileName);
 		return $fileName;
 	}
