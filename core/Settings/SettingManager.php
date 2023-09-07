@@ -28,6 +28,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 
 	const SETTING_ALLOW_UNLINK_SERVER               = 'Allow to unlink settings with multiple servers';
 	const SETTING_DELETE_UNUSED_SETTING_AT_START    = 'Delete unused settings at ManiaControl start';
+	const SETTING_DISABLE_SETTING_CACHE             = 'Disable settings cache';
 
 	/*
 	 * Private properties
@@ -36,6 +37,8 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	private $maniaControl = null;
 	/** @var Setting[] $storedSettings */
 	private $storedSettings = array();
+	/** @var bool $disableCache */
+	private $disableCache = false;
 
 	/**
 	 * Construct a new setting manager instance
@@ -51,6 +54,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 
 		$this->initSetting($this, self::SETTING_ALLOW_UNLINK_SERVER, false);
 		$this->initSetting($this, self::SETTING_DELETE_UNUSED_SETTING_AT_START, true);
+		$this->initSetting($this, self::SETTING_DISABLE_SETTING_CACHE, false, "only for not linked settings");
 	}
 
 	/**
@@ -121,6 +125,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 * Handle After Init Callback
 	 */
 	public function handleAfterInit() {
+		$this->disableCache = $this->getSettingValue($this, self::SETTING_DISABLE_SETTING_CACHE);
 		$this->deleteUnusedSettings();
 	}
 
@@ -225,6 +230,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 * @param Setting $setting
 	 */
 	private function storeSetting(Setting $setting) {
+		if ($this->disableCache && $setting->linked) return;
 		$this->storedSettings[$setting->class . $setting->setting] = $setting;
 	}
 
@@ -434,6 +440,14 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		if (!$init) {
 			$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_SETTING_CHANGED, $setting);
 		}
+
+		if ($setting->setting === self::SETTING_DISABLE_SETTING_CACHE) {
+			$this->disableCache = $setting->value;
+			if ($this->disableCache) {
+				$this->clearStorage();
+			}
+		}
+
 		return true;
 	}
 
