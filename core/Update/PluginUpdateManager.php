@@ -119,6 +119,8 @@ class PluginUpdateManager implements CallbackListener, CommandListener, TimerLis
 				$message      = "Plugins Update Check completed: There are {$updatesCount} Updates available!";
 				if ($player) {
 					$this->maniaControl->getChat()->sendSuccess($message, $player);
+				} else {
+					$this->maniaControl->getChat()->sendSuccessToAdmins($message . " (you can use //pluginsupdate)");
 				}
 				Logger::log($message);
 			}
