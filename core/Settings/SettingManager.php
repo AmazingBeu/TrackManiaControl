@@ -125,7 +125,8 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 	 * Handle After Init Callback
 	 */
 	public function handleAfterInit() {
-		$this->disableCache = $this->getSettingValue($this, self::SETTING_DISABLE_SETTING_CACHE);
+		$this->disableCache = boolval($this->getSettingValue($this, self::SETTING_DISABLE_SETTING_CACHE));
+		if ($this->disableCache) $this->clearStorage();
 		$this->deleteUnusedSettings();
 	}
 
@@ -439,12 +440,13 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		// Trigger Settings Changed Callback
 		if (!$init) {
 			$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_SETTING_CHANGED, $setting);
-		}
 
-		if ($setting->setting === self::SETTING_DISABLE_SETTING_CACHE) {
-			$this->disableCache = $setting->value;
-			if ($this->disableCache) {
-				$this->clearStorage();
+			// during the init, value = default
+			if ($setting->setting === self::SETTING_DISABLE_SETTING_CACHE) {
+				$this->disableCache = boolval($setting->value);
+				if ($this->disableCache) {
+					$this->clearStorage();
+				}
 			}
 		}
 
