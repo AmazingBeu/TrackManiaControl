@@ -140,7 +140,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$index     = 0;
 		$posY      = $height / 2 - 10;
 		$pageFrame = null;
-		$pageMaxCount = floor(($height * 0.85) / 4);
+		$pageMaxCount = floor(($height * 0.78) / 4);
 
 		$navigateRootQuad = new Quad_Icons64x64_1();
 		$frame->addChild($navigateRootQuad);
@@ -231,21 +231,26 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				}
 			}
 
+			$downloadPosX = -$width / 2 + 5;
+
 			$label = new Label_Text();
 			$frame->addChild($label);
-			$label->setPosition(-$width / 2 + 5, -$height / 2 + 8.5);
+			$label->setPosition($downloadPosX, $height * -0.39);
 			$label->setHorizontalAlign($label::LEFT);
 			$label->setTextSize(1);
 			$label->setText('Download from URL: ');
+
+			$downloadPosX += 30;
 	
 			$entry = new Entry();
 			$frame->addChild($entry);
 			$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 			$entry->setHorizontalAlign($entry::LEFT);
-			$entry->setPosition(-$width / 2 + 35, -$height / 2 + 8.5);
+			$entry->setPosition($downloadPosX, $height * -0.39);
 			$entry->setTextSize(1);
 			$entry->setSize($width * 0.35, 4);
-			$entry->setName('SearchString');
+
+			$downloadPosX += $width * 0.35 + 10;
 
 			//Search for Map-Name
 			$mapNameButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
@@ -255,7 +260,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				self::ACTION_DOWNLOAD_FILE
 			);
 			$frame->addChild($mapNameButton);
-			$mapNameButton->setPosition(-$width / 2 + 100, -$height / 2 + 8.5);
+			$mapNameButton->setPosition($downloadPosX, $height * -0.39);
 
 		} else {
 			$errorLabel = new Label();
