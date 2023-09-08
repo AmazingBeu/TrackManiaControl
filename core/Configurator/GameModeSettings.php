@@ -336,6 +336,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 		$pagerSize     = 9.;
 		$settingHeight = 5.;
 		$labelTextSize = 2;
+		$pageMaxCount  = floor(($height * 0.85) / $settingHeight);
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
@@ -399,7 +400,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 				);
 			}
 
-			if ($index % 13 === 0) {
+			if ($index % $pageMaxCount === 0) {
 				$pageFrame = new Frame();
 				$frame->addChild($pageFrame);
 				$posY = 0.41 * $height;
@@ -418,6 +419,9 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 			$nameLabel->setText($settingName);
 			$nameLabel->setTextSize($labelTextSize);
 			$nameLabel->setX(-0.46 * $width);
+			if ($scriptParam->desc === self::DESCRIPTION_HIDDEN) {
+				$nameLabel->setTextColor("AAAAAA");
+			}
 
 			if (!$isScriptMode) {
 				if (is_bool($settingValue[0])) {

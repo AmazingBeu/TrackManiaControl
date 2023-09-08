@@ -243,7 +243,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 				self::ACTION_PREFIX_SETTINGLINKS . $settingClass
 			);
 			$frame->addChild($mapNameButton);
-			$mapNameButton->setPosition(-$width / 2 + 60, -35);
+			$mapNameButton->setPosition(-$width / 2 + 60, $height * -0.45);
 		}
 
 		return $frame;

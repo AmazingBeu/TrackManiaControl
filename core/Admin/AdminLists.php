@@ -37,7 +37,6 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 	 */
 	const ACTION_OPEN_ADMIN_LIST = 'AdminList.OpenAdminList';
 	const ACTION_REVOKE_RIGHTS   = 'AdminList.RevokeRights';
-	const MAX_PLAYERS_PER_PAGE   = 15;
 
 	/*
 	 * Private Properties
@@ -129,9 +128,10 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 		$index     = 1;
 		$posY      -= 10;
 		$pageFrame = null;
+		$pageMaxCount = $this->getPlayersPerPage();
 
 		foreach ($admins as $admin) {
-			if ($index % self::MAX_PLAYERS_PER_PAGE === 1) {
+			if ($index % $pageMaxCount === 1) {
 				$pageFrame = new Frame();
 				$frame->addChild($pageFrame);
 
@@ -234,6 +234,16 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 				$this->maniaControl->getPlayerManager()->getPlayerActions()->revokeAuthLevel($adminLogin, $targetLogin);
 				break;
 		}
+	}
+
+	/**
+	 * Get number of players per page
+	 * 
+	 * @return int
+	 */
+	public function getPlayersPerPage() {
+		$pageheight = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
+		return floor($pageheight * 0.82 / 4);
 	}
 
 	/**

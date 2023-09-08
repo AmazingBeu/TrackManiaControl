@@ -38,7 +38,6 @@ class SimpleStatsList implements ManialinkPageAnswerListener, CallbackListener, 
 	const ACTION_OPEN_STATSLIST = 'SimpleStatsList.OpenStatsList';
 	const ACTION_SORT_STATS     = 'SimpleStatsList.SortStats';
 	const ACTION_PAGING_CHUNKS  = 'SimpleStatsList.PagingChunk';
-	const MAX_PLAYERS_PER_PAGE  = 15;
 	const MAX_PAGES_PER_CHUNK   = 10;
 	const CACHE_CURRENT_PAGE    = 'SimpleStatsList.CurrentPage';
 
@@ -146,7 +145,7 @@ class SimpleStatsList implements ManialinkPageAnswerListener, CallbackListener, 
 
 		$chunkIndex       = $this->getChunkIndexFromPageNumber($pageIndex, $totalPlayersCount);
 		$playerBeginIndex = $this->getChunkStatsBeginIndex($chunkIndex);
-		$pagesCount       = ceil($totalPlayersCount / self::MAX_PLAYERS_PER_PAGE);
+		$pagesCount       = ceil($totalPlayersCount / $this->getPlayersPerPage());
 
 		$maniaLink = new ManiaLink(ManialinkManager::MAIN_MLID);
 		$width     = $this->statsWidth + 60;
@@ -231,16 +230,17 @@ class SimpleStatsList implements ManialinkPageAnswerListener, CallbackListener, 
 		$posY        -= 10;
 		$pageFrame   = null;
 		$playerIndex = 1 + $playerBeginIndex;
+		$pageMaxCount = $this->getPlayersPerPage();
 
 		if (!isset($statRankings[$order])) {
 			return;
 		}
 
 		//Slice Array to chunk length
-		$statRankings[$order] = array_slice($statRankings[$order], $playerBeginIndex, self::MAX_PAGES_PER_CHUNK * self::MAX_PLAYERS_PER_PAGE, true);
+		$statRankings[$order] = array_slice($statRankings[$order], $playerBeginIndex, self::MAX_PAGES_PER_CHUNK * $pageMaxCount, true);
 		$pageNumber           = 1 + $chunkIndex * self::MAX_PAGES_PER_CHUNK;
 		foreach ($statRankings[$order] as $playerId => $value) {
-			if ($index % self::MAX_PLAYERS_PER_PAGE === 1) {
+			if ($index % $pageMaxCount === 1) {
 				$pageFrame = new Frame();
 				$frame->addChild($pageFrame);
 				$pageFrame->setZ(1);
@@ -337,7 +337,7 @@ class SimpleStatsList implements ManialinkPageAnswerListener, CallbackListener, 
 	 * @return int
 	 */
 	private function getChunkIndexFromPageNumber($pageIndex, $totalPlayersCount) {
-		$pagesCount = ceil($totalPlayersCount / self::MAX_PLAYERS_PER_PAGE);
+		$pagesCount = ceil($totalPlayersCount / $this->getPlayersPerPage());
 		if ($pageIndex > $pagesCount - 1) {
 			$pageIndex = $pagesCount - 1;
 		}
@@ -351,8 +351,19 @@ class SimpleStatsList implements ManialinkPageAnswerListener, CallbackListener, 
 	 * @return int
 	 */
 	private function getChunkStatsBeginIndex($chunkIndex) {
-		return $chunkIndex * self::MAX_PAGES_PER_CHUNK * self::MAX_PLAYERS_PER_PAGE;
+		return $chunkIndex * self::MAX_PAGES_PER_CHUNK * $this->getPlayersPerPage();
 	}
+
+	/**
+	 * Get number of players per page
+	 * 
+	 * @return int
+	 */
+	public function getPlayersPerPage() {
+		$pageheight = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
+		return floor($pageheight * 0.82 / 4);
+	}
+
 
 	/**
 	 * Called on ManialinkPageAnswer

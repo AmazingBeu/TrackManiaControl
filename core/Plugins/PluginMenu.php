@@ -107,7 +107,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		// Config
 		$pagerSize    = 9.;
 		$entryHeight  = 5.;
-		$pageMaxCount = floor(($height * 0.85) / $entryHeight);
+		$pageMaxCount = floor(($height * 0.70) / $entryHeight);
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
@@ -198,8 +198,8 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 
 			$descriptionLabel = new Label();
 			$pageFrame->addChild($descriptionLabel);
-			$descriptionLabel->setAlign($descriptionLabel::LEFT, $descriptionLabel::TOP);
-			$descriptionLabel->setPosition($width * -0.45, $height * -0.22);
+			$descriptionLabel->setAlign($descriptionLabel::LEFT, $descriptionLabel::BOTTOM);
+			$descriptionLabel->setPosition($width * -0.45, $height * -0.45);
 			$descriptionLabel->setSize($width * 0.7, $entryHeight);
 			$descriptionLabel->setTextSize(2);
 			$descriptionLabel->setTranslate(true);
@@ -236,7 +236,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 				$quadUpdate = new Quad_Icons128x128_1();
 				$pluginFrame->addChild($quadUpdate);
 				$quadUpdate->setSubStyle($quadUpdate::SUBSTYLE_ProfileVehicle);
-				$quadUpdate->setX(56);
+				$quadUpdate->setX($width / 2 - 3);
 				$quadUpdate->setZ(2);
 				$quadUpdate->setSize(5, 5);
 				$quadUpdate->setAction(self::ACTION_PREFIX_UPDATEPLUGIN . $pluginClass);
@@ -249,7 +249,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 			$updatePluginsButton = new Label_Button();
 			$frame->addChild($updatePluginsButton);
 			$updatePluginsButton->setHorizontalAlign($updatePluginsButton::RIGHT);
-			$updatePluginsButton->setPosition($width * 0.5, -29, 2);
+			$updatePluginsButton->setPosition($width * 0.5, $height * -0.37, 2);
 			$updatePluginsButton->setWidth(10);
 			$updatePluginsButton->setStyle($updatePluginsButton::STYLE_CardButtonSmallS);
 			$updatePluginsButton->setText(count($pluginUpdates) . ' update(s)');
@@ -278,7 +278,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		$posY                 = 0;
 		$index                = 0;
 		$settingHeight        = 5.;
-		$pageSettingsMaxCount = floor(($height * 0.78) / $settingHeight);
+		$pageSettingsMaxCount = floor(($height * 0.70) / $settingHeight);
 		$pageFrame            = null;
 
 		//Headline Label
@@ -322,7 +322,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 			$descriptionLabel = new Label_Text();
 			$pageFrame->addChild($descriptionLabel);
 			$descriptionLabel->setHorizontalAlign($descriptionLabel::LEFT);
-			$descriptionLabel->setPosition(-0.45 * $width, -0.35 * $height);
+			$descriptionLabel->setPosition(-0.45 * $width, $height * -0.38);
 			$descriptionLabel->setSize(0.9 * $width, $settingHeight);
 			$descriptionLabel->setTextSize(2);
 			$descriptionLabel->setTranslate(true);
@@ -390,7 +390,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 				self::ACTION_PREFIX_MANAGE_SETTING_LINK . $settingClass
 			);
 			$frame->addChild($mapNameButton);
-			$mapNameButton->setPosition(-$width / 2 + 60, -35);
+			$mapNameButton->setPosition(-$width / 2 + 60, $height * -0.45);
 		}
 
 		return $frame;
@@ -457,7 +457,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 			$descriptionLabel = new Label_Text();
 			$pageFrame->addChild($descriptionLabel);
 			$descriptionLabel->setHorizontalAlign($descriptionLabel::LEFT);
-			$descriptionLabel->setPosition(-0.45 * $width, -0.35 * $height);
+			$descriptionLabel->setPosition(-0.45 * $width, $height * -0.40);
 			$descriptionLabel->setSize(0.9 * $width, $settingHeight);
 			$descriptionLabel->setTextSize(2);
 			$descriptionLabel->setTranslate(true);

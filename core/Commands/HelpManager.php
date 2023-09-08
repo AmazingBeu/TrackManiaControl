@@ -238,9 +238,10 @@ class HelpManager implements CommandListener, CallbackListener, ManialinkPageAns
 		$index     = 1;
 		$posY      -= 10;
 		$pageFrame = null;
+		$pageMaxCount = floor($height * 0.80 / 4);
 
 		foreach ($commands as $command) {
-			if ($index % 15 === 1) {
+			if ($index % $pageMaxCount === 1) {
 				$pageFrame = new Frame();
 				$frame->addChild($pageFrame);
 				$posY = $height / 2 - 10;
