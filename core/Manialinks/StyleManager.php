@@ -125,22 +125,28 @@ class StyleManager implements UsageInformationAble {
 
 		$frame = new Frame();
 
+		$posX = -$width / 2 + 5;
+
 		$label = new Label_Text();
 		$frame->addChild($label);
-		$label->setPosition(-$width / 2 + 5, 0);
+		$label->setPosition($posX, 0);
 		$label->setHorizontalAlign($label::LEFT);
 		$label->setTextSize(1);
 		$label->setText('Search: ');
+
+		$posX += 10;
 
 		$entry = new Entry();
 		$frame->addChild($entry);
 		$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 		$entry->setHorizontalAlign($entry::LEFT);
-		$entry->setPosition(-$width / 2 + 15, 0);
+		$entry->setPosition($posX, 0);
 		$entry->setTextSize(1);
 		$entry->setSize($width * 0.28, 4);
 		$entry->setName('SearchString');
 		$entry->setDefault($entryvalue);
+
+		$posX += $width * 0.28 + 10;
 
 		if ($actionReset) {
 			$quad = new Quad_Icons64x64_1();
@@ -148,7 +154,7 @@ class StyleManager implements UsageInformationAble {
 			$quad->setSubStyle($quad::SUBSTYLE_QuitRace);
 			$quad->setColorize('aaa');
 			$quad->setSize(5, 5);
-			$quad->setPosition(-$width / 2 + 20 + $width * 0.25 - 2, 0);
+			$quad->setPosition($posX - 12, 0);
 			$quad->setZ(1);
 			$quad->setAction($actionReset);
 		}
@@ -161,7 +167,9 @@ class StyleManager implements UsageInformationAble {
 			$actionMapNameSearch
 		);
 		$frame->addChild($mapNameButton);
-		$mapNameButton->setX(-$width / 2 + 68);
+		$mapNameButton->setX($posX);
+
+		$posX += 20;
 
 		//Search for Author
 		$authorButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
@@ -171,7 +179,7 @@ class StyleManager implements UsageInformationAble {
 			$actionAuthorSearch
 		);
 		$frame->addChild($authorButton);
-		$authorButton->setX(-$width / 2 + 87);
+		$authorButton->setX($posX);
 
 		return $frame;
 	}

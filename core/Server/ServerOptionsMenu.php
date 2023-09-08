@@ -291,12 +291,13 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 		$posY      = 0.;
 		$index     = 0;
 		$pageFrame = null;
+		$pageMaxCount = floor(($height * 0.8) / $optionHeight);
 
 		foreach ($serverOptionsArray as $name => $value) {
 			// Continue on CurrentMaxPlayers...
 			if (strpos($name, 'Current') !== false) continue; // TODO: display 'Current...' somewhere
 
-			if ($index % 13 === 0) {
+			if ($index % $pageMaxCount === 0) {
 				$pageFrame = new Frame();
 				$frame->addChild($pageFrame);
 				$posY = $height * 0.41;

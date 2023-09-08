@@ -55,7 +55,6 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	const ACTION_SEARCH_MAP_NAME     = 'MapList.SearchMapName';
 	const ACTION_SEARCH_AUTHOR       = 'MapList.SearchAuthor';
 	const ACTION_RESET               = 'MapList.ResetMapList';
-	const MAX_MAPS_PER_PAGE          = 13;
 	const MAX_PAGES_PER_CHUNK        = 2;
 	const DEFAULT_CUSTOM_VOTE_PLUGIN = 'MCTeam\CustomVotesPlugin';
 	const CACHE_CURRENT_PAGE         = 'CurrentPage';
@@ -129,7 +128,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	public function showMapList(Player $player, $mapList = null, $pageIndex = -1, $entryvalue = "") {
 		$width   = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$height  = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
-		$buttonY = -$height / 2 + 9;
+		$buttonY = $height * -0.39;
 
 		if ($pageIndex < 0) {
 			$pageIndex = (int) $player->getCache($this, self::CACHE_CURRENT_PAGE);
@@ -139,15 +138,16 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 
 		$chunkIndex     = $this->getChunkIndexFromPageNumber($pageIndex);
 		$mapsBeginIndex = $this->getChunkMapsBeginIndex($chunkIndex);
+		$pageMaxCount   = $this->getMapPerPage();
 
 		// Get Maps
 		if (!is_array($mapList)) {
 			$mapList = $this->maniaControl->getMapManager()->getMaps();
 		}
-		$mapList = array_slice($mapList, $mapsBeginIndex, self::MAX_PAGES_PER_CHUNK * self::MAX_MAPS_PER_PAGE);
+		$mapList = array_slice($mapList, $mapsBeginIndex, self::MAX_PAGES_PER_CHUNK * $pageMaxCount);
 
 		$totalMapsCount = $this->maniaControl->getMapManager()->getMapsCount();
-		$pagesCount     = ceil($totalMapsCount / self::MAX_MAPS_PER_PAGE);
+		$pagesCount     = ceil($totalMapsCount / $pageMaxCount);
 
 		// Create ManiaLink
 		$maniaLink = new ManiaLink(ManialinkManager::MAIN_MLID);
@@ -237,7 +237,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 
 		foreach ($mapList as $map) {
 			/** @var Map $map */
-			if ($index % self::MAX_MAPS_PER_PAGE === 0) {
+			if ($index % $pageMaxCount === 0) {
 				$pageFrame = new Frame();
 				$frame->addChild($pageFrame);
 				$posY = $height / 2 - 16;
@@ -448,6 +448,16 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	}
 
 	/**
+	 * Get number of maps per page
+	 * 
+	 * @return int
+	 */
+	public function getMapPerPage() {
+		$pageheight = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
+		return floor(($pageheight - 16 - $pageheight * 0.11) / 4);
+	}
+
+	/**
 	 * Get the Chunk Index with the given Page Index
 	 *
 	 * @param int $pageIndex
@@ -455,7 +465,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	 */
 	private function getChunkIndexFromPageNumber($pageIndex) {
 		$mapsCount  = $this->maniaControl->getMapManager()->getMapsCount();
-		$pagesCount = ceil($mapsCount / self::MAX_MAPS_PER_PAGE);
+		$pagesCount = ceil($mapsCount / $this->getMapPerPage());
 		if ($pageIndex > $pagesCount - 1) {
 			$pageIndex = $pagesCount - 1;
 		}
@@ -469,7 +479,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	 * @return int
 	 */
 	private function getChunkMapsBeginIndex($chunkIndex) {
-		return $chunkIndex * self::MAX_PAGES_PER_CHUNK * self::MAX_MAPS_PER_PAGE;
+		return $chunkIndex * self::MAX_PAGES_PER_CHUNK * $this->getMapPerPage();
 	}
 
 	/**

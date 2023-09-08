@@ -108,7 +108,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		$pagerSize     = 9.;
 		$settingHeight = 5.;
 		$labelTextSize = 2;
-		$pageMaxCount  = 10;
+		$pageMaxCount  = floor(($height * 0.78) / $settingHeight);
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
@@ -270,7 +270,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		$pagerSize     = 9.;
 		$settingHeight = 5.;
 		$labelTextSize = 2;
-		$pageMaxCount  = 10;
+		$pageMaxCount  = floor(($height * 0.78) / $settingHeight);
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
@@ -387,7 +387,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		// Config
 		$pagerSize     = 9.;
 		$settingHeight = 5.;
-		$pageMaxCount  = 13;
+		$pageMaxCount  = floor(($height * 0.78) / $settingHeight);
 		$posY          = 0;
 
 		// Pagers

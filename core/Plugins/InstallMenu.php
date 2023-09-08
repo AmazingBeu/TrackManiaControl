@@ -79,6 +79,7 @@ class InstallMenu implements ConfiguratorMenu, ManialinkPageAnswerListener {
 		// Config
 		$pagerSize   = 9.;
 		$entryHeight = 5.;
+		$pageMaxCount = floor(($height * 0.85) / $entryHeight);
 		$posY        = 0.;
 		$pageFrame   = null;
 
@@ -135,7 +136,7 @@ class InstallMenu implements ConfiguratorMenu, ManialinkPageAnswerListener {
 					continue;
 				}
 
-				if ($index % 10 === 0) {
+				if ($index % $pageMaxCount === 0) {
 					// New page
 					$pageFrame = new Frame();
 					$frame->addChild($pageFrame);

@@ -140,6 +140,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$index     = 0;
 		$posY      = $height / 2 - 10;
 		$pageFrame = null;
+		$pageMaxCount = floor(($height * 0.85) / 4);
 
 		$navigateRootQuad = new Quad_Icons64x64_1();
 		$frame->addChild($navigateRootQuad);
@@ -178,7 +179,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				foreach ($mapFiles as $filePath => $fileName) {
 					$shortFilePath = substr($filePath, strlen($folderPath));
 
-					if ($index % 15 === 0) {
+					if ($index % $pageMaxCount === 0) {
 						// New Page
 						$pageFrame = new Frame();
 						$frame->addChild($pageFrame);

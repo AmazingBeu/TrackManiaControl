@@ -107,7 +107,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		// Config
 		$pagerSize    = 9.;
 		$entryHeight  = 5.;
-		$pageMaxCount = 10;
+		$pageMaxCount = floor(($height * 0.85) / $entryHeight);
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
@@ -274,10 +274,10 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		$settings = $this->maniaControl->getSettingManager()->getSettingsByClass($settingClass);
 		$isunlinkable = $this->maniaControl->getSettingManager()->getSettingValue($this->maniaControl->getSettingManager(), SettingManager::SETTING_ALLOW_UNLINK_SERVER);
 
-		$pageSettingsMaxCount = 10;
 		$posY                 = 0;
 		$index                = 0;
 		$settingHeight        = 5.;
+		$pageSettingsMaxCount = floor(($height * 0.78) / $settingHeight);
 		$pageFrame            = null;
 
 		//Headline Label
@@ -409,10 +409,10 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 	public function getManageSettingsLink(Frame $frame, $width, $height, Paging $paging, Player $player, $settingClass) {
 		$settings = $this->maniaControl->getSettingManager()->getSettingsByClass($settingClass);
 
-		$pageSettingsMaxCount = 10;
 		$posY                 = 0;
 		$index                = 0;
 		$settingHeight        = 5.;
+		$pageSettingsMaxCount = floor(($height * 0.78) / $settingHeight);
 		$pageFrame            = null;
 
 		if (count($settings) > 64) {

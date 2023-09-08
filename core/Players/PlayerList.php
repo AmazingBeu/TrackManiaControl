@@ -62,7 +62,6 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 	const CACHE_CURRENT_PAGE          = 'PlayerList.CurrentPage';
 	const DEFAULT_CUSTOM_VOTE_PLUGIN  = 'MCTeam\CustomVotesPlugin';
 	const SHOWN_MAIN_WINDOW           = -1;
-	const MAX_PLAYERS_PER_PAGE        = 15;
 	const MAX_PAGES_PER_CHUNK         = 2;
 
 	/*
@@ -157,8 +156,8 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 		$totalPlayersCount = count($players);
 		$chunkIndex        = $this->getChunkIndexFromPageNumber($pageIndex, $totalPlayersCount);
 		$playerBeginIndex  = $this->getChunkStatsBeginIndex($chunkIndex);
-
-		$pagesCount = ceil($totalPlayersCount / self::MAX_PLAYERS_PER_PAGE);
+		$pageMaxCount = $this->getPlayersPerPage();
+		$pagesCount = ceil($totalPlayersCount / $pageMaxCount);
 
 		//create manialink
 		$maniaLink = new ManiaLink(ManialinkManager::MAIN_MLID);
@@ -207,11 +206,11 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 		$playerIndex = 1 + $playerBeginIndex;
 
 		//Slice Array to chunk length
-		$players    = array_slice($players, $playerBeginIndex, self::MAX_PAGES_PER_CHUNK * self::MAX_PLAYERS_PER_PAGE, true);
+		$players    = array_slice($players, $playerBeginIndex, self::MAX_PAGES_PER_CHUNK * $pageMaxCount , true);
 		$pageNumber = 1 + $chunkIndex * self::MAX_PAGES_PER_CHUNK;
 
 		foreach ($players as $listPlayer) {
-			if ($index % self::MAX_PLAYERS_PER_PAGE === 1) {
+			if ($index % $pageMaxCount === 1) {
 				$pageFrame = new Frame();
 				$frame->addChild($pageFrame);
 
@@ -628,7 +627,7 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 	 * @return int
 	 */
 	private function getChunkIndexFromPageNumber($pageIndex, $totalPlayersCount) {
-		$pagesCount = ceil($totalPlayersCount / self::MAX_PLAYERS_PER_PAGE);
+		$pagesCount = ceil($totalPlayersCount / $this->getPlayersPerPage());
 		if ($pageIndex > $pagesCount - 1) {
 			$pageIndex = $pagesCount - 1;
 		}
@@ -642,7 +641,18 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 	 * @return int
 	 */
 	private function getChunkStatsBeginIndex($chunkIndex) {
-		return $chunkIndex * self::MAX_PAGES_PER_CHUNK * self::MAX_PLAYERS_PER_PAGE;
+		return $chunkIndex * self::MAX_PAGES_PER_CHUNK * $this->getPlayersPerPage();
+	}
+
+
+	/**
+	 * Get number of players per page
+	 * 
+	 * @return int
+	 */
+	public function getPlayersPerPage() {
+		$pageheight = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
+		return floor($pageheight * 0.82 / 4);
 	}
 
 	/**

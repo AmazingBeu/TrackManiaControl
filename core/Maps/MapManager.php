@@ -757,7 +757,7 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 		$currentIndex = $this->getMapIndex($this->getCurrentMap());
 
 		// No RestructureNeeded
-		if ($currentIndex < Maplist::MAX_MAPS_PER_PAGE - 1) {
+		if ($currentIndex < $this->mapList->getMapPerPage() - 1) {
 			return true;
 		}
 
