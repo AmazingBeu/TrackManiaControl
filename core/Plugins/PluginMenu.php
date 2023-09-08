@@ -150,6 +150,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		// Plugin pages
 		$posY          = 0.;
 
+		$pluginUpdates = null;
 		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_CHECK_UPDATE_WHEN_OPENING)) {
 			$pluginUpdates = $this->maniaControl->getUpdateManager()->getPluginUpdateManager()->getPluginsUpdates();
 		}
