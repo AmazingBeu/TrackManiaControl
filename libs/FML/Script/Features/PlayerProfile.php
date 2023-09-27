@@ -181,8 +181,8 @@ class PlayerProfile extends ScriptFeature
         $login = Builder::escapeText($this->login);
 
         if ($this->titleId == "Trackmania") {
-            $apicall = "declare Text LibTMxSMRaceScoresTable_OpenProfileLogin for ClientUI = \"\";
-            LibTMxSMRaceScoresTable_OpenProfileLogin = {$login};";
+            $apicall = "declare Text TMGame_ScoresTable_OpenProfileUserId for ClientUI = \"\";
+            TMGame_ScoresTable_OpenProfileUserId = {$login};";
         } else {
             $apicall = "ShowProfile({$login});";
         }
