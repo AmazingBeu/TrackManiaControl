@@ -249,6 +249,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 			$entry->setPosition($downloadPosX, $height * -0.39);
 			$entry->setTextSize(1);
 			$entry->setSize($width * 0.35, 4);
+			$entry->setName("Value");
 
 			$downloadPosX += $width * 0.35 + 10;
 
