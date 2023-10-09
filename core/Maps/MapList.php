@@ -13,6 +13,7 @@ use FML\Controls\Quads\Quad_Icons64x64_1;
 use FML\Controls\Quads\Quad_UIConstruction_Buttons;
 use FML\ManiaLink;
 use FML\Script\Features\Paging;
+use ManiaControl\Admin\AuthenticationManager;
 use ManiaControl\Callbacks\CallbackListener;
 use ManiaControl\Callbacks\CallbackManager;
 use ManiaControl\Callbacks\Callbacks;
@@ -59,6 +60,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	const DEFAULT_CUSTOM_VOTE_PLUGIN = 'MCTeam\CustomVotesPlugin';
 	const CACHE_CURRENT_PAGE         = 'CurrentPage';
 	const WIDGET_NAME                = 'MapList';
+	const SETTING_PERMISSION_MAPLIST = 'Show the Map List';
 
 	/*
 	 * Private properties
@@ -73,6 +75,9 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	 */
 	public function __construct(ManiaControl $maniaControl) {
 		$this->maniaControl = $maniaControl;
+
+		// Permissions
+		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_MAPLIST, AuthenticationManager::AUTH_LEVEL_PLAYER, AuthenticationManager::AUTH_LEVEL_PLAYER);
 
 		// Callbacks
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(ManialinkManager::CB_MAIN_WINDOW_CLOSED, $this, 'closeWidget');
@@ -126,6 +131,8 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	 * @param int    $pageIndex
 	 */
 	public function showMapList(Player $player, $mapList = null, $pageIndex = -1, $entryvalue = "") {
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, self::SETTING_PERMISSION_MAPLIST)) return;
+
 		$width   = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$height  = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
 		$buttonY = $height * -0.39;
