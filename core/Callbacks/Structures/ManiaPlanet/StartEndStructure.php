@@ -17,6 +17,7 @@ use ManiaControl\ManiaControl;
  */
 class StartEndStructure extends BaseTimeStructure {
 	private $count;
+	private $valid;
 
 	/**
 	 * StartEndStructure constructor.
@@ -28,6 +29,7 @@ class StartEndStructure extends BaseTimeStructure {
 		parent::__construct($maniaControl, $data);
 
 		$this->count = $this->getPlainJsonObject()->count;
+		$this->valid = $this->getPlainJsonObject()->valid;
 	}
 
 	/**
@@ -38,5 +40,15 @@ class StartEndStructure extends BaseTimeStructure {
 	 */
 	public function getCount() {
 		return $this->count;
+	}
+
+	/**
+	 * Get the Valid Round Count of this Section
+	 *
+	 * @api
+	 * @return int
+	 */
+	public function getValidRoundCount() {
+		return $this->valid;
 	}
 }
