@@ -48,6 +48,17 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 	const ECHO_WARN_PLAYER              = 'ManiaControl.PlayerManager.WarnPlayer';
 
 	/*
+	 * Callback Constants
+	 */
+	const CB_PLAYER_FORCED_TO_PLAY	= 'PlayerActions.PlayerForcedToPlay';
+	const CB_PLAYER_FORCED_TO_TEAM	= 'PlayerActions.PlayerForcedToTeam';
+	const CB_PLAYER_FORCED_TO_SPEC	= 'PlayerActions.PlayerForcedToSpec';
+	const CB_PLAYER_MUTED 			= 'PlayerActions.PlayerMuted';
+	const CB_PLAYER_WARNED 			= 'PlayerActions.PlayerWarned';
+	const CB_PLAYER_KICKED 			= 'PlayerActions.PlayerKicked';
+	const CB_PLAYER_BANNED 			= 'PlayerActions.PlayerBanned';
+
+	/*
 	 * Permission Setting Constants
 	 */
 	const SETTING_PERMISSION_FORCE_PLAYER_PLAY = 'Force Player to Play';
@@ -201,6 +212,8 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			return false;
 		}
 
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PLAYER_FORCED_TO_TEAM, $target, $teamId);
+
 		$message = false;
 		$teamName = '';
 		if ($teamId === self::TEAM_BLUE) {
@@ -229,7 +242,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		if ($message) {
 			$this->maniaControl->getChat()->sendInformation($message);
-			Logger::logInfo($chatMessage, true);
+			Logger::logInfo($message, true);
 		}
 
 		return true;
@@ -280,6 +293,8 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 				return false;
 			}
 		}
+
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PLAYER_FORCED_TO_PLAY, $target);
 
 		// Announce force
 		if ($displayAnnouncement) {
@@ -339,6 +354,8 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			$this->maniaControl->getChat()->sendException($e, $adminLogin);
 			return false;
 		}
+
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PLAYER_FORCED_TO_SPEC, $target);
 
 		if ($calledByAdmin) {
 			$title = $admin->getAuthLevelName();
@@ -460,6 +477,8 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			return false;
 		}
 
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PLAYER_MUTED, $target);
+
 		if ($calledByAdmin) {
 			$title = $admin->getAuthLevelName();
 			$message = $this->maniaControl->getChat()->formatMessage(
@@ -561,6 +580,8 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 		// Display manialink
 		$this->maniaControl->getManialinkManager()->displayWidget($maniaLink, $target);
 
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PLAYER_WARNED, $target);
+
 		if ($calledByAdmin) {
 			$title = $admin->getAuthLevelName();
 			$message = $this->maniaControl->getChat()->formatMessage(
@@ -625,6 +646,8 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			}
 		}
 
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PLAYER_KICKED, $target);
+
 		if ($calledByAdmin) {
 			$title = $admin->getAuthLevelName();
 			$message = $this->maniaControl->getChat()->formatMessage(
@@ -678,6 +701,8 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			$this->maniaControl->getChat()->sendError('Unknown player!', $admin);
 			return;
 		}
+
+		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PLAYER_BANNED, $target);
 
 		$title = $admin->getAuthLevelName();
 		$message = $this->maniaControl->getChat()->formatMessage(
