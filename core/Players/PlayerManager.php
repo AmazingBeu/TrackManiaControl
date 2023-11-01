@@ -600,12 +600,12 @@ class PlayerManager implements CallbackListener, TimerListener, CommunicationLis
 		}
 
 		$player              = new Player($this->maniaControl, false);
-		$player->index       = $row->index;
+		$player->index       = intval($row->index);
 		$player->login       = $row->login;
 		$player->rawNickname = $row->nickname;
 		$player->nickname    = Formatter::stripDirtyCodes($player->rawNickname);
 		$player->path        = $row->path;
-		$player->authLevel   = $row->authLevel;
+		$player->authLevel   = intval($row->authLevel);
 
 		return $player;
 	}
@@ -715,12 +715,12 @@ class PlayerManager implements CallbackListener, TimerListener, CommunicationLis
 		}
 
 		$player              = new Player($this->maniaControl, false);
-		$player->index       = $playerIndex;
+		$player->index       = intval($playerIndex);
 		$player->login       = $row->login;
 		$player->rawNickname = $row->nickname;
 		$player->nickname    = Formatter::stripDirtyCodes($player->rawNickname);
 		$player->path        = $row->path;
-		$player->authLevel   = $row->authLevel;
+		$player->authLevel   = intval($row->authLevel);
 
 		return $player;
 	}
