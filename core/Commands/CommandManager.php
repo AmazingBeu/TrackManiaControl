@@ -2,8 +2,10 @@
 
 namespace ManiaControl\Commands;
 
+use ManiaControl\Admin\AuthenticationManager;
 use ManiaControl\Callbacks\CallbackListener;
 use ManiaControl\Callbacks\CallbackManager;
+use ManiaControl\Callbacks\Callbacks;
 use ManiaControl\Callbacks\Listening;
 use ManiaControl\General\UsageInformationAble;
 use ManiaControl\General\UsageInformationTrait;
@@ -18,6 +20,10 @@ use ManiaControl\ManiaControl;
  */
 class CommandManager implements CallbackListener, UsageInformationAble {
 	use UsageInformationTrait;
+	/*
+	 * Constants
+	 */
+	const SETTING_PERMISSION_ADMIN_COMMANDS = "Minimum permissions level to use admin commands";
 	
 	/*
 	 * Private properties
@@ -48,6 +54,12 @@ class CommandManager implements CallbackListener, UsageInformationAble {
 
 		// Callbacks
 		$this->maniaControl->getCallbackManager()->registerCallbackListener(CallbackManager::CB_MP_PLAYERCHAT, $this, 'handleChatCallback');
+		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::AFTERINIT, $this, 'handleAfterInit');
+	}
+
+	public function handleAfterInit() {
+		// Permissions
+		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_ADMIN_COMMANDS, AuthenticationManager::AUTH_LEVEL_MODERATOR, AuthenticationManager::AUTH_LEVEL_PLAYER);
 	}
 
 	/**
@@ -326,6 +338,11 @@ class CommandManager implements CallbackListener, UsageInformationAble {
 			// Admin command
 			$isAdminCommand = true;
 			$commandListenings = $this->adminCommandListenings;
+
+			if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, self::SETTING_PERMISSION_ADMIN_COMMANDS)) {
+				$this->maniaControl->getAuthenticationManager()->sendNotAllowed($player);
+				return;
+			}
 
 			if ($command === 'admin') {
 				// Strip 'admin' keyword
