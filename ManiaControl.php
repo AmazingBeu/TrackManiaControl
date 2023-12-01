@@ -28,6 +28,9 @@ if (!ini_get('date.timezone') && function_exists('date_default_timezone_set')) {
 // Make sure garbage collection is enabled
 gc_enable();
 
+// Listen process signals
+pcntl_async_signals(true);
+
 // Register AutoLoader
 require_once MANIACONTROL_PATH . 'core' . DIRECTORY_SEPARATOR . 'AutoLoader.php';
 \ManiaControl\AutoLoader::register();
