@@ -351,6 +351,7 @@ class Chat implements CallbackListener, CommunicationListener, UsageInformationA
 	 */
 	public function sendMessageToAdmins($message, $minLevel = AuthenticationManager::AUTH_LEVEL_MODERATOR, $prefix = true) {
 		$admins = $this->maniaControl->getAuthenticationManager()->getConnectedAdmins($minLevel);
+		if (count($admins) === 0) return false;
 		return $this->sendChat($message, $admins, $prefix);
 	}
 
