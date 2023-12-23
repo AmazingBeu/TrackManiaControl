@@ -653,9 +653,11 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 
 		try {
 			// Manage SIGTERM signal
-			pcntl_signal(SIGTERM, function() {
-				$this->quit("Stop signal received from the OS.", false);
-			});
+			if (extension_loaded('pcntl')) {
+				pcntl_signal(SIGTERM, function() {
+					$this->quit("Stop signal received from the OS.", false);
+				});
+			}
 
 			// Connect to server
 			$this->connect();

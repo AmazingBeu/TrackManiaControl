@@ -29,7 +29,9 @@ if (!ini_get('date.timezone') && function_exists('date_default_timezone_set')) {
 gc_enable();
 
 // Listen process signals
-pcntl_async_signals(true);
+if (extension_loaded('pcntl')) {
+	pcntl_async_signals(true);
+}
 
 // Register AutoLoader
 require_once MANIACONTROL_PATH . 'core' . DIRECTORY_SEPARATOR . 'AutoLoader.php';
