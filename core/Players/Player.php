@@ -197,6 +197,23 @@ class Player implements Dumpable, UsageInformationAble {
 	}
 
 	/**
+	 * Get AccountId from Login
+	 *
+	 * @api
+	 * @return string
+	 */
+	public function getAccountId() {
+		if (strlen($this->login) !== 22) return $this->login;
+
+		$login = str_pad($this->login, 24, "=", STR_PAD_RIGHT);
+
+		$login = str_replace("_","/", str_replace("-","+", $login));
+		$login = base64_decode($login);
+
+		return vsprintf("%s%s-%s-%s-%s-%s%s%s", str_split(bin2hex($login), 4));
+	}
+
+	/**
 	 * Get province
 	 *
 	 * @api
