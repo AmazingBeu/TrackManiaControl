@@ -2736,6 +2736,101 @@ class Connection
 	}
 
 	/**
+	 * Set the ServerPlugin settings.
+	 * Only available to Admin.
+	 * @param boolean $forceReload
+	 * @param string $filename
+	 * @param string $settings
+	 * @param bool $multicall
+	 * @return bool
+	 */
+	function setServerPlugin($forceReload, $filename='', $settings=array(), $multicall=false)
+	{
+		if (count($settings) === 0)
+			return $this->execute(ucfirst(__FUNCTION__), array($forceReload, $filename), $multicall);
+
+		return $this->execute(ucfirst(__FUNCTION__), array($forceReload, $filename, $settings), $multicall);
+	}
+
+	/**
+	 * Get the ServerPlugin current settings.
+	 * Only available to Admin.
+	 * @param bool $multicall
+	 * @return bool
+	 */
+	function getServerPlugin($multicall=false)
+	{
+		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+	}
+
+	/**
+	 * Returns the current xml-rpc variables of the server script.
+	 * Only available to Admin.
+	 * @param bool $multicall
+	 * @return bool
+	 */
+	function getServerPluginVariables($multicall=false)
+	{
+		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+	}
+
+	/**
+	 * Set the xml-rpc variables of the server script.
+	 * Only available to Admin.
+	 * @param mixed[] $variables {mixed <variable name>, ...}
+	 * @param bool $multicall
+	 * @return bool
+	 * @throws InvalidArgumentException
+	 */
+	function setServerPluginVariables($variables, $multicall=false)
+	{
+		if(!is_array($variables) || !$variables)
+			throw new InvalidArgumentException('variables = '.print_r($variables, true));
+
+		return $this->execute(ucfirst(__FUNCTION__), array($variables), $multicall);
+	}
+
+	/**
+	 * Send an event to the server script.
+	 * Only available to Admin.
+	 * @param string $event
+	 * @param string|string[] $params
+	 * @param bool $multicall
+	 * @return bool
+	 * @throws InvalidArgumentException
+	 */
+	function triggerServerPluginEvent($event, $params='', $multicall=false)
+	{
+		if(!is_string($event))
+			throw new InvalidArgumentException('event name must be a string: event = '.print_r($event, true));
+
+		if(is_string($params))
+			return $this->execute(ucfirst(__FUNCTION__), array($event, $params), $multicall);
+
+		if(is_array($params)){
+			foreach($params as $param){
+				if(!is_string($param)){
+					throw new InvalidArgumentException('argument must be a string: param = '.print_r($param, true));
+				}
+			}
+			return $this->execute(ucfirst(__FUNCTION__).'Array', array($event, $params), $multicall);
+		}
+
+		// else
+		throw new InvalidArgumentException('argument must be string or string[]: params = '.print_r($params, true));
+	}
+
+
+	/**
+	 * @deprecated
+	 * @see triggerModeScriptEvent()
+	 */
+	function triggerServerPluginEventArray($event, $params=array(), $multicall=false)
+	{
+		return $this->triggerServerPluginEvent($event, $params, $multicall);
+	}
+
+	/**
 	 * Get the script cloud variables of given object.
 	 * Only available to Admin.
 	 * @param string $type
