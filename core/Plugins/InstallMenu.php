@@ -79,8 +79,9 @@ class InstallMenu implements ConfiguratorMenu, ManialinkPageAnswerListener {
 		// Config
 		$pagerSize   = 9.;
 		$entryHeight = 5.;
-		$pageMaxCount = floor(($height * 0.85) / $entryHeight);
-		$posY        = 0.;
+		$innerWidth = $width - 4;
+		$innerHeight = $height - 16;
+		$pageMaxCount = floor($innerHeight / $entryHeight);
 		$pageFrame   = null;
 
 		$url = ManiaControl::URL_WEBSERVICE . 'plugins';
@@ -106,24 +107,42 @@ class InstallMenu implements ConfiguratorMenu, ManialinkPageAnswerListener {
 			// Pagers
 			$pagerPrev = new Quad_Icons64x64_1();
 			$frame->addChild($pagerPrev);
-			$pagerPrev->setPosition($width * 0.39, $height * -0.44, 2)->setSize($pagerSize, $pagerSize)->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
+			$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
+			$pagerPrev->setSize($pagerSize, $pagerSize);
+			$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 			$pagerNext = clone $pagerPrev;
 			$frame->addChild($pagerNext);
-			$pagerNext->setX($width * 0.45);
+			$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
 			$pagerNext->setSubStyle($pagerPrev::SUBSTYLE_ArrowNext);
 
 			$pageCountLabel = new Label_Text();
 			$frame->addChild($pageCountLabel);
-			$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT)->setPosition($width * 0.35, $height * -0.44, 1)->setStyle($pageCountLabel::STYLE_TextTitle1)->setTextSize(2);
+			$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
+			$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
+			$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
+			$pageCountLabel->setTextSize(2);
 
-			$paging->addButtonControl($pagerNext)->addButtonControl($pagerPrev)->setLabel($pageCountLabel);
+			$paging->addButtonControl($pagerNext);
+			$paging->addButtonControl($pagerPrev);
+			$paging->setLabel($pageCountLabel);
+
+			$repositionnedFrame = new Frame();
+			$frame->addChild($repositionnedFrame);
+			$repositionnedFrame->setPosition($width * -0.5, $height * 0.5);
 
 			// Info tooltip
 			$infoTooltipLabel = new Label();
-			$frame->addChild($infoTooltipLabel);
-			$infoTooltipLabel->setAlign($infoTooltipLabel::LEFT, $infoTooltipLabel::TOP)->setPosition($width * -0.45, $height * -0.22)->setSize($width * 0.7, $entryHeight)->setTextSize(1)->setTranslate(true)->setVisible(false)->setAutoNewLine(true)->setMaxLines(5);
-
+			$repositionnedFrame->addChild($infoTooltipLabel);
+			$infoTooltipLabel->setAlign($infoTooltipLabel::LEFT, $infoTooltipLabel::TOP);
+			$infoTooltipLabel->setPosition(3, $height * -1 + 16);
+			$infoTooltipLabel->setSize($width - 30, 20);
+			$infoTooltipLabel->setTextSize(1);
+			$infoTooltipLabel->setTranslate(true);
+			$infoTooltipLabel->setVisible(false);
+			$infoTooltipLabel->setAutoNewLine(true);
+			$infoTooltipLabel->setMaxLines(5);
+			
 			// List plugins
 			foreach ($pluginList as $plugin) {
 				if ($this->maniaControl->getPluginManager()->isPluginIdInstalled($plugin->id)) {
@@ -139,18 +158,23 @@ class InstallMenu implements ConfiguratorMenu, ManialinkPageAnswerListener {
 				if ($index % $pageMaxCount === 0) {
 					// New page
 					$pageFrame = new Frame();
-					$frame->addChild($pageFrame);
+					$repositionnedFrame->addChild($pageFrame);
 					$paging->addPageControl($pageFrame);
-					$posY = $height * 0.41;
+					$index = 1;
 				}
 
 				$pluginFrame = new Frame();
 				$pageFrame->addChild($pluginFrame);
-				$pluginFrame->setY($posY);
+				$pluginFrame->setY($entryHeight * $index * -1);
 
 				$nameLabel = new Label_Text();
 				$pluginFrame->addChild($nameLabel);
-				$nameLabel->setHorizontalAlign($nameLabel::LEFT)->setX($width * -0.46)->setSize($width * 0.62, $entryHeight)->setStyle($nameLabel::STYLE_TextCardSmall)->setTextSize(2)->setText($plugin->name);
+				$nameLabel->setHorizontalAlign($nameLabel::LEFT);
+				$nameLabel->setX(2);
+				$nameLabel->setSize($innerWidth * 0.6, $entryHeight);
+				$nameLabel->setStyle($nameLabel::STYLE_TextCardSmall);
+				$nameLabel->setTextSize(2);
+				$nameLabel->setText($plugin->name);
 
 				$description = "Author: {$plugin->author}\nVersion: {$plugin->currentVersion->version}\nDesc: {$plugin->description}";
 				$infoTooltipLabel->setLineSpacing(1);
@@ -160,7 +184,7 @@ class InstallMenu implements ConfiguratorMenu, ManialinkPageAnswerListener {
 					// Incompatibility label
 					$infoLabel = new Label_Text();
 					$pluginFrame->addChild($infoLabel);
-					$infoLabel->setHorizontalAlign($infoLabel::RIGHT)->setX($width * 0.47)->setSize($width * 0.33, $entryHeight)->setTextSize(1)->setTextColor('f30');
+					$infoLabel->setHorizontalAlign($infoLabel::RIGHT)->setX($innerWidth * 0.47)->setSize($innerWidth * 0.33, $entryHeight)->setTextSize(1)->setTextColor('f30');
 					if ($plugin->currentVersion->min_mc_version > ManiaControl::VERSION) {
 						$infoLabel->setText("Needs at least MC-Version '{$plugin->currentVersion->min_mc_version}'");
 					} else {
@@ -170,17 +194,24 @@ class InstallMenu implements ConfiguratorMenu, ManialinkPageAnswerListener {
 					// Install button
 					$installButton = new Label_Button();
 					$pluginFrame->addChild($installButton);
-					$installButton->setHorizontalAlign($installButton::RIGHT)->setX($width * 0.47)->setStyle($installButton::STYLE_CardButtonSmall)->setText('Install')->setTranslate(true)->setAction(self::ACTION_PREFIX_INSTALL_PLUGIN . $plugin->id);
+					$installButton->setHorizontalAlign($installButton::RIGHT);
+					$installButton->setSize($innerWidth * 0.3, $entryHeight);
+					$installButton->setX($innerWidth - 4);
+					$installButton->setStyle($installButton::STYLE_CardButtonSmall);
+					$installButton->setText('Install');
+					$installButton->setTranslate(true);
+					$installButton->setAction(self::ACTION_PREFIX_INSTALL_PLUGIN . $plugin->id);
 
 					if ($plugin->currentVersion->verified > 0) {
 						// Suggested quad
 						$suggestedQuad = new Quad_Icons64x64_1();
 						$pluginFrame->addChild($suggestedQuad);
-						$suggestedQuad->setPosition($width * 0.45, $entryHeight * 0.12, 2)->setSize(4, 4)->setSubStyle($suggestedQuad::SUBSTYLE_StateSuggested);
+						$suggestedQuad->setPosition($innerWidth - 2, $entryHeight * 0.12, 2);
+						$suggestedQuad->setSize(4, 4);
+						$suggestedQuad->setSubStyle($suggestedQuad::SUBSTYLE_StateSuggested);
 					}
 				}
 
-				$posY -= $entryHeight;
 				$index++;
 			}
 		}

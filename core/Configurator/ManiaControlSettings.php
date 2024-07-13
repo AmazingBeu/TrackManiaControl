@@ -113,13 +113,13 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
 		$frame->addChild($pagerPrev);
-		$pagerPrev->setPosition($width * 0.39, $height * -0.44, 2);
+		$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
 		$pagerPrev->setSize($pagerSize, $pagerSize);
 		$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 		$pagerNext = new Quad_Icons64x64_1();
 		$frame->addChild($pagerNext);
-		$pagerNext->setPosition($width * 0.45, $height * -0.44, 2);
+		$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
 		$pagerNext->setSize($pagerSize, $pagerSize);
 		$pagerNext->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
 
@@ -129,7 +129,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		$pageCountLabel = new Label_Text();
 		$frame->addChild($pageCountLabel);
 		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
-		$pageCountLabel->setPosition($width * 0.35, $height * -0.44);
+		$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
 		$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
 		$pageCountLabel->setTextSize(2);
 
@@ -275,13 +275,13 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
 		$frame->addChild($pagerPrev);
-		$pagerPrev->setPosition($width * 0.39, $height * -0.44, 2);
+		$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
 		$pagerPrev->setSize($pagerSize, $pagerSize);
 		$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 		$pagerNext = new Quad_Icons64x64_1();
 		$frame->addChild($pagerNext);
-		$pagerNext->setPosition($width * 0.45, $height * -0.44, 2);
+		$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
 		$pagerNext->setSize($pagerSize, $pagerSize);
 		$pagerNext->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
 
@@ -291,7 +291,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		$pageCountLabel = new Label_Text();
 		$frame->addChild($pageCountLabel);
 		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
-		$pageCountLabel->setPosition($width * 0.35, $height * -0.44);
+		$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
 		$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
 		$pageCountLabel->setTextSize(2);
 
@@ -387,19 +387,18 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		// Config
 		$pagerSize     = 9.;
 		$settingHeight = 5.;
-		$pageMaxCount  = floor(($height * 0.78) / $settingHeight);
-		$posY          = 0;
+		$pageMaxCount  = floor(($height - 10) / $settingHeight);
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
 		$frame->addChild($pagerPrev);
-		$pagerPrev->setPosition($width * 0.39, $height * -0.44, 2);
+		$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
 		$pagerPrev->setSize($pagerSize, $pagerSize);
 		$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 		$pagerNext = new Quad_Icons64x64_1();
 		$frame->addChild($pagerNext);
-		$pagerNext->setPosition($width * 0.45, $height * -0.44, 2);
+		$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
 		$pagerNext->setSize($pagerSize, $pagerSize);
 		$pagerNext->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
 
@@ -409,20 +408,24 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 		$pageCountLabel = new Label_Text();
 		$frame->addChild($pageCountLabel);
 		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
-		$pageCountLabel->setPosition($width * 0.35, $height * -0.44, 1);
+		$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
 		$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
 		$pageCountLabel->setTextSize(2);
 
 		$paging->setLabel($pageCountLabel);
+
+		$repositionnedFrame = new Frame();
+        $frame->addChild($repositionnedFrame);
+        $repositionnedFrame->setPosition($width * -0.5, $height * 0.5);
 
 		$pageFrame = null;
 		$index     = 0;
 		foreach ($settingClasses as $settingClass) {
 			if ($index % $pageMaxCount === 0) {
 				$pageFrame = new Frame();
-				$frame->addChild($pageFrame);
-				$posY = $height * 0.41;
+				$repositionnedFrame->addChild($pageFrame);
 				$paging->addPageControl($pageFrame);
+				$index = 1;
 			}
 
 			$classLabel = new Label_Text();
@@ -436,15 +439,14 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 
 			$pageFrame->addChild($classLabel);
 			$classLabel->setHorizontalAlign($classLabel::LEFT);
-			$classLabel->setPosition($width * -0.45, $posY);
-			$classLabel->setSize($width * 0.9, $settingHeight * 0.9);
+			$classLabel->setPosition(2, $settingHeight * $index * -1);
+			$classLabel->setSize($width - 6, $settingHeight * 0.9);
 			$classLabel->setStyle($classLabel::STYLE_TextCardSmall);
 			$classLabel->setTextSize(2);
 			$classLabel->setText($className);
 			$classLabel->setTextColor('fff');
 			$classLabel->setAction(self::ACTION_PREFIX_SETTINGCLASS . $settingClass);
 
-			$posY -= $settingHeight;
 			$index++;
 		}
 

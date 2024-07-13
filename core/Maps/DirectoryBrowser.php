@@ -5,6 +5,7 @@ namespace ManiaControl\Maps;
 use FML\Controls\Frame;
 use FML\Controls\Label;
 use FML\Controls\Entry;
+use FML\Controls\Labels\Label_Button;
 use FML\Controls\Labels\Label_Text;
 use FML\Controls\Quads\Quad_BgsPlayerCard;
 use FML\Controls\Quads\Quad_Icons64x64_1;
@@ -137,18 +138,31 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 
 		$width     = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$height    = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
+
+		$innerWidth = $width - 2;
+		$innerHeigth = $height - 20;
+
+		$lineHeight = 4.;
+
 		$index     = 0;
-		$posY      = $height / 2 - 10;
 		$pageFrame = null;
-		$pageMaxCount = floor(($height * 0.78) / 4);
+		$pageMaxCount = floor($innerHeigth / 4);
+
+		$repositionnedFrame = new Frame();
+        $frame->addChild($repositionnedFrame);
+        $repositionnedFrame->setPosition($width * -0.5, $height * 0.5);
 
 		$navigateRootQuad = new Quad_Icons64x64_1();
-		$frame->addChild($navigateRootQuad);
-		$navigateRootQuad->setPosition($width * -0.47, $height * 0.45)->setSize(4, 4)->setSubStyle($navigateRootQuad::SUBSTYLE_ToolRoot);
+		$repositionnedFrame->addChild($navigateRootQuad);
+		$navigateRootQuad->setPosition(5, -5);
+		$navigateRootQuad->setSize(4, 4);
+		$navigateRootQuad->setSubStyle($navigateRootQuad::SUBSTYLE_ToolRoot);
 
 		$navigateUpQuad = new Quad_Icons64x64_1();
-		$frame->addChild($navigateUpQuad);
-		$navigateUpQuad->setPosition($width * -0.44, $height * 0.45)->setSize(4, 4)->setSubStyle($navigateUpQuad::SUBSTYLE_ToolUp);
+		$repositionnedFrame->addChild($navigateUpQuad);
+		$navigateUpQuad->setPosition(9, -5);
+		$navigateUpQuad->setSize(4, 4);
+		$navigateUpQuad->setSubStyle($navigateUpQuad::SUBSTYLE_ToolUp);
 
 		if (!$isInMapsFolder) {
 			$navigateRootQuad->setAction(self::ACTION_NAVIGATE_ROOT);
@@ -156,25 +170,75 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		}
 
 		$directoryLabel = new Label_Text();
-		$frame->addChild($directoryLabel);
+		$repositionnedFrame->addChild($directoryLabel);
 		$dataFolder    = $this->maniaControl->getServer()->getDirectory()->getUserDataFolder();
 		$directoryText = substr($folderPath, strlen($dataFolder));
-		$directoryLabel->setPosition($width * -0.41, $height * 0.45)->setSize($width * 0.85, 4)->setHorizontalAlign($directoryLabel::LEFT)->setText($directoryText)->setTextSize(2);
+		$directoryLabel->setPosition(12, -5);
+		$directoryLabel->setSize($width * 0.85, 4);
+		$directoryLabel->setHorizontalAlign($directoryLabel::LEFT);
+		$directoryLabel->setText($directoryText);
+		$directoryLabel->setTextSize(2);
 
 		$tooltipLabel = new Label();
-		$frame->addChild($tooltipLabel);
-		$tooltipLabel->setPosition($width * -0.48, $height * -0.44)->setSize($width * 0.8, 5)->setHorizontalAlign($tooltipLabel::LEFT)->setTextSize(1);
+		$repositionnedFrame->addChild($tooltipLabel);
+		$tooltipLabel->setPosition(3, $height + 5);
+		$tooltipLabel->setSize($width * 0.8, 5);
+		$tooltipLabel->setHorizontalAlign($tooltipLabel::LEFT);
+		$tooltipLabel->setTextSize(1);
+
+		// Download button
+		$backButton = new Label_Button();
+		$repositionnedFrame->addChild($backButton);
+		$backButton->setStyle($backButton::STYLE_CardMain_Quit);
+		$backButton->setHorizontalAlign($backButton::LEFT);
+		$backButton->setScale(0.5);
+		$backButton->setText('Back');
+        $backButton->setPosition(3, $height * -1 + 5);
+		$backButton->setAction(MapCommands::ACTION_OPEN_MAPLIST);
+
+		$label = new Label_Text();
+		$repositionnedFrame->addChild($label);
+		$label->setPosition(25, $height * -1 + 5);
+		$label->setHorizontalAlign($label::LEFT);
+		$label->setTextSize(1);
+		$label->setText('Download from URL: ');
+			
+		$entry = new Entry();
+		$repositionnedFrame->addChild($entry);
+		$entry->setStyle(Label_Text::STYLE_TextValueSmall);
+		$entry->setHorizontalAlign($entry::LEFT);
+		$entry->setPosition(53, $height * -1 + 5);
+		$entry->setTextSize(1);
+		$entry->setSize($width * 0.35, 4);
+		$entry->setName("Value");
+
+		//Search for Map-Name
+		$downloadButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
+			'Download',
+			18,
+			5,
+			self::ACTION_DOWNLOAD_FILE
+		);
+		$repositionnedFrame->addChild($downloadButton);
+		$downloadButton->setPosition(53 + 18 / 2 + $width * 0.35, $height * -1 + 5);
 
 		$mapFiles = $this->scanMapFiles($folderPath);
 
 		if (is_array($mapFiles)) {
 			if (empty($mapFiles)) {
 				$emptyLabel = new Label();
-				$frame->addChild($emptyLabel);
-				$emptyLabel->setY(20)->setTextColor('aaa')->setText('No files found.')->setTranslate(true);
+				$repositionnedFrame->addChild($emptyLabel);
+				$emptyLabel->setPosition($innerWidth * 0.5, $innerHeigth * -0.5);
+				$emptyLabel->setTextColor('aaa');
+				$emptyLabel->setText('No files found.');
+				$emptyLabel->setTranslate(true);
 			} else {
 				$canAddMaps   = $this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_ADD_MAP);
 				$canEraseMaps = $this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_ERASE_MAP);
+
+				$pagesFrame = new Frame();
+				$repositionnedFrame->addChild($pagesFrame);
+				$pagesFrame->setPosition(1, -10);
 
 				foreach ($mapFiles as $filePath => $fileName) {
 					$shortFilePath = substr($filePath, strlen($folderPath));
@@ -182,27 +246,36 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 					if ($index % $pageMaxCount === 0) {
 						// New Page
 						$pageFrame = new Frame();
-						$frame->addChild($pageFrame);
-						$posY = $height / 2 - 10;
+						$pagesFrame->addChild($pageFrame);
 						$paging->addPageControl($pageFrame);
+						$index = 1;
 					}
 
 					// Map Frame
 					$mapFrame = new Frame();
 					$pageFrame->addChild($mapFrame);
-					$mapFrame->setY($posY);
+					$mapFrame->setY($lineHeight * $index * -1);
 
 					if ($index % 2 === 0) {
 						// Striped background line
 						$lineQuad = new Quad_BgsPlayerCard();
 						$mapFrame->addChild($lineQuad);
-						$lineQuad->setZ(-1)->setSize($width, 4)->setSubStyle($lineQuad::SUBSTYLE_BgPlayerCardBig);
+						$lineQuad->setX($innerWidth / 2);
+						$lineQuad->setZ(-1);
+						$lineQuad->setSize($width, $lineHeight);
+						$lineQuad->setSubStyle($lineQuad::SUBSTYLE_BgPlayerCardBig);
 					}
 
 					// File name Label
 					$nameLabel = new Label_Text();
 					$mapFrame->addChild($nameLabel);
-					$nameLabel->setX($width * -0.48)->setSize($width * 0.79, 4)->setHorizontalAlign($nameLabel::LEFT)->setStyle($nameLabel::STYLE_TextCardRaceRank)->setTextSize(1)->setText($fileName);
+					$nameLabel->setX(2);
+					$nameLabel->setSize($innerWidth - 20, $lineHeight);
+					$nameLabel->setHorizontalAlign($nameLabel::LEFT);
+					$nameLabel->setStyle($nameLabel::STYLE_TextCardRaceRank);
+					$nameLabel->setTextSize(1);
+					$nameLabel->setText($fileName);
+					if (substr($fileName, -1) === DIRECTORY_SEPARATOR) $nameLabel->setTextPrefix(' ');
 
 					if (is_dir($filePath)) {
 						// Folder
@@ -215,58 +288,35 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 							// 'Add' button
 							$addButton = new Quad_UIConstructionBullet_Buttons();
 							$mapFrame->addChild($addButton);
-							$addButton->setX($width * 0.42)->setSize(4, 4)->setSubStyle($addButton::SUBSTYLE_NewBullet)->setAction(self::ACTION_ADD_FILE . $fileName)->addTooltipLabelFeature($tooltipLabel, 'Add map ' . $fileName);
+							$addButton->setX($width - 5);
+							$addButton->setSize(4, 4);
+							$addButton->setSubStyle($addButton::SUBSTYLE_NewBullet);
+							$addButton->setAction(self::ACTION_ADD_FILE . $fileName);
+							$addButton->addTooltipLabelFeature($tooltipLabel, 'Add map ' . $fileName);
 						}
 
 						if ($canEraseMaps) {
 							// 'Erase' button
 							$eraseButton = new Quad_UIConstruction_Buttons();
 							$mapFrame->addChild($eraseButton);
-							$eraseButton->setX($width * 0.46)->setSize(4, 4)->setSubStyle($eraseButton::SUBSTYLE_Erase)->setAction(self::ACTION_ERASE_FILE . $fileName)->addTooltipLabelFeature($tooltipLabel, 'Erase file ' . $fileName);
+							$eraseButton->setX($width - 10);
+							$eraseButton->setSize(4, 4);
+							$eraseButton->setSubStyle($eraseButton::SUBSTYLE_Erase);
+							$eraseButton->setAction(self::ACTION_ERASE_FILE . $fileName);
+							$eraseButton->addTooltipLabelFeature($tooltipLabel, 'Erase file ' . $fileName);
 						}
 					}
 
-					$posY -= 4;
 					$index++;
 				}
 			}
-
-			$downloadPosX = -$width / 2 + 5;
-
-			$label = new Label_Text();
-			$frame->addChild($label);
-			$label->setPosition($downloadPosX, $height * -0.39);
-			$label->setHorizontalAlign($label::LEFT);
-			$label->setTextSize(1);
-			$label->setText('Download from URL: ');
-
-			$downloadPosX += 30;
-	
-			$entry = new Entry();
-			$frame->addChild($entry);
-			$entry->setStyle(Label_Text::STYLE_TextValueSmall);
-			$entry->setHorizontalAlign($entry::LEFT);
-			$entry->setPosition($downloadPosX, $height * -0.39);
-			$entry->setTextSize(1);
-			$entry->setSize($width * 0.35, 4);
-			$entry->setName("Value");
-
-			$downloadPosX += $width * 0.35 + 10;
-
-			//Search for Map-Name
-			$mapNameButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
-				'Download',
-				18,
-				5,
-				self::ACTION_DOWNLOAD_FILE
-			);
-			$frame->addChild($mapNameButton);
-			$mapNameButton->setPosition($downloadPosX, $height * -0.39);
-
 		} else {
 			$errorLabel = new Label();
-			$frame->addChild($errorLabel);
-			$errorLabel->setY(20)->setTextColor('f30')->setText('No access to the directory.')->setTranslate(true);
+			$repositionnedFrame->addChild($errorLabel);
+			$errorLabel->setPosition($innerWidth * 0.5, $innerHeigth * -0.5);
+			$errorLabel->setTextColor('f30');
+			$errorLabel->setText('No access to the directory.');
+			$errorLabel->setTranslate(true);
 		}
 
 		$this->maniaControl->getManialinkManager()->displayWidget($maniaLink, $player, self::WIDGET_NAME);
@@ -302,6 +352,15 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				}
 			}
 		}
+
+		uasort($mapFiles, function ($a, $b) {
+			$aIsDir = (substr($a, -1) === DIRECTORY_SEPARATOR);
+			$bIsDir = (substr($b, -1) === DIRECTORY_SEPARATOR);
+
+			if ($aIsDir && !$bIsDir) return -1;
+			else if (!$aIsDir && $bIsDir) return 1;
+			return 0;
+		});
 		return $mapFiles;
 	}
 

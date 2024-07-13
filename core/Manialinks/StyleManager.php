@@ -106,7 +106,7 @@ class StyleManager implements UsageInformationAble {
 
 		// Predefine Description Label
 		$descriptionLabel = new Label();
-		$descriptionLabel->setAlign($descriptionLabel::LEFT, $descriptionLabel::TOP)->setPosition($width * -0.5 + 10, $height * -0.5 + 5)->setZ(1)->setSize($width * 0.7, 4)->setTextSize(2)->setVisible(false);
+		$descriptionLabel->setAlign($descriptionLabel::LEFT, $descriptionLabel::TOP)->setPosition($width * -0.5 + 10, $height * -0.5 + 5)->setZ(1)->setSize($width * 0.7, 4)->setTextSize(1)->setVisible(false);
 
 		return $descriptionLabel;
 	}
@@ -245,18 +245,27 @@ class StyleManager implements UsageInformationAble {
 			$pagerSize = 6.;
 			$pagerPrev = new Quad_Icons64x64_1();
 			$frame->addChild($pagerPrev);
-			$pagerPrev->setPosition($width * 0.42, $height * -0.44, 2)->setSize($pagerSize, $pagerSize)->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
+			$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
+			$pagerPrev->setSize($pagerSize, $pagerSize);
+			$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 			$pagerNext = new Quad_Icons64x64_1();
 			$frame->addChild($pagerNext);
-			$pagerNext->setPosition($width * 0.45, $height * -0.44, 2)->setSize($pagerSize, $pagerSize)->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
+			$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
+			$pagerNext->setSize($pagerSize, $pagerSize);
+			$pagerNext->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
 
 			$pageCountLabel = new Label_Text();
 			$frame->addChild($pageCountLabel);
-			$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT)->setPosition($width * 0.40, $height * -0.44, 1)->setStyle($pageCountLabel::STYLE_TextTitle1)->setTextSize(1);
+			$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
+			$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
+			$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
+			$pageCountLabel->setTextSize(1);
 
 			if ($paging) {
-				$paging->addButtonControl($pagerNext)->addButtonControl($pagerPrev)->setLabel($pageCountLabel);
+				$paging->addButtonControl($pagerNext);
+				$paging->addButtonControl($pagerPrev);
+				$paging->setLabel($pageCountLabel);
 			}
 		}
 

@@ -166,13 +166,13 @@ class ServerUIPropertiesMenu implements ConfiguratorMenu, CallbackListener, Time
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
 		$frame->addChild($pagerPrev);
-		$pagerPrev->setPosition($width * 0.39, $height * -0.44, 2);
+		$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
 		$pagerPrev->setSize($pagerSize, $pagerSize);
 		$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 		$pagerNext = new Quad_Icons64x64_1();
 		$frame->addChild($pagerNext);
-		$pagerNext->setPosition($width * 0.45, $height * -0.44, 2);
+		$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
 		$pagerNext->setSize($pagerSize, $pagerSize);
 		$pagerNext->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
 
@@ -182,7 +182,7 @@ class ServerUIPropertiesMenu implements ConfiguratorMenu, CallbackListener, Time
 		$pageCountLabel = new Label_Text();
 		$frame->addChild($pageCountLabel);
 		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
-		$pageCountLabel->setPosition($width * 0.35, $height * -0.44, 1);
+		$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
 		$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
 		$pageCountLabel->setTextSize(2);
 

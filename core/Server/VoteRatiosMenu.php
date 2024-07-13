@@ -71,11 +71,20 @@ class VoteRatiosMenu implements CallbackListener, ConfiguratorMenu, TimerListene
 
 			$nameLabel = new Label_Text();
 			$voteRatioFrame->addChild($nameLabel);
-			$nameLabel->setHorizontalAlign($nameLabel::LEFT)->setX($width * -0.46)->setSize($width * 0.7, $lineHeight)->setTextSize(2)->setTranslate(true)->setText($voteRatioDescription);
+			$nameLabel->setHorizontalAlign($nameLabel::LEFT);
+			$nameLabel->setX($width * -0.5 + 4);
+			$nameLabel->setSize($width * 0.7, $lineHeight);
+			$nameLabel->setTextSize(2);
+			$nameLabel->setTranslate(true);
+			$nameLabel->setText($voteRatioDescription);
 
 			$entry = new Entry();
 			$voteRatioFrame->addChild($entry);
-			$entry->setX($width * 0.35)->setSize($width * 0.14, $lineHeight * 0.9)->setStyle(Label_Text::STYLE_TextValueSmall)->setTextSize($index === 0 ? 2 : 1)->setName(self::ACTION_PREFIX_VOTE_RATIO . $voteRatioCommand);
+			$entry->setX($width * 0.5 - $width * 0.14 / 2 - 4);
+			$entry->setSize($width * 0.14, $lineHeight * 0.9);
+			$entry->setStyle(Label_Text::STYLE_TextValueSmall);
+			$entry->setTextSize($index === 0 ? 2 : 1);
+			$entry->setName(self::ACTION_PREFIX_VOTE_RATIO . $voteRatioCommand);
 
 			$voteRatio = $this->getVoteRatioForCommand($voteRatios, $voteRatioCommand);
 			if ($voteRatio) {

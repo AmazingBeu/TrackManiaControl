@@ -333,21 +333,24 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 		}
 
 		// Config
+		$innerWidth     = $width - 3;
+		$innerHeight   = $height - 10;
 		$pagerSize     = 9.;
 		$settingHeight = 5.;
+		$valueWidth    = $innerWidth * 0.3;
 		$labelTextSize = 2;
-		$pageMaxCount  = floor(($height * 0.85) / $settingHeight);
+		$pageMaxCount  = floor($innerHeight / $settingHeight);
 
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
 		$frame->addChild($pagerPrev);
-		$pagerPrev->setPosition($width * 0.39, $height * -0.44, 2);
+		$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
 		$pagerPrev->setSize($pagerSize, $pagerSize);
 		$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 		$pagerNext = new Quad_Icons64x64_1();
 		$frame->addChild($pagerNext);
-		$pagerNext->setPosition($width * 0.45, $height * -0.44, 2);
+		$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
 		$pagerNext->setSize($pagerSize, $pagerSize);
 		$pagerNext->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
 
@@ -357,7 +360,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 		$pageCountLabel = new Label_Text();
 		$frame->addChild($pageCountLabel);
 		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
-		$pageCountLabel->setPosition($width * 0.35, $height * -0.44, 1);
+		$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
 		$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
 		$pageCountLabel->setTextSize(2);
 
@@ -367,17 +370,24 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 			$descriptionLabel = new Label();
 			$frame->addChild($descriptionLabel);
 			$descriptionLabel->setHorizontalAlign($descriptionLabel::LEFT);
-			$descriptionLabel->setPosition($width * -0.45, $height * -0.44);
-			$descriptionLabel->setSize($width * 0.7, $settingHeight);
+			$descriptionLabel->setPosition($width * -0.5 + 3, $height * -0.5 + 5);
+			$descriptionLabel->setSize($width - 30, $settingHeight);
 			$descriptionLabel->setText('Changes only apply with map skip/restart');
 			$descriptionLabel->setTextColor('ff0');
-			$descriptionLabel->setTextSize($labelTextSize);
+			$descriptionLabel->setTextSize(1);
 			$descriptionLabel->setTranslate(true);
 		}
 
+		$repositionnedFrame = new Frame();
+        $frame->addChild($repositionnedFrame);
+        $repositionnedFrame->setPosition($width * -0.5, $height * 0.5);
+
+        $pagesFrame = new Frame();
+        $repositionnedFrame->addChild($pagesFrame);
+		$pagesFrame->setPosition(2, -1);
+
 		// Setting pages
 		$pageFrame = null;
-		$posY      = 0.;
 		$index     = 0;
 
 		foreach ($scriptParams as $key => $scriptParam) {
@@ -402,23 +412,23 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 
 			if ($index % $pageMaxCount === 0) {
 				$pageFrame = new Frame();
-				$frame->addChild($pageFrame);
-				$posY = 0.41 * $height;
+				$pagesFrame->addChild($pageFrame);
 				$paging->addPageControl($pageFrame);
+				$index = 1;
 			}
 
 			$settingFrame = new Frame();
 			$pageFrame->addChild($settingFrame);
-			$settingFrame->setY($posY);
+			$settingFrame->setY($settingHeight * $index * -1);
 
 			$nameLabel = new Label_Text();
 			$settingFrame->addChild($nameLabel);
 			$nameLabel->setHorizontalAlign($nameLabel::LEFT);
-			$nameLabel->setSize(0.4 * $width, $settingHeight);
+			$nameLabel->setSize($innerWidth * 0.6, $settingHeight);
 			$nameLabel->setStyle($nameLabel::STYLE_TextCardSmall);
 			$nameLabel->setText($settingName);
 			$nameLabel->setTextSize($labelTextSize);
-			$nameLabel->setX(-0.46 * $width);
+			$nameLabel->setX(1);
 			if ($scriptParam->desc === self::DESCRIPTION_HIDDEN) {
 				$nameLabel->setTextColor("AAAAAA");
 			}
@@ -433,18 +443,18 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 					} else {
 						$activeQuad->setSubStyle(Quad_Icons64x64_1::SUBSTYLE_LvlRed);
 					}
-					$activeQuad->setX(0.1 * $width);
+					$activeQuad->setX($innerWidth - $valueWidth - 2.5);
 				} else {
 					$currentLabel = new Label_Text();
 					$settingFrame->addChild($currentLabel);
 					$currentLabel->setHorizontalAlign(Label_Text::RIGHT);
-					$currentLabel->setSize(0.2 * $width, 0.9 * $settingHeight);
+					$currentLabel->setSize($innerWidth * 0.2, 0.9 * $settingHeight);
 					$currentLabel->setStyle(Label_Text::STYLE_TextValueSmall);
 					$currentLabel->setText($settingValue[0]);
 					$currentLabel->setTextColor('aaa');
 					$currentLabel->setTextPrefix('$i');
-					$currentLabel->setTextSize(1);
-					$currentLabel->setX(0.11 * $width);
+					$currentLabel->setTextSize(0.5);
+					$currentLabel->setX($innerWidth - $valueWidth);
 				}
 
 				$settingValue = $settingValue[1];
@@ -454,7 +464,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 				// Boolean checkbox
 				$quad = new Quad();
 				$quad->setSize(4, 4);
-				$quad->setX(0.27 * $width);
+				$quad->setPosition($innerWidth - $valueWidth / 2, 0);
 				$checkBox = new CheckBox(self::ACTION_PREFIX_SETTING . $settingName, $settingValue, $quad);
 				$settingFrame->addChild($checkBox);
 			} else {
@@ -463,25 +473,24 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 				$settingFrame->addChild($entry);
 				$entry->setDefault($settingValue);
 				$entry->setName(self::ACTION_PREFIX_SETTING . $settingName);
-				$entry->setSize(0.3 * $width, 0.9 * $settingHeight);
 				$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 				$entry->setTextSize(1);
 				$entry->setMaxLength(1000);
-				$entry->setX(0.275 * $width);
+				$entry->setPosition($innerWidth - $valueWidth / 2, 0);
+				$entry->setSize($valueWidth, $settingHeight * 0.9);
 			}
 
 			if ($isScriptMode) {
 				$descriptionLabel = new Label();
 				$pageFrame->addChild($descriptionLabel);
 				$descriptionLabel->setHorizontalAlign($descriptionLabel::LEFT);
-				$descriptionLabel->setPosition(-0.45 * $width, -0.44 * $height);
-				$descriptionLabel->setSize(0.7 * $width, $settingHeight);
-				$descriptionLabel->setTextSize($labelTextSize);
+				$descriptionLabel->setPosition(3, $height * -1 + 5);
+				$descriptionLabel->setSize($width - 30, $settingHeight);
+				$descriptionLabel->setTextSize(1);
 				$descriptionLabel->setTranslate(true);
 				$nameLabel->addTooltipLabelFeature($descriptionLabel, $scriptParam->desc);
 			}
 
-			$posY -= $settingHeight;
 			$index++;
 		}
 

@@ -243,7 +243,7 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 	 */
 	public function getPlayersPerPage() {
 		$pageheight = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
-		return floor($pageheight * 0.82 / 4);
+		return floor(($pageheight - 16) / 4);
 	}
 
 	/**

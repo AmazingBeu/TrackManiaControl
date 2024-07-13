@@ -135,7 +135,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 
 		$width   = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$height  = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
-		$buttonY = $height * -0.39;
+		$buttonY = $height * -0.5 + 10;
 
 		if ($pageIndex < 0) {
 			$pageIndex = (int) $player->getCache($this, self::CACHE_CURRENT_PAGE);
@@ -178,7 +178,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				self::ACTION_CLEAR_MAPQUEUE
 			);
 			$frame->addChild($clearMapQueueButton);
-			$clearMapQueueButton->setPosition($width/2 - 5 - 30/2, $buttonY);
+			$clearMapQueueButton->setPosition($width * 0.5 - 5 - 30/2, $buttonY);
 		}
 
 		if ($this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_CHECK_UPDATE)) {
@@ -190,7 +190,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				$this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON_GREEN)
 			);
 			$frame->addChild($mxCheckForUpdatesButton);
-			$mxCheckForUpdatesButton->setPosition($width/2 - 5 - 30 - 5 - 36/2, $buttonY);
+			$mxCheckForUpdatesButton->setPosition($width * 0.5 - 5 - 30 - 5 - 36/2, $buttonY);
 		}
 
 		if ($this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_ADD_MAP)) {
@@ -201,7 +201,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				DirectoryBrowser::ACTION_SHOW
 			);
 			$frame->addChild($browserButton);
-			$browserButton->setPosition(-$width/2 + 5 + 36/2, $buttonY);
+			$browserButton->setPosition($width * -0.5 + 36 / 2, $buttonY);
 		}
 
 		// Headline
@@ -214,7 +214,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 		$labelLine->addLabelEntryText('Id', $posX + 5);
 		$labelLine->addLabelEntryText('Mx Id', $posX + 10);
 		$labelLine->addLabelEntryText('Map Name', $posX + 20);
-		$labelLine->addLabelEntryText('Author', $posX + 68);
+		$labelLine->addLabelEntryText('Author', $width / 2 - 56);
 		$labelLine->addLabelEntryText('Actions', $width / 2 - 16);
 		$labelLine->setY(-7);
 		$labelLine->render();
@@ -284,7 +284,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				$mxQuad->setSize(3, 3);
 				$mxQuad->setImageUrl($mxIcon);
 				$mxQuad->setImageFocusUrl($mxIconHover);
-				$mxQuad->setX($posX + 65);
+				$mxQuad->setX($width / 2 - 63);
 				$mxQuad->setUrl($map->mx->pageurl);
 				$mxQuad->setZ(0.01);
 				$description = 'View ' . $map->getEscapedName() . ' on Mania-Exchange';
@@ -296,7 +296,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 					$mxQuad->setSize(3, 3);
 					$mxQuad->setImageUrl($mxIconGreen);
 					$mxQuad->setImageFocusUrl($mxIconGreenHover);
-					$mxQuad->setX($posX + 62);
+					$mxQuad->setX($width / 2 - 60);
 					$mxQuad->setUrl($map->mx->pageurl);
 					$mxQuad->setZ(0.01);
 					$description = 'Update for ' . $map->getEscapedName() . ' available on Mania-Exchange!';
@@ -313,12 +313,12 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 			$labelLine = new LabelLine($mapFrame);
 			$labelLine->addLabelEntryText($mapListId, $posX + 5, 5);
 			$labelLine->addLabelEntryText($mxId, $posX + 10, 10);
-			$labelLine->addLabelEntryText(Formatter::stripDirtyCodes($map->name), $posX + 20, 42);
-
+			$labelLine->addLabelEntryText(Formatter::stripDirtyCodes($map->name), $posX + 20,  $width - 20 - 56 - 5);
+			
 			$label = new Label_Text();
 			$mapFrame->addChild($label);
 			$label->setText($map->authorNick);
-			$label->setX($posX + 68);
+			$label->setX($width / 2 - 56);
 			$label->setSize(47, 0);
 			$label->setAction(MapCommands::ACTION_SHOW_AUTHOR . $map->authorLogin);
 			$description = 'Click to checkout all maps by $<' . $map->authorLogin . '$>!';
@@ -461,7 +461,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 	 */
 	public function getMapPerPage() {
 		$pageheight = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
-		return floor(($pageheight - 16 - $pageheight * 0.11) / 4);
+		return floor(($pageheight - 26) / 4);
 	}
 
 	/**

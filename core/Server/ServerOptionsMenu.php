@@ -275,23 +275,40 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 		// Pagers
 		$pagerPrev = new Quad_Icons64x64_1();
 		$frame->addChild($pagerPrev);
-		$pagerPrev->setPosition($width * 0.39, $height * -0.44, 2)->setSize($pagerSize, $pagerSize)->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
+		$pagerPrev->setPosition($width * 0.5 - 12, $height * -0.5 + 5, 2);
+		$pagerPrev->setSize($pagerSize, $pagerSize);
+		$pagerPrev->setSubStyle($pagerPrev::SUBSTYLE_ArrowPrev);
 
 		$pagerNext = new Quad_Icons64x64_1();
 		$frame->addChild($pagerNext);
-		$pagerNext->setPosition($width * 0.45, $height * -0.44, 2)->setSize($pagerSize, $pagerSize)->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
+		$pagerNext->setPosition($width * 0.5 - 5, $height * -0.5 + 5, 2);
+		$pagerNext->setSize($pagerSize, $pagerSize);
+		$pagerNext->setSubStyle($pagerNext::SUBSTYLE_ArrowNext);
 
 		$pageCountLabel = new Label_Text();
 		$frame->addChild($pageCountLabel);
-		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT)->setPosition($width * 0.35, $height * -0.44, 1)->setStyle($pageCountLabel::STYLE_TextTitle1)->setTextSize(2);
+		$pageCountLabel->setHorizontalAlign($pageCountLabel::RIGHT);
+		$pageCountLabel->setPosition($width * 0.5 - 16, $height * -0.5 + 5, 1);
+		$pageCountLabel->setStyle($pageCountLabel::STYLE_TextTitle1);
+		$pageCountLabel->setTextSize(2);
 
-		$paging->addButtonControl($pagerNext)->addButtonControl($pagerPrev)->setLabel($pageCountLabel);
+		$paging->addButtonControl($pagerNext);
+		$paging->addButtonControl($pagerPrev);
+		$paging->setLabel($pageCountLabel);
+
+		$repositionnedFrame = new Frame();
+        $frame->addChild($repositionnedFrame);
+        $repositionnedFrame->setPosition($width * -0.5, $height * 0.5);
+
+        $pagesFrame = new Frame();
+        $repositionnedFrame->addChild($pagesFrame);
+        $pagesFrame->setY(-8.);
 
 		// Pages
 		$posY      = 0.;
 		$index     = 0;
 		$pageFrame = null;
-		$pageMaxCount = floor(($height * 0.8) / $optionHeight);
+		$pageMaxCount = floor(($height - 16) / $optionHeight);
 
 		foreach ($serverOptionsArray as $name => $value) {
 			// Continue on CurrentMaxPlayers...
@@ -299,9 +316,9 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 
 			if ($index % $pageMaxCount === 0) {
 				$pageFrame = new Frame();
-				$frame->addChild($pageFrame);
-				$posY = $height * 0.41;
+				$pagesFrame->addChild($pageFrame);
 				$paging->addPageControl($pageFrame);
+				$posY = 0.;
 			}
 
 			$optionsFrame = new Frame();
@@ -310,22 +327,36 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 
 			$nameLabel = new Label_Text();
 			$optionsFrame->addChild($nameLabel);
-			$nameLabel->setHorizontalAlign($nameLabel::LEFT)->setX($width * -0.46)->setSize($width * 0.4, $optionHeight)->setStyle($nameLabel::STYLE_TextCardSmall)->setTextSize($labelTextSize)->setText($name)->setTextColor('fff');
+			$nameLabel->setHorizontalAlign($nameLabel::LEFT);
+			$nameLabel->setX(2);
+			$nameLabel->setSize($width * 0.6, $optionHeight);
+			$nameLabel->setStyle($nameLabel::STYLE_TextCardSmall);
+			$nameLabel->setTextSize($labelTextSize)->setText($name);
+			$nameLabel->setTextColor('fff');
 
 			if (is_bool($value)) {
 				// Boolean checkbox
 				$quad = new Quad();
-				$quad->setPosition($width * 0.23, 0, -0.01)->setSize(4, 4);
+				$quad->setPosition($width - $width * 0.3 / 2 - 2, 0, -0.01);
+				$quad->setSize(4, 4);
 				$checkBox = new CheckBox(self::ACTION_PREFIX_OPTION . $name, $value, $quad);
 				$optionsFrame->addChild($checkBox);
 			} else {
 				// Other
 				$entry = new Entry();
 				$optionsFrame->addChild($entry);
-				$entry->setStyle(Label_Text::STYLE_TextValueSmall)->setX($width * 0.23)->setTextSize(1)->setSize($width * 0.48, $optionHeight * 0.9)->setName(self::ACTION_PREFIX_OPTION . $name)->setDefault($value);
+				$entry->setStyle(Label_Text::STYLE_TextValueSmall);
+				$entry->setX($width - $width *  0.3 / 2 - 2);
+				$entry->setTextSize(1);
+				$entry->setSize($width * 0.3, $optionHeight * 0.9);
+				$entry->setName(self::ACTION_PREFIX_OPTION . $name);
+				$entry->setDefault($value);
 
 				if ($name === 'Comment') {
-					$entry->setSize($width * 0.48, $optionHeight * 3. + $optionHeight * 0.9)->setAutoNewLine(true)->setVerticalAlign($entry::TOP)->setY($optionHeight * 1.5 + 2.5);
+					$entry->setSize($width * 0.3, $optionHeight * 3. + $optionHeight * 0.9);
+					$entry->setAutoNewLine(true);
+					$entry->setVerticalAlign($entry::TOP);
+					$entry->setY($optionHeight * 1.5 + 2.5);
 					$optionsFrame->setY($posY - $optionHeight * 1.5);
 					$posY -= $optionHeight * 3.;
 					$index += 3;
@@ -334,7 +365,8 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 					$entry->setId($name);
 
 					$quad = new Quad();
-					$quad->setPosition(-4, 0, -0.01)->setSize(4, 4);
+					$quad->setPosition($width - $width * 0.3 - 4, 0, -0.01);
+					$quad->setSize(4, 4);
 					$checkBox = new CheckBox(null, false, $quad);
 					$checkBox->setEnabledDesign("UICommon64_1", "Eye_light");
 					$checkBox->setDisabledDesign("UICommon64_1", "Eye_light");
