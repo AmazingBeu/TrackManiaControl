@@ -140,7 +140,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$height    = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
 
 		$innerWidth = $width - 2;
-		$innerHeigth = $height - 20;
+		$innerHeigth = $height - 22;
 
 		$lineHeight = 4.;
 
@@ -181,7 +181,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 
 		$tooltipLabel = new Label();
 		$repositionnedFrame->addChild($tooltipLabel);
-		$tooltipLabel->setPosition(3, $height + 5);
+		$tooltipLabel->setPosition(3, $height * -1 + 10);
 		$tooltipLabel->setSize($width * 0.8, 5);
 		$tooltipLabel->setHorizontalAlign($tooltipLabel::LEFT);
 		$tooltipLabel->setTextSize(1);
