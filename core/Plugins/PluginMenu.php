@@ -169,6 +169,26 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
         $repositionnedFrame->addChild($pagesFrame);
         $pagesFrame->setY(-1);
 
+		$descriptionLabel = new Label();
+		$repositionnedFrame->addChild($descriptionLabel);
+		$descriptionLabel->setAlign($descriptionLabel::LEFT, $descriptionLabel::TOP);
+		$descriptionLabel->setPosition(3, $height * -1 + 16);
+		$descriptionLabel->setSize($width - 30, 20);
+		$descriptionLabel->setTextSize(1);
+		$descriptionLabel->setTranslate(true);
+		$descriptionLabel->setVisible(false);
+		$descriptionLabel->setMaxLines(5);
+		$descriptionLabel->setLineSpacing(1);
+
+		$tooltip = new Label();
+		$repositionnedFrame->addChild($tooltip);
+		$tooltip->setAlign($descriptionLabel::LEFT, $descriptionLabel::TOP);
+		$tooltip->setPosition(3, $height * -1 + 5);
+		$tooltip->setSize($width - 30, 5);
+		$tooltip->setTextSize(1);
+		$tooltip->setTranslate(true);
+		$tooltip->setVisible(false);
+
         $index = 0;
 		$pageFrame = null;
 		foreach ($pluginClasses as $pluginClass) {
@@ -188,7 +208,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 
 			$activeQuad = new Quad_Icons64x64_1();
 			$pluginFrame->addChild($activeQuad);
-			$activeQuad->setPosition(2.5, -0.1, 1);
+			$activeQuad->setPosition(5, 0, 1);
 			$activeQuad->setSize($entryHeight * 0.9, $entryHeight * 0.9);
 			if ($active) {
 				$activeQuad->setSubStyle($activeQuad::SUBSTYLE_LvlGreen);
@@ -199,44 +219,38 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 			$nameLabel = new Label_Text();
 			$pluginFrame->addChild($nameLabel);
 			$nameLabel->setHorizontalAlign($nameLabel::LEFT);
-			$nameLabel->setX(5);
+			$nameLabel->setX(7.5);
 			$nameLabel->setSize($width - 50, $entryHeight);
 			$nameLabel->setStyle($nameLabel::STYLE_TextCardSmall);
 			$nameLabel->setTextSize(2);
 			$nameLabel->setText($pluginClass::getName());
 
-			$descriptionLabel = new Label();
-			$pageFrame->addChild($descriptionLabel);
-			$descriptionLabel->setAlign($descriptionLabel::LEFT, $descriptionLabel::TOP);
-            $descriptionLabel->setPosition(3, $height * -1 + 16);
-			$descriptionLabel->setSize($width - 30, 20);
-			$descriptionLabel->setTextSize(1);
-			$descriptionLabel->setTranslate(true);
-			$descriptionLabel->setVisible(false);
-			$descriptionLabel->setMaxLines(5);
-			$descriptionLabel->setLineSpacing(1);
 			$description = "Author: {$pluginClass::getAuthor()}\nVersion: {$pluginClass::getVersion()}\nDesc: {$pluginClass::getDescription()}";
-			$nameLabel->addTooltipLabelFeature($descriptionLabel,$description);
+			$nameLabel->addTooltipLabelFeature($descriptionLabel, $description);
 
 			$quad = new Quad_Icons128x32_1();
 			$pluginFrame->addChild($quad);
 			$quad->setSubStyle($quad::SUBSTYLE_Settings);
-			$quad->setX($width - 45);
+			$quad->setX($width - 37);
 			$quad->setZ(1);
 			$quad->setSize(5, 5);
 			$quad->setAction(self::ACTION_PREFIX_SETTINGS . $pluginClass);
+			$quad->addTooltipLabelFeature($tooltip, "Open settings of ". $pluginClass::getName());
 
 			$statusChangeButton = new Label_Button();
 			$pluginFrame->addChild($statusChangeButton);
 			$statusChangeButton->setHorizontalAlign($statusChangeButton::RIGHT);
 			$statusChangeButton->setX($width - 6);
-			$statusChangeButton->setStyle($statusChangeButton::STYLE_CardButtonSmall);
+			$statusChangeButton->setStyle($statusChangeButton::STYLE_CardButtonSmallS);
 			if ($active) {
 				$statusChangeButton->setText('Deactivate');
 				$statusChangeButton->setAction(self::ACTION_PREFIX_DISABLEPLUGIN . $pluginClass);
+				$statusChangeButton->addTooltipLabelFeature($tooltip, "Deactivate plugin ". $pluginClass::getName());
+
 			} else {
 				$statusChangeButton->setText('Activate');
 				$statusChangeButton->setAction(self::ACTION_PREFIX_ENABLEPLUGIN . $pluginClass);
+				$statusChangeButton->addTooltipLabelFeature($tooltip, "Activate plugin ". $pluginClass::getName());
 			}
 
 			if ($pluginUpdates && array_key_exists($pluginClass::getId(), $pluginUpdates)) {
@@ -300,7 +314,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 
 		$innerHeight 			= $height - 8 - 10;
 		$settingHeight          = 5.;
-        $valueWidth             = $innerWidth * 0.3;
+        $valueWidth         	= $innerWidth * 0.3;
 		$pageSettingsMaxCount   = floor($innerHeight / $settingHeight);
 		$index                  = 0;
 
