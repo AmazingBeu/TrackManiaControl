@@ -135,7 +135,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 
 		$width   = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsWidth();
 		$height  = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
-		$buttonY = $height * -0.5 + 10;
+		$buttonY = $height * -0.5 + 5;
 
 		if ($pageIndex < 0) {
 			$pageIndex = (int) $player->getCache($this, self::CACHE_CURRENT_PAGE);
@@ -178,7 +178,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				self::ACTION_CLEAR_MAPQUEUE
 			);
 			$frame->addChild($clearMapQueueButton);
-			$clearMapQueueButton->setPosition($width * 0.5 - 5 - 30/2, $buttonY);
+			$clearMapQueueButton->setPosition($width * 0.5 - 30/2 - 27, $buttonY);
 		}
 
 		if ($this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_CHECK_UPDATE)) {
@@ -190,7 +190,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				$this->maniaControl->getManialinkManager()->getIconManager()->getIcon(IconManager::MX_ICON_GREEN)
 			);
 			$frame->addChild($mxCheckForUpdatesButton);
-			$mxCheckForUpdatesButton->setPosition($width * 0.5 - 5 - 30 - 5 - 36/2, $buttonY);
+			$mxCheckForUpdatesButton->setPosition($width * 0.5 - 36/2 - 57, $buttonY);
 		}
 
 		if ($this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_ADD_MAP)) {
@@ -201,7 +201,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				DirectoryBrowser::ACTION_SHOW
 			);
 			$frame->addChild($browserButton);
-			$browserButton->setPosition($width * -0.5 + 36 / 2, $buttonY);
+			$browserButton->setPosition($width * -0.5 + 36 / 2 + 5, $buttonY);
 		}
 
 		// Headline
@@ -224,6 +224,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 
 		// Predefine description Label
 		$descriptionLabel = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultDescriptionLabel();
+		$descriptionLabel->setY($height * -0.5 + 12);
 		$frame->addChild($descriptionLabel);
 
 		$queuedMaps = $this->maniaControl->getMapManager()->getMapQueue()->getQueuedMapsRanking();
