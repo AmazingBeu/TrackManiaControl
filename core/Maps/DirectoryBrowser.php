@@ -2,6 +2,8 @@
 
 namespace ManiaControl\Maps;
 
+use finfo;
+use ZipArchive;
 use FML\Controls\Frame;
 use FML\Controls\Label;
 use FML\Controls\Entry;
@@ -42,6 +44,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	const ACTION_INSPECT_FILE  = 'MapsDirBrowser.InspectFile.';
 	const ACTION_ADD_FILE      = 'MapsDirBrowser.AddFile.';
 	const ACTION_ERASE_FILE    = 'MapsDirBrowser.EraseFile.';
+	const ACTION_CREATE_FOLDER = 'MapsDirBrowser.CreateFolder';
 	const ACTION_DOWNLOAD_FILE = 'MapsDirBrowser.DownloadFile';
 	const WIDGET_NAME          = 'MapsDirBrowser.Widget';
 	const CACHE_FOLDER_PATH    = 'FolderPath';
@@ -68,6 +71,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_INSPECT_FILE), $this, 'handleInspectFile');
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_ADD_FILE), $this, 'handleAddFile');
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_ERASE_FILE), $this, 'handleEraseFile');
+		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_CREATE_FOLDER), $this, 'handleCreateFolder');
 		$this->maniaControl->getManialinkManager()->registerManialinkPageAnswerRegexListener($this->buildActionRegex(self::ACTION_DOWNLOAD_FILE), $this, 'handleDownloadFile');
 	}
 
@@ -140,7 +144,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$height    = $this->maniaControl->getManialinkManager()->getStyleManager()->getListWidgetsHeight();
 
 		$innerWidth = $width - 2;
-		$innerHeigth = $height - 22;
+		$innerHeigth = $height - 27;
 
 		$lineHeight = 4.;
 
@@ -181,12 +185,12 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 
 		$tooltipLabel = new Label();
 		$repositionnedFrame->addChild($tooltipLabel);
-		$tooltipLabel->setPosition(3, $height * -1 + 10);
+		$tooltipLabel->setPosition(3, $height * -1 + 15);
 		$tooltipLabel->setSize($width * 0.8, 5);
 		$tooltipLabel->setHorizontalAlign($tooltipLabel::LEFT);
 		$tooltipLabel->setTextSize(1);
 
-		// Download button
+		// Back button
 		$backButton = new Label_Button();
 		$repositionnedFrame->addChild($backButton);
 		$backButton->setStyle($backButton::STYLE_CardMain_Quit);
@@ -194,23 +198,59 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$backButton->setScale(0.5);
 		$backButton->setText('Back');
         $backButton->setPosition(3, $height * -1 + 5);
+		$backButton->setSize(5, 10);
 		$backButton->setAction(MapCommands::ACTION_OPEN_MAPLIST);
 
+		// Create folder button
 		$label = new Label_Text();
 		$repositionnedFrame->addChild($label);
-		$label->setPosition(25, $height * -1 + 5);
+		$label->setPosition(54, $height * -1 + 10);
+		$label->setSize(25, 5);
 		$label->setHorizontalAlign($label::LEFT);
 		$label->setTextSize(1);
-		$label->setText('Download from URL: ');
+		$label->setText('Create folder: ');
+		$label->setAreaFocusColor("00000000");
+		$label->setAreaColor("00000000");
 			
 		$entry = new Entry();
 		$repositionnedFrame->addChild($entry);
 		$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 		$entry->setHorizontalAlign($entry::LEFT);
-		$entry->setPosition(53, $height * -1 + 5);
+		$entry->setPosition(72, $height * -1 + 10);
 		$entry->setTextSize(1);
-		$entry->setSize($width * 0.35, 4);
-		$entry->setName("Value");
+		$entry->setSize(50, 4);
+		$entry->setName("Name");
+
+		//Search for Map-Name
+		$createFolderButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
+			'Create',
+			18,
+			5,
+			self::ACTION_CREATE_FOLDER
+		);
+		$repositionnedFrame->addChild($createFolderButton);
+		$createFolderButton->setPosition(123 + 18/2, $height * -1 + 10);
+
+		// Download button
+		$label = new Label_Text();
+		$repositionnedFrame->addChild($label);
+		$label->setPosition(45, $height * -1 + 5);
+		$label->setSize(27, 5);
+		$label->setHorizontalAlign($label::LEFT);
+		$label->setTextSize(1);
+		$label->setText('Download from URL: ');
+		$label->setAreaFocusColor("00000000");
+		$label->setAreaColor("00000000");
+		$label->addTooltipLabelFeature($tooltipLabel, 'Support Map.Gbx and Zip files');
+			
+		$entry = new Entry();
+		$repositionnedFrame->addChild($entry);
+		$entry->setStyle(Label_Text::STYLE_TextValueSmall);
+		$entry->setHorizontalAlign($entry::LEFT);
+		$entry->setPosition(72, $height * -1 + 5);
+		$entry->setTextSize(1);
+		$entry->setSize(50, 4);
+		$entry->setName("URL");
 
 		//Search for Map-Name
 		$downloadButton = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildRoundTextButton(
@@ -220,7 +260,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 			self::ACTION_DOWNLOAD_FILE
 		);
 		$repositionnedFrame->addChild($downloadButton);
-		$downloadButton->setPosition(53 + 18 / 2 + $width * 0.35, $height * -1 + 5);
+		$downloadButton->setPosition(123 + 18/2, $height * -1 + 5);
 
 		$mapFiles = $this->scanMapFiles($folderPath);
 
@@ -508,7 +548,33 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		}
 	}
 
+	/**
+	 * Handle 'CreateFolder' page action
+	 *
+	 * @param array  $actionCallback
+	 * @param Player $player
+	 */
+	public function handleCreateFolder(array $actionCallback, Player $player) {
+		$name = trim($actionCallback[1][3][0]["Value"]);
 
+		var_dump($actionCallback);
+		if ($name === "") return;
+
+		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
+		if (mkdir($folderPath . $name, 755, true)) {
+			$message = "Successfully created directory ".  $name;
+			$this->maniaControl->getChat()->sendSuccess($message, $player);
+			Logger::log($message . " by " . $player->nickname);
+
+			$this->showManiaLink($player, $name);
+		} else {
+			$message = "Failed to create directory ".  $name;
+			$this->maniaControl->getChat()->sendError($message, $player);
+			Logger::logError($message . " by " . $player->nickname);
+
+			$this->showManiaLink($player);
+		}
+	}
 
 	/**
 	 * Handle 'handleDownloadFile' page action
@@ -517,7 +583,8 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	 * @param Player $player
 	 */
 	public function handleDownloadFile(array $actionCallback, Player $player) {
-		$url = trim($actionCallback[1][3][0]["Value"]);
+		$url = trim($actionCallback[1][3][1]["Value"]);
+		if ($url === "") return;
 		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
 		if (filter_var($url, FILTER_VALIDATE_URL)) {
 			
@@ -530,92 +597,125 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 					return;
 				}
 				$filePath = "";
-				
-				$contentdispositionheader = "";
-				foreach ($headers as $key => $value) {
-					if (strtolower($key) === "content-disposition") {
-						$contentdispositionheader = urldecode($value);
-						break;
-					}
-				}
 
-				if ($contentdispositionheader !== "") {
-					$value = $contentdispositionheader;
+				$finfo = new finfo(FILEINFO_MIME_TYPE);
+				if ($finfo->buffer($file) === "application/zip") {
+					$zip = new ZipArchive();
 
-					if (strpos($value, ';') !== false) {
-						
-						list($type, $attr_parts) = explode(';', $value, 2);
-				
-						$attr_parts = explode(';', $attr_parts);
-						$attributes = array();
-				
-						foreach ($attr_parts as $part) {
-							if (strpos($part, '=') === false) {
-								continue;
-							}
-				
-							list($key, $value) = explode('=', $part, 2);
-				
-							$attributes[trim($key)] = trim($value);
-						}
-				
-						$attrNames = ['filename*' => true, 'filename' => false];
-						$filename = null;
-						$isUtf8 = false;
-						foreach ($attrNames as $attrName => $utf8) {
-							if (!empty($attributes[$attrName])) {
-								$filename = trim($attributes[$attrName]);
-								$isUtf8 = $utf8;
-								break;
-							}
-						}
+					// Create a temporary file
+					$tempFile = tempnam(sys_get_temp_dir(), 'zip');
+					file_put_contents($tempFile, $file);
 
-						if ($filename !== null) {
-							if ($isUtf8 && strpos(strtolower($filename), "utf-8''") === 0 && $filename = substr($filename, strlen("utf-8''"))) {
-								$filePath = $folderPath . FileUtil::getClearedFileName(rawurldecode($filename));
-							}
-							if (substr($filename, 0, 1) === '"' && substr($filename, -1, 1) === '"') {
-								$filePath = $folderPath . substr($filename, 1, -1);
-							} else {
-								$filePath = $folderPath . $filename;
-							}
-						}
-					}
+					$open = $zip->open($tempFile);
 
-					if (!$this->isMapFileName($filePath)) {
-						$message = "File is not a map: " . $filename;
+					if ($open === true) {
+						$zip->extractTo($folderPath);
+						$zip->close();
+						$message = "Succesfully extracted zip archive from ". $url;
+						$this->maniaControl->getChat()->sendSuccess($message, $player);
+						Logger::log($message . " by " . $player->nickname);
+					} else {
+						$message = "Cannot extract archive from ". $url;
 						$this->maniaControl->getChat()->sendError($message, $player);
-						Logger::logError($message);
-						return;
+						Logger::logError($message . " by " . $player->nickname);
 					}
+					// Clean up the temporary file
+					unlink($tempFile);
 				} else {
-					$path = parse_url($url, PHP_URL_PATH);
+					$fileName = "";
 
-					// extracted basename
-					$filePath = $folderPath . basename($path);
-
-					if (!$this->isMapFileName($filePath)) {
-						$filePath .= ".Map.Gbx";
-					}
-				}
-
-				if ($filePath != "") {
-					if (file_exists($filePath)) {
-						$index = 1;
-						while (file_exists(substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx")) {
-							$index++;
+					$contentdispositionheader = "";
+					foreach ($headers as $key => $value) {
+						if (strtolower($key) === "content-disposition") {
+							$contentdispositionheader = urldecode($value);
+							break;
 						}
-						$filePath = substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx";
 					}
-					$bytes = file_put_contents($filePath, $file);
-					if (!$bytes || $bytes <= 0) {
-						$message = "Impossible to determine filename";
-						$this->maniaControl->getChat()->sendError($message, $player);
-						Logger::logError($message);
-						return;
+	
+					if ($contentdispositionheader !== "") {
+						$value = $contentdispositionheader;
+	
+						if (strpos($value, ';') !== false) {
+							
+							list($type, $attr_parts) = explode(';', $value, 2);
+					
+							$attr_parts = explode(';', $attr_parts);
+							$attributes = array();
+					
+							foreach ($attr_parts as $part) {
+								if (strpos($part, '=') === false) {
+									continue;
+								}
+					
+								list($key, $value) = explode('=', $part, 2);
+					
+								$attributes[trim($key)] = trim($value);
+							}
+					
+							$attrNames = ['filename*' => true, 'filename' => false];
+							$filename = null;
+							$isUtf8 = false;
+							foreach ($attrNames as $attrName => $utf8) {
+								if (!empty($attributes[$attrName])) {
+									$fileName = trim($attributes[$attrName]);
+									$isUtf8 = $utf8;
+									break;
+								}
+							}
+	
+							if ($fileName !== null) {
+								if ($isUtf8 && strpos(strtolower($fileName), "utf-8''") === 0 && $fileName = substr($fileName, strlen("utf-8''"))) {
+									$filePath = $folderPath . FileUtil::getClearedFileName(rawurldecode($fileName));
+								}
+								if (substr($fileName, 0, 1) === '"' && substr($fileName, -1, 1) === '"') {
+									$filePath = $folderPath . substr($fileName, 1, -1);
+								} else {
+									$filePath = $folderPath . $fileName;
+								}
+							}
+						}
+	
+						if (!$this->isMapFileName($filePath)) {
+							$message = "File is not a map: " . $fileName;
+							$this->maniaControl->getChat()->sendError($message, $player);
+							Logger::logError($message);
+							return;
+						}
+					} else {
+						$path = parse_url($url, PHP_URL_PATH);
+	
+						// extracted basename
+						$fileName = basename($path);
+	
+						if (!$this->isMapFileName($fileName)) {
+							$fileName .= ".Map.Gbx";
+						}
+						$filePath = $folderPath . $fileName;
+					}
+	
+					if ($filePath != "") {
+						if (file_exists($filePath)) {
+							$index = 1;
+							while (file_exists(substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx")) {
+								$index++;
+							}
+							$filePath = substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx";
+						}
+						$bytes = file_put_contents($filePath, $file);
+						if (!$bytes || $bytes <= 0) {
+							$message = "Failed to write file " . $filePath;
+							$this->maniaControl->getChat()->sendError($message, $player);
+							Logger::logError($message . " by " . $player->nickname);
+							return;
+						}
+
+						$message = "Succesfully downloaded the map  ". $fileName;
+						$this->maniaControl->getChat()->sendSuccess($message, $player);
+						Logger::log($message . " by " . $player->nickname);
 					}
 				}
-				$this->showManiaLink($player, $folderPath);
+
+				$this->showManiaLink($player);
 			});
 
 			$asyncHttpRequest->getData();
