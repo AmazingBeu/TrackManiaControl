@@ -204,7 +204,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		// Create folder button
 		$label = new Label_Text();
 		$repositionnedFrame->addChild($label);
-		$label->setPosition(54, $height * -1 + 10);
+		$label->setPosition($width - 113, $height * -1 + 10);
 		$label->setSize(25, 5);
 		$label->setHorizontalAlign($label::LEFT);
 		$label->setTextSize(1);
@@ -216,7 +216,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$repositionnedFrame->addChild($entry);
 		$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 		$entry->setHorizontalAlign($entry::LEFT);
-		$entry->setPosition(72, $height * -1 + 10);
+		$entry->setPosition($width - 95, $height * -1 + 10);
 		$entry->setTextSize(1);
 		$entry->setSize(50, 4);
 		$entry->setName("Name");
@@ -229,12 +229,12 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 			self::ACTION_CREATE_FOLDER
 		);
 		$repositionnedFrame->addChild($createFolderButton);
-		$createFolderButton->setPosition(123 + 18/2, $height * -1 + 10);
+		$createFolderButton->setPosition($width - 27 - 18/2, $height * -1 + 10);
 
 		// Download button
 		$label = new Label_Text();
 		$repositionnedFrame->addChild($label);
-		$label->setPosition(45, $height * -1 + 5);
+		$label->setPosition($width - 122, $height * -1 + 5);
 		$label->setSize(27, 5);
 		$label->setHorizontalAlign($label::LEFT);
 		$label->setTextSize(1);
@@ -247,7 +247,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$repositionnedFrame->addChild($entry);
 		$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 		$entry->setHorizontalAlign($entry::LEFT);
-		$entry->setPosition(72, $height * -1 + 5);
+		$entry->setPosition($width - 95, $height * -1 + 5);
 		$entry->setTextSize(1);
 		$entry->setSize(50, 4);
 		$entry->setName("URL");
@@ -260,7 +260,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 			self::ACTION_DOWNLOAD_FILE
 		);
 		$repositionnedFrame->addChild($downloadButton);
-		$downloadButton->setPosition(123 + 18/2, $height * -1 + 5);
+		$downloadButton->setPosition($width - 27 - 18/2, $height * -1 + 5);
 
 		$mapFiles = $this->scanMapFiles($folderPath);
 
