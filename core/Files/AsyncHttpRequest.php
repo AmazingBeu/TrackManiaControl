@@ -136,6 +136,31 @@ class AsyncHttpRequest implements UsageInformationAble {
 		$this->processRequest($request);
 	}
 
+	/**
+	 * Carry out a PutData Request
+	 */
+	public function putData() {
+		array_push($this->headers, 'Content-Type: ' . $this->contentType);
+		array_push($this->headers, 'Keep-Alive: timeout=600, max=2000');
+		array_push($this->headers, 'Connection: Keep-Alive');
+		array_push($this->headers, 'Expect:');
+		array_push($this->headers, 'Accept-Charset: utf-8');
+
+		$content = $this->content;
+		if ($this->compression) {
+			$content = gzencode($this->content);
+			array_push($this->headers, 'Content-Encoding: gzip');
+		}
+
+
+		$request = $this->newRequest($this->url, $this->timeout);
+		$request->getOptions()->set(CURLOPT_CUSTOMREQUEST, 'PUT')// patch method
+		        ->set(CURLOPT_POSTFIELDS, $content)// put content field
+		        ->set(CURLOPT_HTTPHEADER, $this->headers) // headers
+		;
+
+		$this->processRequest($request);
+	}
 
 	/**
 	 * Processes the Request
