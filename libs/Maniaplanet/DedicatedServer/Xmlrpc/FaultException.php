@@ -7,8 +7,10 @@
 
 namespace Maniaplanet\DedicatedServer\Xmlrpc;
 
-class FaultException extends Exception {
-	static function create($faultString, $faultCode) {
+class FaultException extends Exception
+{
+	static function create($faultString, $faultCode)
+	{
 		switch ($faultString) {
 			case 'Password incorrect.':
 			case 'Permission denied.':
@@ -31,6 +33,7 @@ class FaultException extends Exception {
 			case 'Already waiting for a vote.':
 			case 'You must stop server first.':
 				return new LockedFeatureException($faultString, $faultCode);
+			case 'Can\'t kick server.':
 			case 'Login or Uid unknown.':
 			case 'Login unknown.':
 			case 'Payer login unknown.':
@@ -110,44 +113,58 @@ class FaultException extends Exception {
 	}
 }
 
-class AuthenticationException extends FaultException {
+class AuthenticationException extends FaultException
+{
 }
 
-class UnavailableFeatureException extends FaultException {
+class UnavailableFeatureException extends FaultException
+{
 }
 
-class LockedFeatureException extends FaultException {
+class LockedFeatureException extends FaultException
+{
 }
 
-class UnknownPlayerException extends FaultException {
+class UnknownPlayerException extends FaultException
+{
 }
 
-class PlayerStateException extends FaultException {
+class PlayerStateException extends FaultException
+{
 }
 
-class AlreadyInListException extends FaultException {
+class AlreadyInListException extends FaultException
+{
 }
 
-class NotInListException extends FaultException {
+class NotInListException extends FaultException
+{
 }
 
-class IndexOutOfBoundException extends FaultException {
+class IndexOutOfBoundException extends FaultException
+{
 }
 
-class NextMapException extends FaultException {
+class NextMapException extends FaultException
+{
 }
 
-class ChangeInProgressException extends FaultException {
+class ChangeInProgressException extends FaultException
+{
 }
 
-class InvalidMapException extends FaultException {
+class InvalidMapException extends FaultException
+{
 }
 
-class GameModeException extends FaultException {
+class GameModeException extends FaultException
+{
 }
 
-class ServerOptionsException extends FaultException {
+class ServerOptionsException extends FaultException
+{
 }
 
-class FileException extends FaultException {
+class FileException extends FaultException
+{
 }

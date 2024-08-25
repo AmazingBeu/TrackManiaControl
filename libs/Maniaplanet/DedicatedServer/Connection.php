@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * ManiaPlanet dedicated server Xml-RPC client
  *
@@ -19,139 +21,31 @@ class Connection
 	const API_2013_04_16 = '2013-04-16';
 	const API_2022_03_21 = '2022-03-21';
 
-	/** @var Connection[] */
-	protected static $instances = array();
 	/** @var int[] */
-	private static $levels = array(
+	private static $levels = [
 		null => -1,
 		'User' => 0,
 		'Admin' => 1,
 		'SuperAdmin' => 2
-	);
-	/** @var callable[] */
-	private $multicallHandlers = array();
-
+	];
 	/** @var Xmlrpc\GbxRemote */
 	protected $xmlrpcClient;
 	/** @var string */
 	protected $user;
+	/** @var callable[] */
+	private $multicallHandlers = [];
 
-	/**
-	 * @param string $host
-	 * @param int $port
-	 * @param int $timeout (in s)
-	 * @param string $user
-	 * @param string $password
-	 * @param string $apiVersion
-	 * @return Connection
-	 */
-	static function factory($host='127.0.0.1', $port=5000, $timeout=5, $user='SuperAdmin', $password='SuperAdmin', $apiVersion=self::API_2022_03_21)
-	{
-		$key = $host.':'.$port;
-		if(!isset(self::$instances[$key]))
-			self::$instances[$key] = new self($host, $port, $timeout);
-		self::$instances[$key]->authenticate($user, $password);
-		self::$instances[$key]->setApiVersion($apiVersion);
-
-		return self::$instances[$key];
-	}
-
-	/**
-	 * @param Connection|string $hostOrConnection
-	 * @param int $port
-	 * @return bool
-	 */
-	static function delete($hostOrConnection, $port=null)
-	{
-		if($hostOrConnection instanceof Connection)
-			$key = array_search($hostOrConnection, self::$instances);
-		else
-			$key = $hostOrConnection.':'.$port;
-		if(isset(self::$instances[$key]))
-		{
-			self::$instances[$key]->terminate();
-			unset(self::$instances[$key]);
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Change client timeouts
-	 * @param int $read read timeout (in ms), 0 to leave unchanged
-	 * @param int $write write timeout (in ms), 0 to leave unchanged
-	 */
-	function setTimeouts($read=null, $write=null)
-	{
-		$this->xmlrpcClient->setTimeouts($read, $write);
-	}
-
-	/**
-	 * @return int Network idle time in seconds
-	 */
-	function getIdleTime()
-	{
-		return $this->xmlrpcClient->getIdleTime();
-	}
-
-	/**
-	 * @param string $host
-	 * @param int $port
-	 * @param int $timeout
-	 */
-	protected function __construct($host, $port, $timeout)
-	{
+	public function __construct(
+		$host = '127.0.0.1',
+		$port = 5000,
+		$timeout = 5,
+		$user = 'SuperAdmin',
+		$password = 'SuperAdmin',
+		$apiVersion = self::API_2013_04_16
+	) {
 		$this->xmlrpcClient = new Xmlrpc\GbxRemote($host, $port, $timeout);
-	}
-
-	/**
-	 * Close the current socket connexion
-	 * Never call this method, use instead DedicatedApi::delete($host, $port)
-	 */
-	protected function terminate()
-	{
-		$this->xmlrpcClient->terminate();
-	}
-
-	/**
-	 * Return pending callbacks
-	 * @return mixed[]
-	 */
-	function executeCallbacks()
-	{
-		return $this->xmlrpcClient->getCallbacks();
-	}
-
-	/**
-	 * Execute the calls in queue and return the result
-	 * @return mixed[]
-	 */
-	function executeMulticall()
-	{
-		$responses = $this->xmlrpcClient->multiquery();
-		foreach($responses as $i => &$response)
-			if(!($response instanceof Xmlrpc\FaultException) && is_callable($this->multicallHandlers[$i]))
-				$response = call_user_func($this->multicallHandlers[$i], $response);
-		$this->multicallHandlers = array();
-		return $responses;
-	}
-
-	/**
-	 * Add a call in queue. It will be executed by the next Call from the user to executeMulticall
-	 * @param string $methodName
-	 * @param mixed[] $params
-	 * @param bool|callable $multicall True to queue the request or false to execute it immediately
-	 * @return mixed
-	 */
-	public function execute($methodName, $params=array(), $multicall=false)
-	{
-		if($multicall)
-		{
-			$this->xmlrpcClient->addCall($methodName, $params);
-			$this->multicallHandlers[] = $multicall;
-		}
-		else
-			return $this->xmlrpcClient->query($methodName, $params);
+		$this->authenticate($user, $password);
+		$this->setApiVersion($apiVersion);
 	}
 
 	/**
@@ -161,20 +55,104 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function authenticate($user, $password)
+	public function authenticate($user, $password)
 	{
-		if(!is_string($user) || !isset(self::$levels[$user]))
-			throw new InvalidArgumentException('user = '.print_r($user, true));
-		if(self::$levels[$this->user] >= self::$levels[$user])
+		if (!is_string($user) || !isset(self::$levels[$user])) {
+			throw new InvalidArgumentException('user = ' . print_r($user, true));
+		}
+		if (self::$levels[$this->user] >= self::$levels[$user]) {
 			return true;
+		}
 
-		if(!is_string($password))
-			throw new InvalidArgumentException('password = '.print_r($password, true));
+		if (!is_string($password)) {
+			throw new InvalidArgumentException('password = ' . print_r($password, true));
+		}
 
-		$res = $this->execute(ucfirst(__FUNCTION__), array($user, $password));
-		if($res)
+		$res = $this->execute(ucfirst(__FUNCTION__), [$user, $password]);
+		if ($res) {
 			$this->user = $user;
+		}
 		return $res;
+	}
+
+	/**
+	 * Add a call in queue. It will be executed by the next Call from the user to executeMulticall
+	 * @param string $methodName
+	 * @param mixed[] $params
+	 * @param bool|callable $multicall True to queue the request or false to execute it immediately
+	 * @return mixed
+	 */
+	public function execute($methodName, $params = [], $multicall = false)
+	{
+		if ($multicall) {
+			$this->xmlrpcClient->addCall($methodName, $params);
+			$this->multicallHandlers[] = $multicall;
+		} else {
+			return $this->xmlrpcClient->query($methodName, $params);
+		}
+	}
+
+	/**
+	 * Define the wanted api.
+	 * @param string $version
+	 * @param bool $multicall
+	 * @return bool
+	 */
+	public function setApiVersion(string $version, $multicall = false)
+	{
+		return $this->execute(ucfirst(__FUNCTION__), [$version], $multicall);
+	}
+
+	/**
+	 * Close the current socket connexion
+	 * Never call this method, use instead DedicatedApi::delete($host, $port)
+	 */
+	public function terminate()
+	{
+		$this->xmlrpcClient->terminate();
+	}
+
+	/**
+	 * Change client timeouts
+	 * @param int $read read timeout (in ms), 0 to leave unchanged
+	 * @param int $write write timeout (in ms), 0 to leave unchanged
+	 */
+	public function setTimeouts($read = null, $write = null)
+	{
+		$this->xmlrpcClient->setTimeouts($read, $write);
+	}
+
+	/**
+	 * @return int Network idle time in seconds
+	 */
+	public function getIdleTime()
+	{
+		return $this->xmlrpcClient->getIdleTime();
+	}
+
+	/**
+	 * Return pending callbacks
+	 * @return mixed[]
+	 */
+	public function executeCallbacks()
+	{
+		return $this->xmlrpcClient->getCallbacks();
+	}
+
+	/**
+	 * Execute the calls in queue and return the result
+	 * @return mixed[]
+	 */
+	public function executeMulticall()
+	{
+		$responses = $this->xmlrpcClient->multiquery();
+		foreach ($responses as $i => &$response) {
+			if (!($response instanceof Xmlrpc\FaultException) && is_callable($this->multicallHandlers[$i])) {
+				$response = call_user_func($this->multicallHandlers[$i], $response);
+			}
+		}
+		$this->multicallHandlers = [];
+		return $responses;
 	}
 
 	/**
@@ -186,14 +164,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function changeAuthPassword($user, $password, $multicall=false)
+	public function changeAuthPassword(string $user, string $password, $multicall = false)
 	{
-		if(!is_string($user) || !isset(self::$levels[$user]))
-			throw new InvalidArgumentException('user = '.print_r($user, true));
-		if(!is_string($password))
-			throw new InvalidArgumentException('password = '.print_r($password, true));
+		if (!isset(self::$levels[$user])) {
+			throw new InvalidArgumentException('user = ' . print_r($user, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($user, $password), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$user, $password], $multicall);
 	}
 
 	/**
@@ -201,29 +178,10 @@ class Connection
 	 * @param bool $enable
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function enableCallbacks($enable=true, $multicall=false)
+	public function enableCallbacks(bool $enable = true, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
-	}
-
-	/**
-	 * Define the wanted api.
-	 * @param string $version
-	 * @param bool $multicall
-	 * @return bool
-	 * @throws InvalidArgumentException
-	 */
-	function setApiVersion($version, $multicall=false)
-	{
-		if(!is_string($version))
-			throw new InvalidArgumentException('version = '.print_r($version, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($version), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -231,11 +189,22 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\Version
 	 */
-	function getVersion($multicall=false)
+	public function getVersion($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('Version'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('Version'));
+		}
 		return Structures\Version::fromArray($this->execute(ucfirst(__FUNCTION__)));
+	}
+
+	/**
+	 * @param string $struct
+	 * @param bool $array
+	 * @return callable
+	 */
+	private function structHandler($struct, $array = false)
+	{
+		return ['\\' . __NAMESPACE__ . '\Structures\\' . $struct, 'fromArray' . ($array ? 'OfArray' : '')];
 	}
 
 	/**
@@ -243,10 +212,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\Status
 	 */
-	function getStatus($multicall=false)
+	public function getStatus($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('Status'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('Status'));
+		}
 		return Structures\Status::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -256,36 +226,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function quitGame($multicall=false)
+	public function quitGame($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
-	}
-
-	/**
-	 * Call a vote for a command.
-	 * You can additionally supply specific parameters for this vote: a ratio, a time out and who is voting.
-	 * Only available to Admin.
-	 * @param Structures\Vote $vote
-	 * @param float $ratio In range [0,1] or -1 for default ratio
-	 * @param int $timeout In milliseconds, 0 for default timeout, 1 for indefinite
-	 * @param int $voters 0: active players, 1: any player, 2: everybody including pure spectators
-	 * @param bool $multicall
-	 * @return bool
-	 * @throws InvalidArgumentException
-	 */
-	function callVote($vote, $ratio=-1., $timeout=0, $voters=1, $multicall=false)
-	{
-		if(!($vote instanceof Structures\Vote && $vote->isValid()))
-			throw new InvalidArgumentException('vote = '.print_r($vote, true));
-		if(!Structures\VoteRatio::isRatio($ratio))
-			throw new InvalidArgumentException('ratio = '.print_r($ratio, true));
-		if(!is_int($timeout))
-			throw new InvalidArgumentException('timeout = '.print_r($timeout, true));
-		if(!is_int($voters) || $voters < 0 || $voters > 2)
-			throw new InvalidArgumentException('voters = '.print_r($voters, true));
-
-		$xml = Xmlrpc\Request::encode($vote->cmdName, $vote->cmdParam, false);
-		return $this->execute(ucfirst(__FUNCTION__).'Ex', array($xml, $ratio, $timeout, $voters), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -300,14 +243,69 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function callVoteKick($player, $ratio=0.5, $timeout=0, $voters=1, $multicall=false)
+	public function callVoteKick($player, $ratio = 0.5, $timeout = 0, $voters = 1, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		$vote = new Structures\Vote(Structures\VoteRatio::COMMAND_KICK, array($login));
+		$vote = new Structures\Vote(Structures\VoteRatio::COMMAND_KICK, [$login]);
 		return $this->callVote($vote, $ratio, $timeout, $voters, $multicall);
+	}
+
+	/**
+	 * Returns the login of the given player
+	 * @param mixed $player
+	 * @return string|bool
+	 */
+	private function getLogin($player, $allowEmpty = false)
+	{
+		if (is_object($player)) {
+			if (property_exists($player, 'login')) {
+				$player = $player->login;
+			} else {
+				return false;
+			}
+		}
+		if (empty($player)) {
+			return $allowEmpty ? '' : false;
+		}
+		if (is_string($player)) {
+			return $player;
+		}
+		return false;
+	}
+
+	/**
+	 * Call a vote for a command.
+	 * You can additionally supply specific parameters for this vote: a ratio, a time out and who is voting.
+	 * Only available to Admin.
+	 * @param Structures\Vote $vote
+	 * @param float $ratio In range [0,1] or -1 for default ratio
+	 * @param int $timeout In milliseconds, 0 for default timeout, 1 for indefinite
+	 * @param int $voters 0: active players, 1: any player, 2: everybody including pure spectators
+	 * @param bool $multicall
+	 * @return bool
+	 * @throws InvalidArgumentException
+	 */
+	public function callVote($vote, $ratio = -1., $timeout = 0, $voters = 1, $multicall = false)
+	{
+		if (!($vote instanceof Structures\Vote && $vote->isValid())) {
+			throw new InvalidArgumentException('vote = ' . print_r($vote, true));
+		}
+		if (!Structures\VoteRatio::isRatio($ratio)) {
+			throw new InvalidArgumentException('ratio = ' . print_r($ratio, true));
+		}
+		if (!is_int($timeout)) {
+			throw new InvalidArgumentException('timeout = ' . print_r($timeout, true));
+		}
+		if (!is_int($voters) || $voters < 0 || $voters > 2) {
+			throw new InvalidArgumentException('voters = ' . print_r($voters, true));
+		}
+
+		$xml = Xmlrpc\Request::encode($vote->cmdName, $vote->cmdParam, false);
+		return $this->execute(ucfirst(__FUNCTION__) . 'Ex', [$xml, $ratio, $timeout, $voters], $multicall);
 	}
 
 	/**
@@ -322,13 +320,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function callVoteBan($player, $ratio=0.6, $timeout=0, $voters=1, $multicall=false)
+	public function callVoteBan($player, $ratio = 0.6, $timeout = 0, $voters = 1, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		$vote = new Structures\Vote(Structures\VoteRatio::COMMAND_BAN, array($login));
+		$vote = new Structures\Vote(Structures\VoteRatio::COMMAND_BAN, [$login]);
 		return $this->callVote($vote, $ratio, $timeout, $voters, $multicall);
 	}
 
@@ -343,7 +342,7 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function callVoteRestartMap($ratio=0.5, $timeout=0, $voters=1, $multicall=false)
+	public function callVoteRestartMap($ratio = 0.5, $timeout = 0, $voters = 1, $multicall = false)
 	{
 		$vote = new Structures\Vote(Structures\VoteRatio::COMMAND_RESTART_MAP);
 		return $this->callVote($vote, $ratio, $timeout, $voters, $multicall);
@@ -360,7 +359,7 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function callVoteNextMap($ratio=0.5, $timeout=0, $voters=1, $multicall=false)
+	public function callVoteNextMap($ratio = 0.5, $timeout = 0, $voters = 1, $multicall = false)
 	{
 		$vote = new Structures\Vote(Structures\VoteRatio::COMMAND_NEXT_MAP);
 		return $this->callVote($vote, $ratio, $timeout, $voters, $multicall);
@@ -372,9 +371,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function cancelVote($multicall=false)
+	public function cancelVote($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -382,10 +381,11 @@ class Connection
 	 * @param $multicall
 	 * @return Structures\Vote
 	 */
-	function getCurrentCallVote($multicall=false)
+	public function getCurrentCallVote($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('Vote'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('Vote'));
+		}
 		return Structures\Vote::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -395,14 +395,10 @@ class Connection
 	 * @param int $timeout In milliseconds, 0 to disable votes
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setCallVoteTimeOut($timeout, $multicall=false)
+	public function setCallVoteTimeOut(int $timeout, $multicall = false)
 	{
-		if(!is_int($timeout))
-			throw new InvalidArgumentException('timeout = '.print_r($timeout, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($timeout), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$timeout], $multicall);
 	}
 
 	/**
@@ -410,9 +406,9 @@ class Connection
 	 * @param $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getCallVoteTimeOut($multicall=false)
+	public function getCallVoteTimeOut($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -423,12 +419,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setCallVoteRatio($ratio, $multicall=false)
+	public function setCallVoteRatio($ratio, $multicall = false)
 	{
-		if(!Structures\VoteRatio::isRatio($ratio))
-			throw new InvalidArgumentException('ratio = '.print_r($ratio, true));
+		if (!Structures\VoteRatio::isRatio($ratio)) {
+			throw new InvalidArgumentException('ratio = ' . print_r($ratio, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($ratio), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$ratio], $multicall);
 	}
 
 	/**
@@ -436,9 +433,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return float
 	 */
-	function getCallVoteRatio($multicall=false)
+	public function getCallVoteRatio($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -450,29 +447,16 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setCallVoteRatios($ratios, $replaceAll=true, $multicall=false)
+	public function setCallVoteRatios(array $ratios, bool $replaceAll = true, $multicall = false)
 	{
-		if(!is_array($ratios))
-			throw new InvalidArgumentException('ratios = '.print_r($ratios, true));
-		foreach($ratios as $i => &$ratio)
-		{
-			if(!($ratio instanceof Structures\VoteRatio && $ratio->isValid()))
-				throw new InvalidArgumentException('ratios['.$i.'] = '.print_r($ratios, true));
+		foreach ($ratios as $i => &$ratio) {
+			if (!($ratio instanceof Structures\VoteRatio && $ratio->isValid())) {
+				throw new InvalidArgumentException('ratios[' . $i . '] = ' . print_r($ratios, true));
+			}
 			$ratio = $ratio->toArray();
 		}
-		if(!is_bool($replaceAll))
-			throw new InvalidArgumentException('replaceAll = '.print_r($replaceAll, true));
 
-		return $this->execute(ucfirst(__FUNCTION__).'Ex', array($replaceAll, $ratios), $multicall);
-	}
-
-	/**
-	 * @deprecated
-	 * @see setCallVoteRatios()
-	 */
-	function setCallVoteRatiosEx($replaceAll, $ratios, $multicall=false)
-	{
-		return $this->setCallVoteRatios($ratios, $replaceAll, $multicall);
+		return $this->execute(ucfirst(__FUNCTION__) . 'Ex', [$replaceAll, $ratios], $multicall);
 	}
 
 	/**
@@ -480,20 +464,12 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\VoteRatio[]
 	 */
-	function getCallVoteRatios($multicall=false)
+	public function getCallVoteRatios($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__).'Ex', array(), $this->structHandler('VoteRatio', true));
-		return Structures\VoteRatio::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__).'Ex'));
-	}
-
-	/**
-	 * @deprecated
-	 * @see getCallVoteRatios()
-	 */
-	function getCallVoteRatiosEx($multicall=false)
-	{
-		return $this->getCallVoteRatios($multicall);
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__) . 'Ex', [], $this->structHandler('VoteRatio', true));
+		}
+		return Structures\VoteRatio::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__) . 'Ex'));
 	}
 
 	/**
@@ -506,31 +482,46 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function chatSendServerMessage($message, $recipient=null, $multicall=false)
+	public function chatSendServerMessage($message, $recipient = null, $multicall = false)
 	{
 		$logins = $this->getLogins($recipient, true);
-		if($logins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
+		if ($logins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
 
-		if(is_array($message))
-			return $this->execute(ucfirst(__FUNCTION__).'ToLanguage', array($message, $logins), $multicall);
-		if(is_string($message))
-		{
-			if($logins)
-				return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($message, $logins), $multicall);
-			return $this->execute(ucfirst(__FUNCTION__), array($message), $multicall);
+		if (is_array($message)) {
+			return $this->execute(ucfirst(__FUNCTION__) . 'ToLanguage', [$message, $logins], $multicall);
+		}
+		if (is_string($message)) {
+			if ($logins) {
+				return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$message, $logins], $multicall);
+			}
+			return $this->execute(ucfirst(__FUNCTION__), [$message], $multicall);
 		}
 		// else
-		throw new InvalidArgumentException('message = '.print_r($message, true));
+		throw new InvalidArgumentException('message = ' . print_r($message, true));
 	}
 
 	/**
-	 * @deprecated
-	 * @see chatSendServerMessage()
+	 * Returns logins of given players
+	 * @param mixed $players
+	 * @return string|bool
 	 */
-	function chatSendServerMessageToLanguage($messages, $recipient=null, $multicall=false)
+	private function getLogins($players, $allowEmpty = false)
 	{
-		return $this->chatSendServerMessage($messages, $recipient, $multicall);
+		if (is_array($players)) {
+			$logins = [];
+			foreach ($players as $player) {
+				$login = $this->getLogin($player);
+				if ($login === false) {
+					return false;
+				}
+				$logins[] = $login;
+			}
+
+			return implode(',', $logins);
+		}
+		return $this->getLogin($players, $allowEmpty);
 	}
 
 	/**
@@ -543,31 +534,24 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function chatSend($message, $recipient=null, $multicall=false)
+	public function chatSend($message, $recipient = null, $multicall = false)
 	{
 		$logins = $this->getLogins($recipient, true);
-		if($logins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
+		if ($logins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
 
-		if(is_array($message))
-			return $this->execute(ucfirst(__FUNCTION__).'ToLanguage', array($message, $logins), $multicall);
-		if(is_string($message))
-		{
-			if($logins)
-				return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($message, $logins), $multicall);
-			return $this->execute(ucfirst(__FUNCTION__), array($message), $multicall);
+		if (is_array($message)) {
+			return $this->execute(ucfirst(__FUNCTION__) . 'ToLanguage', [$message, $logins], $multicall);
+		}
+		if (is_string($message)) {
+			if ($logins) {
+				return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$message, $logins], $multicall);
+			}
+			return $this->execute(ucfirst(__FUNCTION__), [$message], $multicall);
 		}
 		// else
-		throw new InvalidArgumentException('message = '.print_r($message, true));
-	}
-
-	/**
-	 * @deprecated
-	 * @see chatSend()
-	 */
-	function chatSendToLanguage($messages, $recipient=null, $multicall=false)
-	{
-		return $this->chatSend($messages, $recipient, $multicall);
+		throw new InvalidArgumentException('message = ' . print_r($message, true));
 	}
 
 	/**
@@ -576,9 +560,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string[]
 	 */
-	function getChatLines($multicall=false)
+	public function getChatLines($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -590,14 +574,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function chatEnableManualRouting($enable=true, $excludeServer=false, $multicall=false)
+	public function chatEnableManualRouting(bool $enable = true, bool $excludeServer = false, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
-		if(!is_bool($excludeServer))
-			throw new InvalidArgumentException('excludeServer = '.print_r($excludeServer, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($enable, $excludeServer), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable, $excludeServer], $multicall);
 	}
 
 	/**
@@ -611,28 +590,18 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function chatForward($message, $sender, $recipient=null, $multicall=false)
+	public function chatForward(string $message, $sender, $recipient = null, $multicall = false)
 	{
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
-
 		$senderLogin = $this->getLogin($sender);
-		if($senderLogin === false)
-			throw new InvalidArgumentException('sender = '.print_r($sender, true));
+		if ($senderLogin === false) {
+			throw new InvalidArgumentException('sender = ' . print_r($sender, true));
+		}
 		$recipientLogins = $this->getLogins($recipient, true);
-		if($recipientLogins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
+		if ($recipientLogins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($message, $senderLogin, $recipientLogins), $multicall);
-	}
-
-	/**
-	 * @deprecated
-	 * @see chatForward()
-	 */
-	function chatForwardToLogin($message, $sender, $recipient=null, $multicall=false)
-	{
-		return $this->chatForward($message, $sender, $recipient, $multicall);
+		return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$message, $senderLogin, $recipientLogins], $multicall);
 	}
 
 	/**
@@ -646,22 +615,27 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function sendNotice($recipient, $message, $avatar=null, $variant=0, $multicall=false)
+	public function sendNotice($recipient, $message, $avatar = null, $variant = 0, $multicall = false)
 	{
 		$logins = $this->getLogins($recipient, true);
-		if($logins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
+		if ($logins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
+		if (!is_string($message)) {
+			throw new InvalidArgumentException('message = ' . print_r($message, true));
+		}
 		$avatarLogin = $this->getLogin($avatar, true);
-		if($avatarLogin === false)
-			throw new InvalidArgumentException('avatar = '.print_r($avatar, true));
-		if(!is_int($variant) || $variant < 0 || $variant > 2)
-			throw new InvalidArgumentException('variant = '.print_r($variant, true));
+		if ($avatarLogin === false) {
+			throw new InvalidArgumentException('avatar = ' . print_r($avatar, true));
+		}
+		if (!is_int($variant) || $variant < 0 || $variant > 2) {
+			throw new InvalidArgumentException('variant = ' . print_r($variant, true));
+		}
 
-		if($logins)
-			return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($logins, $message, $avatarLogin, $variant), $multicall);
-		return $this->execute(ucfirst(__FUNCTION__), array($message, $avatar, $variant), $multicall);
+		if ($logins) {
+			return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$logins, $message, $avatarLogin, $variant], $multicall);
+		}
+		return $this->execute(ucfirst(__FUNCTION__), [$message, $avatar, $variant], $multicall);
 	}
 
 	/**
@@ -675,21 +649,17 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function sendDisplayManialinkPage($recipient, $manialinks, $timeout=0, $hideOnClick=false, $multicall=false)
+	public function sendDisplayManialinkPage($recipient, string $manialinks, int $timeout = 0, bool $hideOnClick = false, $multicall = false)
 	{
 		$logins = $this->getLogins($recipient, true);
-		if($logins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
-		if(!is_string($manialinks))
-			throw new InvalidArgumentException('manialinks = '.print_r($manialinks, true));
-		if(!is_int($timeout))
-			throw new InvalidArgumentException('timeout = '.print_r($timeout, true));
-		if(!is_bool($hideOnClick))
-			throw new InvalidArgumentException('hideOnClick = '.print_r($hideOnClick, true));
+		if ($logins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
 
-		if($logins)
-			return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($logins, $manialinks, $timeout, $hideOnClick), $multicall);
-		return $this->execute(ucfirst(__FUNCTION__), array($manialinks, $timeout, $hideOnClick), $multicall);
+		if ($logins) {
+			return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$logins, $manialinks, $timeout, $hideOnClick], $multicall);
+		}
+		return $this->execute(ucfirst(__FUNCTION__), [$manialinks, $timeout, $hideOnClick], $multicall);
 	}
 
 	/**
@@ -699,15 +669,17 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function sendHideManialinkPage($recipient=null, $multicall=false)
+	public function sendHideManialinkPage($recipient = null, $multicall = false)
 	{
 		$logins = $this->getLogins($recipient, true);
-		if($logins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
+		if ($logins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
 
-		if($logins)
-			return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($logins), $multicall);
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		if ($logins) {
+			return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$logins], $multicall);
+		}
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -717,10 +689,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\PlayerAnswer[]
 	 */
-	function getManialinkPageAnswers($multicall=false)
+	public function getManialinkPageAnswers($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('PlayerAnswer', true));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('PlayerAnswer', true));
+		}
 		return Structures\PlayerAnswer::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -734,35 +707,35 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function sendOpenLink($recipient, $link, $linkType, $multicall=false)
+	public function sendOpenLink($recipient, string $link, $linkType, $multicall = false)
 	{
 		$logins = $this->getLogins($recipient);
-		if($logins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
-		if(!is_string($link))
-			throw new InvalidArgumentException('link = '.print_r($link, true));
-		if($linkType !== 0 && $linkType !== 1)
-			throw new InvalidArgumentException('linkType = '.print_r($linkType, true));
+		if ($logins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
+		if (!is_string($link)) {
+			throw new InvalidArgumentException('link = ' . print_r($link, true));
+		}
+		if ($linkType !== 0 && $linkType !== 1) {
+			throw new InvalidArgumentException('linkType = ' . print_r($linkType, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($logins, $link, $linkType), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$logins, $link, $linkType], $multicall);
 	}
 
 	/**
 	 * Prior to loading next map, execute SendToServer url '#qjoin=login@title'
 	 * Only available to Admin.
 	 * Available since ManiaPlanet 4
-	 * @param      $link
+	 * @param	  $link
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function sendToServerAfterMatchEnd($link, $multicall = false){
-		if(!is_string($link))
-			throw new InvalidArgumentException('link = '.print_r($link, true));
-
+	public function sendToServerAfterMatchEnd(string $link, $multicall = false)
+	{
 		$link = str_replace("maniaplanet://", "", $link);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($link), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$link], $multicall);
 	}
 
 	/**
@@ -774,15 +747,17 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function kick($player, $message='', $multicall=false)
+	public function kick($player, $message = '', $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
+		if (!is_string($message)) {
+			throw new InvalidArgumentException('message = ' . print_r($message, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login, $message), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login, $message], $multicall);
 	}
 
 	/**
@@ -794,15 +769,17 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function ban($player, $message='', $multicall=false)
+	public function ban($player, $message = '', $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
+		if (!is_string($message)) {
+			throw new InvalidArgumentException('message = ' . print_r($message, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login, $message), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login, $message], $multicall);
 	}
 
 	/**
@@ -816,17 +793,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function banAndBlackList($player, $message='', $save=false, $multicall=false)
+	public function banAndBlackList($player, string $message = '', bool $save = false, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
-		if(!is_bool($save))
-			throw new InvalidArgumentException('save = '.print_r($save, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($player, $message, $save), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$player, $message, $save], $multicall);
 	}
 
 	/**
@@ -837,13 +811,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function unBan($player, $multicall=false)
+	public function unBan($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -852,9 +827,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function cleanBanList($multicall=false)
+	public function cleanBanList($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -863,18 +838,13 @@ class Connection
 	 * @param int $offset Starting index in the list
 	 * @param bool $multicall
 	 * @return Structures\PlayerBan[]
-	 * @throws InvalidArgumentException
 	 */
-	function getBanList($length=-1, $offset=0, $multicall=false)
+	public function getBanList(int $length = -1, int $offset = 0, $multicall = false)
 	{
-		if(!is_int($length))
-			throw new InvalidArgumentException('length = '.print_r($length, true));
-		if(!is_int($offset))
-			throw new InvalidArgumentException('offset = '.print_r($offset, true));
-
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($length, $offset), $this->structHandler('PlayerBan', true));
-		return Structures\PlayerBan::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($length, $offset)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$length, $offset], $this->structHandler('PlayerBan', true));
+		}
+		return Structures\PlayerBan::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$length, $offset]));
 	}
 
 	/**
@@ -885,13 +855,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function blackList($player, $multicall=false)
+	public function blackList($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -902,13 +873,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function unBlackList($player, $multicall=false)
+	public function unBlackList($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -917,9 +889,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function cleanBlackList($multicall=false)
+	public function cleanBlackList($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -928,18 +900,13 @@ class Connection
 	 * @param int $offset Starting index in the list
 	 * @param bool $multicall
 	 * @return Structures\Player[]
-	 * @throws InvalidArgumentException
 	 */
-	function getBlackList($length=-1, $offset=0, $multicall=false)
+	public function getBlackList(int $length = -1, int $offset = 0, $multicall = false)
 	{
-		if(!is_int($length))
-			throw new InvalidArgumentException('length = '.print_r($length, true));
-		if(!is_int($offset))
-			throw new InvalidArgumentException('offset = '.print_r($offset, true));
-
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($length, $offset), $this->structHandler('Player', true));
-		return Structures\Player::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($length, $offset)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$length, $offset], $this->structHandler('Player', true));
+		}
+		return Structures\Player::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$length, $offset]));
 	}
 
 	/**
@@ -950,13 +917,39 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function loadBlackList($filename='', $multicall=false)
+	public function loadBlackList(string $filename = '', $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
+	}
+
+	/**
+	 * @param string|string[] $filename
+	 * @return string|string[]
+	 */
+	private function secureUtf8($filename)
+	{
+		if (is_string($filename)) {
+			$filename = $this->stripBom($filename);
+			if (preg_match('/[^\x09\x0A\x0D\x20-\x7E]/', $filename)) {
+				return "\xEF\xBB\xBF" . $filename;
+			}
+			return $filename;
+		}
+		return array_map([$this, 'secureUtf8'], $filename);
+	}
+
+	/**
+	 * @param string|string[] $str
+	 * @return string|string[]
+	 */
+	private function stripBom($str)
+	{
+		if (is_string($str)) {
+			return str_replace("\xEF\xBB\xBF", '', $str);
+		}
+		return array_map([$this, 'stripBom'], $str);
 	}
 
 	/**
@@ -967,13 +960,11 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function saveBlackList($filename='', $multicall=false)
+	public function saveBlackList(string $filename = '', $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -984,13 +975,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function addGuest($player, $multicall=false)
+	public function addGuest($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -1001,13 +993,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function removeGuest($player, $multicall=false)
+	public function removeGuest($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -1016,9 +1009,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function cleanGuestList($multicall=false)
+	public function cleanGuestList($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1027,18 +1020,13 @@ class Connection
 	 * @param int $offset Starting index in the list
 	 * @param bool $multicall
 	 * @return Structures\Player[]
-	 * @throws InvalidArgumentException
 	 */
-	function getGuestList($length=-1, $offset=0, $multicall=false)
+	public function getGuestList(int $length = -1, int $offset = 0, $multicall = false)
 	{
-		if(!is_int($length))
-			throw new InvalidArgumentException('length = '.print_r($length, true));
-		if(!is_int($offset))
-			throw new InvalidArgumentException('offset = '.print_r($offset, true));
-
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($length, $offset), $this->structHandler('Player', true));
-		return Structures\Player::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($length, $offset)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$length, $offset], $this->structHandler('Player', true));
+		}
+		return Structures\Player::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$length, $offset]));
 	}
 
 	/**
@@ -1049,13 +1037,11 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function loadGuestList($filename='', $multicall=false)
+	public function loadGuestList(string $filename = '', $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -1064,15 +1050,12 @@ class Connection
 	 * @param string $filename Empty for default filename (guestlist.txt)
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function saveGuestList($filename='', $multicall=false)
+	public function saveGuestList(string $filename = '', $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -1084,15 +1067,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setBuddyNotification($player, $enable, $multicall=false)
+	public function setBuddyNotification($player, bool $enable, $multicall = false)
 	{
 		$login = $this->getLogin($player, true);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login, $enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login, $enable], $multicall);
 	}
 
 	/**
@@ -1102,13 +1084,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function getBuddyNotification($player=null, $multicall=false)
+	public function getBuddyNotification($player = null, $multicall = false)
 	{
 		$login = $this->getLogin($player, true);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -1120,55 +1103,12 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function writeFile($filename, $data, $multicall=false)
+	public function writeFile(string $filename, string $data, $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
-		if(!is_string($data))
-			throw new InvalidArgumentException('data = '.print_r($data, true));
 
 		$data = new Xmlrpc\Base64($data);
-		return $this->execute(ucfirst(__FUNCTION__), array($filename, $data), $multicall);
-	}
-
-	/**
-	 * Write the data to the specified file.
-	 * Only available to Admin.
-	 * @param string $filename Relative to the Maps path
-	 * @param string $localFilename
-	 * @param bool $multicall
-	 * @return bool
-	 * @throws InvalidArgumentException
-	 */
-	function writeFileFromFile($filename, $localFilename, $multicall=false)
-	{
-		if(!file_exists($localFilename))
-			throw new InvalidArgumentException('localFilename = '.print_r($localFilename, true));
-
-		$contents = file_get_contents($localFilename);
-		return $this->writeFile($filename, $contents, $multicall);
-	}
-
-	/**
-	 * Send the data to the specified player. Login can be a single login or a list of comma-separated logins.
-	 * Only available to Admin.
-	 * @param mixed $recipient Login, player object or array
-	 * @param string $data
-	 * @param bool $multicall
-	 * @return bool
-	 * @throws InvalidArgumentException
-	 */
-	function tunnelSendData($recipient, $data, $multicall=false)
-	{
-		$logins = $this->getLogins($recipient);
-		if($logins === false)
-			throw new InvalidArgumentException('recipient = '.print_r($recipient, true));
-		if(!is_string($data))
-			throw new InvalidArgumentException('data = '.print_r($data, true));
-
-		$data = new Xmlrpc\Base64($data);
-		return $this->execute(ucfirst(__FUNCTION__).'ToLogin', array($logins, $data), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename, $data], $multicall);
 	}
 
 	/**
@@ -1180,13 +1120,37 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function tunnelSendDataFromFile($recipient, $filename, $multicall=false)
+	public function tunnelSendDataFromFile($recipient, $filename, $multicall = false)
 	{
-		if(!file_exists($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!file_exists($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 
 		$contents = file_get_contents($filename);
 		return $this->tunnelSendData($recipient, $contents, $multicall);
+	}
+
+	/**
+	 * Send the data to the specified player. Login can be a single login or a list of comma-separated logins.
+	 * Only available to Admin.
+	 * @param mixed $recipient Login, player object or array
+	 * @param string $data
+	 * @param bool $multicall
+	 * @return bool
+	 * @throws InvalidArgumentException
+	 */
+	public function tunnelSendData($recipient, $data, $multicall = false)
+	{
+		$logins = $this->getLogins($recipient);
+		if ($logins === false) {
+			throw new InvalidArgumentException('recipient = ' . print_r($recipient, true));
+		}
+		if (!is_string($data)) {
+			throw new InvalidArgumentException('data = ' . print_r($data, true));
+		}
+
+		$data = new Xmlrpc\Base64($data);
+		return $this->execute(ucfirst(__FUNCTION__) . 'ToLogin', [$logins, $data], $multicall);
 	}
 
 	/**
@@ -1200,14 +1164,16 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function dedicatedEcho($message, $callback='', $multicall=false)
+	public function dedicatedEcho($message, $callback = '', $multicall = false)
 	{
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
-		if(!is_string($callback))
-			throw new InvalidArgumentException('callback = '.print_r($callback, true));
+		if (!is_string($message)) {
+			throw new InvalidArgumentException('message = ' . print_r($message, true));
+		}
+		if (!is_string($callback)) {
+			throw new InvalidArgumentException('callback = ' . print_r($callback, true));
+		}
 
-		return $this->execute('Echo', array($message, $callback), $multicall);
+		return $this->execute('Echo', [$message, $callback], $multicall);
 	}
 
 	/**
@@ -1218,13 +1184,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function ignore($player, $multicall=false)
+	public function ignore($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -1235,13 +1202,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function unIgnore($player, $multicall=false)
+	public function unIgnore($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -1250,9 +1218,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function cleanIgnoreList($multicall=false)
+	public function cleanIgnoreList($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1263,16 +1231,19 @@ class Connection
 	 * @return Structures\Player[]
 	 * @throws InvalidArgumentException
 	 */
-	function getIgnoreList($length=-1, $offset=0, $multicall=false)
+	public function getIgnoreList($length = -1, $offset = 0, $multicall = false)
 	{
-		if(!is_int($length))
-			throw new InvalidArgumentException('length = '.print_r($length, true));
-		if(!is_int($offset))
-			throw new InvalidArgumentException('offset = '.print_r($offset, true));
+		if (!is_int($length)) {
+			throw new InvalidArgumentException('length = ' . print_r($length, true));
+		}
+		if (!is_int($offset)) {
+			throw new InvalidArgumentException('offset = ' . print_r($offset, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($length, $offset), $this->structHandler('Player', true));
-		return Structures\Player::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($length, $offset)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$length, $offset], $this->structHandler('Player', true));
+		}
+		return Structures\Player::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$length, $offset]));
 	}
 
 	/**
@@ -1286,17 +1257,20 @@ class Connection
 	 * @return int BillId
 	 * @throws InvalidArgumentException
 	 */
-	function pay($payee, $amount, $message='', $multicall=false)
+	public function pay($payee, $amount, $message = '', $multicall = false)
 	{
 		$login = $this->getLogin($payee);
-		if($login === false)
-			throw new InvalidArgumentException('payee = '.print_r($payee, true));
-		if(!is_int($amount) || $amount < 1)
-			throw new InvalidArgumentException('amount = '.print_r($amount, true));
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('payee = ' . print_r($payee, true));
+		}
+		if (!is_int($amount) || $amount < 1) {
+			throw new InvalidArgumentException('amount = ' . print_r($amount, true));
+		}
+		if (!is_string($message)) {
+			throw new InvalidArgumentException('message = ' . print_r($message, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login, $amount, $message), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login, $amount, $message], $multicall);
 	}
 
 	/**
@@ -1311,20 +1285,24 @@ class Connection
 	 * @return int BillId
 	 * @throws InvalidArgumentException
 	 */
-	function sendBill($payer, $amount, $message='', $payee=null, $multicall=false)
+	public function sendBill($payer, $amount, $message = '', $payee = null, $multicall = false)
 	{
 		$payerLogin = $this->getLogin($payer);
-		if($payerLogin === false)
-			throw new InvalidArgumentException('payer = '.print_r($payer, true));
-		if(!is_int($amount) || $amount < 1)
-			throw new InvalidArgumentException('amount = '.print_r($amount, true));
-		if(!is_string($message))
-			throw new InvalidArgumentException('message = '.print_r($message, true));
+		if ($payerLogin === false) {
+			throw new InvalidArgumentException('payer = ' . print_r($payer, true));
+		}
+		if (!is_int($amount) || $amount < 1) {
+			throw new InvalidArgumentException('amount = ' . print_r($amount, true));
+		}
+		if (!is_string($message)) {
+			throw new InvalidArgumentException('message = ' . print_r($message, true));
+		}
 		$payeeLogin = $this->getLogin($payee, true);
-		if($payeeLogin === false)
-			throw new InvalidArgumentException('payee = '.print_r($payee, true));
+		if ($payeeLogin === false) {
+			throw new InvalidArgumentException('payee = ' . print_r($payee, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($payerLogin, $amount, $message, $payeeLogin), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$payerLogin, $amount, $message, $payeeLogin], $multicall);
 	}
 
 	/**
@@ -1334,14 +1312,16 @@ class Connection
 	 * @return Structures\Bill
 	 * @throws InvalidArgumentException
 	 */
-	function getBillState($billId, $multicall=false)
+	public function getBillState($billId, $multicall = false)
 	{
-		if(!is_int($billId))
-			throw new InvalidArgumentException('billId = '.print_r($billId, true));
+		if (!is_int($billId)) {
+			throw new InvalidArgumentException('billId = ' . print_r($billId, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($billId), $this->structHandler('Bill'));
-		return Structures\Bill::fromArray($this->execute(ucfirst(__FUNCTION__), array($billId)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$billId], $this->structHandler('Bill'));
+		}
+		return Structures\Bill::fromArray($this->execute(ucfirst(__FUNCTION__), [$billId]));
 	}
 
 	/**
@@ -1349,9 +1329,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int
 	 */
-	function getServerPlanets($multicall=false)
+	public function getServerPlanets($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1359,10 +1339,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\SystemInfos
 	 */
-	function getSystemInfo($multicall=false)
+	public function getSystemInfo($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('SystemInfos'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('SystemInfos'));
+		}
 		return Structures\SystemInfos::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -1374,14 +1355,16 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setConnectionRates($downloadRate, $uploadRate, $multicall=false)
+	public function setConnectionRates($downloadRate, $uploadRate, $multicall = false)
 	{
-		if(!is_int($downloadRate))
-			throw new InvalidArgumentException('downloadRate = '.print_r($downloadRate, true));
-		if(!is_int($uploadRate))
-			throw new InvalidArgumentException('uploadRate = '.print_r($uploadRate, true));
+		if (!is_int($downloadRate)) {
+			throw new InvalidArgumentException('downloadRate = ' . print_r($downloadRate, true));
+		}
+		if (!is_int($uploadRate)) {
+			throw new InvalidArgumentException('uploadRate = ' . print_r($uploadRate, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($downloadRate, $uploadRate), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$downloadRate, $uploadRate], $multicall);
 	}
 
 	/**
@@ -1390,10 +1373,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\Tag[]
 	 */
-	function getServerTags($multicall=false)
+	public function getServerTags($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('Tag', true));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('Tag', true));
+		}
 		return Structures\Tag::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -1404,16 +1388,10 @@ class Connection
 	 * @param string $value
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setServerTag($key, $value, $multicall=false)
+	public function setServerTag(string $key, string $value, $multicall = false)
 	{
-		if(!is_string($key))
-			throw new InvalidArgumentException('key = '.print_r($key, true));
-		if(!is_string($value))
-			throw new InvalidArgumentException('value = '.print_r($value, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($key, $value), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$key, $value], $multicall);
 	}
 
 	/**
@@ -1422,14 +1400,10 @@ class Connection
 	 * @param string $key
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function unsetServerTag($key, $multicall=false)
+	public function unsetServerTag(string $key, $multicall = false)
 	{
-		if(!is_string($key))
-			throw new InvalidArgumentException('key = '.print_r($key, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($key), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$key], $multicall);
 	}
 
 	/**
@@ -1438,9 +1412,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function resetServerTags($multicall=false)
+	public function resetServerTags($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1449,14 +1423,10 @@ class Connection
 	 * @param string $name
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setServerName($name, $multicall=false)
+	public function setServerName(string $name, $multicall = false)
 	{
-		if(!is_string($name))
-			throw new InvalidArgumentException('name = '.print_r($name, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($name), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$name], $multicall);
 	}
 
 	/**
@@ -1464,9 +1434,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function getServerName($multicall=false)
+	public function getServerName($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1475,14 +1445,10 @@ class Connection
 	 * @param string $comment
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setServerComment($comment, $multicall=false)
+	public function setServerComment(string $comment, $multicall = false)
 	{
-		if(!is_string($comment))
-			throw new InvalidArgumentException('comment = '.print_r($comment, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($comment), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$comment], $multicall);
 	}
 
 	/**
@@ -1490,9 +1456,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function getServerComment($multicall=false)
+	public function getServerComment($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1503,12 +1469,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setHideServer($visibility, $multicall=false)
+	public function setHideServer($visibility, $multicall = false)
 	{
-		if(!is_int($visibility) || $visibility < 0 || $visibility > 2)
-			throw new InvalidArgumentException('visibility = '.print_r($visibility, true));
+		if (!is_int($visibility) || $visibility < 0 || $visibility > 2) {
+			throw new InvalidArgumentException('visibility = ' . print_r($visibility, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($visibility), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$visibility], $multicall);
 	}
 
 	/**
@@ -1516,9 +1483,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int
 	 */
-	function getHideServer($multicall=false)
+	public function getHideServer($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1527,9 +1494,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function isRelayServer($multicall=false)
+	public function isRelayServer($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1538,14 +1505,10 @@ class Connection
 	 * @param string $password
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setServerPassword($password, $multicall=false)
+	public function setServerPassword(string $password, $multicall = false)
 	{
-		if(!is_string($password))
-			throw new InvalidArgumentException('password = '.print_r($password, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($password), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$password], $multicall);
 	}
 
 	/**
@@ -1553,9 +1516,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string|bool
 	 */
-	function getServerPassword($multicall=false)
+	public function getServerPassword($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1566,12 +1529,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setServerPasswordForSpectator($password, $multicall=false)
+	public function setServerPasswordForSpectator(string $password, $multicall = false)
 	{
-		if(!is_string($password))
-			throw new InvalidArgumentException('password = '.print_r($password, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($password), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$password], $multicall);
 	}
 
 	/**
@@ -1579,9 +1539,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string|bool
 	 */
-	function getServerPasswordForSpectator($multicall=false)
+	public function getServerPasswordForSpectator($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1593,12 +1553,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setMaxPlayers($maxPlayers, $multicall=false)
+	public function setMaxPlayers(int $maxPlayers, $multicall = false)
 	{
-		if(!is_int($maxPlayers))
-			throw new InvalidArgumentException('maxPlayers = '.print_r($maxPlayers, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($maxPlayers), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$maxPlayers], $multicall);
 	}
 
 	/**
@@ -1606,9 +1563,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getMaxPlayers($multicall=false)
+	public function getMaxPlayers($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1620,12 +1577,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setMaxSpectators($maxSpectators, $multicall=false)
+	public function setMaxSpectators(int $maxSpectators, $multicall = false)
 	{
-		if(!is_int($maxSpectators))
-			throw new InvalidArgumentException('maxSpectators = '.print_r($maxSpectators, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($maxSpectators), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$maxSpectators], $multicall);
 	}
 
 	/**
@@ -1633,9 +1587,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getMaxSpectators($multicall=false)
+	public function getMaxSpectators($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1649,18 +1603,22 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setLobbyInfo($isLobby, $currentPlayers, $maxPlayers, $averageLevel, $multicall=false)
+	public function setLobbyInfo($isLobby, $currentPlayers, $maxPlayers, $averageLevel, $multicall = false)
 	{
-		if(!is_bool($isLobby))
-			throw new InvalidArgumentException('isLobby = '.print_r($isLobby, true));
-		if(!is_int($currentPlayers))
-			throw new InvalidArgumentException('currentPlayers = '.print_r($currentPlayers, true));
-		if(!is_int($maxPlayers))
-			throw new InvalidArgumentException('maxPlayers = '.print_r($maxPlayers, true));
-		if(!is_float($averageLevel))
-			throw new InvalidArgumentException('averageLevel = '.print_r($averageLevel, true));
+		if (!is_bool($isLobby)) {
+			throw new InvalidArgumentException('isLobby = ' . print_r($isLobby, true));
+		}
+		if (!is_int($currentPlayers)) {
+			throw new InvalidArgumentException('currentPlayers = ' . print_r($currentPlayers, true));
+		}
+		if (!is_int($maxPlayers)) {
+			throw new InvalidArgumentException('maxPlayers = ' . print_r($maxPlayers, true));
+		}
+		if (!is_float($averageLevel)) {
+			throw new InvalidArgumentException('averageLevel = ' . print_r($averageLevel, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($isLobby, $currentPlayers, $maxPlayers, $averageLevel), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$isLobby, $currentPlayers, $maxPlayers, $averageLevel], $multicall);
 	}
 
 	/**
@@ -1668,10 +1626,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\LobbyInfo
 	 */
-	function getLobbyInfo($multicall=false)
+	public function getLobbyInfo($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('LobbyInfo'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('LobbyInfo'));
+		}
 		return Structures\LobbyInfo::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -1684,20 +1643,10 @@ class Connection
 	 * @param int $quitButtonDelay In milliseconds
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function customizeQuitDialog($manialink, $sendToServer='', $askFavorite=true, $quitButtonDelay=0, $multicall=false)
+	public function customizeQuitDialog(string $manialink, string $sendToServer = '', bool $askFavorite = true, int $quitButtonDelay = 0, $multicall = false)
 	{
-		if(!is_string($manialink))
-			throw new InvalidArgumentException('manialink = '.print_r($manialink, true));
-		if(!is_string($sendToServer))
-			throw new InvalidArgumentException('sendToServer = '.print_r($sendToServer, true));
-		if(!is_bool($askFavorite))
-			throw new InvalidArgumentException('askFavorite = '.print_r($askFavorite, true));
-		if(!is_int($quitButtonDelay))
-			throw new InvalidArgumentException('quitButtonDelay = '.print_r($quitButtonDelay, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($manialink, $sendToServer, $askFavorite, $quitButtonDelay), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$manialink, $sendToServer, $askFavorite, $quitButtonDelay], $multicall);
 	}
 
 	/**
@@ -1708,12 +1657,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function keepPlayerSlots($keep=true, $multicall=false)
+	public function keepPlayerSlots(bool $keep = true, $multicall = false)
 	{
-		if(!is_bool($keep))
-			throw new InvalidArgumentException('keep = '.print_r($keep, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($keep), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$keep], $multicall);
 	}
 
 	/**
@@ -1721,9 +1667,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function isKeepingPlayerSlots($multicall=false)
+	public function isKeepingPlayerSlots($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1733,14 +1679,10 @@ class Connection
 	 * @param bool $enable
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function enableP2PUpload($enable=true, $multicall=false)
+	public function enableP2PUpload(bool $enable = true, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -1749,9 +1691,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function isP2PUpload($multicall=false)
+	public function isP2PUpload($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1763,12 +1705,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function enableP2PDownload($enable=true, $multicall=false)
+	public function enableP2PDownload($enable = true, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
+		if (!is_bool($enable)) {
+			throw new InvalidArgumentException('enable = ' . print_r($enable, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -1777,9 +1720,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function isP2PDownload($multicall=false)
+	public function isP2PDownload($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1790,12 +1733,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function allowMapDownload($allow=true, $multicall=false)
+	public function allowMapDownload($allow = true, $multicall = false)
 	{
-		if(!is_bool($allow))
-			throw new InvalidArgumentException('allow = '.print_r($allow, true));
+		if (!is_bool($allow)) {
+			throw new InvalidArgumentException('allow = ' . print_r($allow, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($allow), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$allow], $multicall);
 	}
 
 	/**
@@ -1803,9 +1747,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function isMapDownloadAllowed($multicall=false)
+	public function isMapDownloadAllowed($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1814,10 +1758,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function gameDataDirectory($multicall=false)
+	public function gameDataDirectory($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), array($this, 'stripBom'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], [$this, 'stripBom']);
+		}
 		return $this->stripBom($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -1827,10 +1772,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function getMapsDirectory($multicall=false)
+	public function getMapsDirectory($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), array($this, 'stripBom'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], [$this, 'stripBom']);
+		}
 		return $this->stripBom($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -1840,10 +1786,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function getSkinsDirectory($multicall=false)
+	public function getSkinsDirectory($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), array($this, 'stripBom'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], [$this, 'stripBom']);
+		}
 		return $this->stripBom($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -1887,14 +1834,16 @@ class Connection
 	 * @return Structures\Team
 	 * @throws InvalidArgumentException
 	 */
-	function getTeamInfo($team, $multicall=false)
+	public function getTeamInfo($team, $multicall = false)
 	{
-		if(!is_int($team) || $team < 0 || $team > 2)
-			throw new InvalidArgumentException('team = '.print_r($team, true));
+		if (!is_int($team) || $team < 0 || $team > 2) {
+			throw new InvalidArgumentException('team = ' . print_r($team, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($team), $this->structHandler('Team'));
-		return Structures\Team::fromArray($this->execute(ucfirst(__FUNCTION__), array($team)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$team], $this->structHandler('Team'));
+		}
+		return Structures\Team::fromArray($this->execute(ucfirst(__FUNCTION__), [$team]));
 	}
 
 	/**
@@ -1906,14 +1855,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setForcedClubLinks($team1, $team2, $multicall=false)
+	public function setForcedClubLinks(string $team1, string $team2, $multicall = false)
 	{
-		if(!is_string($team1))
-			throw new InvalidArgumentException('team1 = '.print_r($team1, true));
-		if(!is_string($team2))
-			throw new InvalidArgumentException('team2 = '.print_r($team2, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($team1, $team2), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$team1, $team2], $multicall);
 	}
 
 	/**
@@ -1921,9 +1865,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string[]
 	 */
-	function getForcedClubLinks($multicall=false)
+	public function getForcedClubLinks($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1932,9 +1876,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function connectFakePlayer($multicall=false)
+	public function connectFakePlayer($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -1943,14 +1887,10 @@ class Connection
 	 * @param string $login Fake player login or '*' for all
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function disconnectFakePlayer($login, $multicall=false)
+	public function disconnectFakePlayer(string $login, $multicall = false)
 	{
-		if(!is_string($login))
-			throw new InvalidArgumentException('login = '.print_r($login, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -1960,15 +1900,17 @@ class Connection
 	 * @return Structures\TokenInfos
 	 * @throws InvalidArgumentException
 	 */
-	function getDemoTokenInfosForPlayer($player, $multicall=false)
+	public function getDemoTokenInfosForPlayer($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($login), $this->structHandler('TokenInfos'));
-		return Structures\TokenInfos::fromArray($this->execute(ucfirst(__FUNCTION__), array($login)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$login], $this->structHandler('TokenInfos'));
+		}
+		return Structures\TokenInfos::fromArray($this->execute(ucfirst(__FUNCTION__), [$login]));
 	}
 
 	/**
@@ -1977,14 +1919,10 @@ class Connection
 	 * @param bool $disable
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function disableHorns($disable=true, $multicall=false)
+	public function disableHorns(bool $disable = true, $multicall = false)
 	{
-		if(!is_bool($disable))
-			throw new InvalidArgumentException('disable = '.print_r($disable, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($disable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$disable], $multicall);
 	}
 
 	/**
@@ -1992,9 +1930,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function areHornsDisabled($multicall=false)
+	public function areHornsDisabled($multicall = false): bool
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2003,14 +1941,10 @@ class Connection
 	 * @param bool $disable
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function disableServiceAnnounces($disable=true, $multicall=false)
+	public function disableServiceAnnounces(bool $disable = true, $multicall = false)
 	{
-		if(!is_bool($disable))
-			throw new InvalidArgumentException('disable = '.print_r($disable, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($disable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$disable], $multicall);
 	}
 
 	/**
@@ -2018,9 +1952,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function areServiceAnnouncesDisabled($multicall=false)
+	public function areServiceAnnouncesDisabled($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2031,12 +1965,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function autoSaveReplays($enable=true, $multicall=false)
+	public function autoSaveReplays(bool $enable = true, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -2048,12 +1979,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function autoSaveValidationReplays($enable=true, $multicall=false)
+	public function autoSaveValidationReplays($enable = true, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
+		if (!is_bool($enable)) {
+			throw new InvalidArgumentException('enable = ' . print_r($enable, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -2061,9 +1993,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function isAutoSaveReplaysEnabled($multicall=false)
+	public function isAutoSaveReplaysEnabled($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2072,9 +2004,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function isAutoSaveValidationReplaysEnabled($multicall=false)
+	public function isAutoSaveValidationReplaysEnabled($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2085,13 +2017,11 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function saveCurrentReplay($filename='', $multicall=false)
+	public function saveCurrentReplay(string $filename = '', $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -2103,16 +2033,15 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function saveBestGhostsReplay($player=null, $filename='', $multicall=false)
+	public function saveBestGhostsReplay($player = null, string $filename = '', $multicall = false)
 	{
 		$login = $this->getLogin($player, true);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login, $filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login, $filename], $multicall);
 	}
 
 	/**
@@ -2122,15 +2051,19 @@ class Connection
 	 * @return string
 	 * @throws InvalidArgumentException
 	 */
-	function getValidationReplay($player, $multicall=false)
+	public function getValidationReplay($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($login), function ($v) { return $v->scalar; });
-		return $this->execute(ucfirst(__FUNCTION__), array($login))->scalar;
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$login], function ($v) {
+				return $v->scalar;
+			});
+		}
+		return $this->execute(ucfirst(__FUNCTION__), [$login])->scalar;
 	}
 
 	/**
@@ -2143,12 +2076,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setLadderMode($mode, $multicall=false)
+	public function setLadderMode($mode, $multicall = false)
 	{
-		if($mode !== 0 && $mode !== 1)
-			throw new InvalidArgumentException('mode = '.print_r($mode, true));
+		if ($mode !== 0 && $mode !== 1) {
+			throw new InvalidArgumentException('mode = ' . print_r($mode, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($mode), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$mode], $multicall);
 	}
 
 	/**
@@ -2157,9 +2091,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getLadderMode($multicall=false)
+	public function getLadderMode($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2168,10 +2102,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\LadderLimits
 	 */
-	function getLadderServerLimits($multicall=false)
+	public function getLadderServerLimits($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('LadderLimits'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('LadderLimits'));
+		}
 		return Structures\LadderLimits::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -2185,12 +2120,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setVehicleNetQuality($quality, $multicall=false)
+	public function setVehicleNetQuality($quality, $multicall = false)
 	{
-		if($quality !== 0 && $quality !== 1)
-			throw new InvalidArgumentException('quality = '.print_r($quality, true));
+		if ($quality !== 0 && $quality !== 1) {
+			throw new InvalidArgumentException('quality = ' . print_r($quality, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($quality), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$quality], $multicall);
 	}
 
 	/**
@@ -2199,9 +2135,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getVehicleNetQuality($multicall=false)
+	public function getVehicleNetQuality($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2218,12 +2154,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setServerOptions($options, $multicall=false)
+	function setServerOptions(\Structures\ServerOptions $options, $multicall = false)
 	{
-		if(!($options instanceof Structures\ServerOptions && $options->isValid()))
-			throw new InvalidArgumentException('options = '.print_r($options, true));
+		if ($options->isValid() === false) {
+			throw new InvalidArgumentException('options = ' . print_r($options, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($options->toSetterArray()), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$options->toSetterArray()], $multicall);
 	}
 
 	/**
@@ -2231,10 +2168,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\ServerOptions
 	 */
-	function getServerOptions($multicall=false)
+	public function getServerOptions($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('ServerOptions'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('ServerOptions'));
+		}
 		return Structures\ServerOptions::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -2246,12 +2184,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setForcedTeams($enable, $multicall=false)
+	public function setForcedTeams($enable, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
+		if (!is_bool($enable)) {
+			throw new InvalidArgumentException('enable = ' . print_r($enable, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -2259,9 +2198,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function getForcedTeams($multicall=false)
+	public function getForcedTeams($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2275,12 +2214,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setServerPackMask($packMask, $multicall=false)
+	public function setServerPackMask($packMask, $multicall = false)
 	{
-		if(!is_string($packMask))
-			throw new InvalidArgumentException('packMask = '.print_r($packMask, true));
+		if (!is_string($packMask)) {
+			throw new InvalidArgumentException('packMask = ' . print_r($packMask, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($packMask), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$packMask], $multicall);
 	}
 
 	/**
@@ -2289,9 +2229,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function getServerPackMask($multicall=false)
+	public function getServerPackMask($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2304,25 +2244,25 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setForcedMods($override, $mods, $multicall=false)
+	public function setForcedMods($override, $mods, $multicall = false)
 	{
-		if(!is_bool($override))
-			throw new InvalidArgumentException('override = '.print_r($override, true));
-		if(is_array($mods))
-		{
-			foreach($mods as $i => &$mod)
-			{
-				if(!($mod instanceof Structures\Mod))
-					throw new InvalidArgumentException('mods['.$i.'] = '.print_r($mod, true));
+		if (!is_bool($override)) {
+			throw new InvalidArgumentException('override = ' . print_r($override, true));
+		}
+		if (is_array($mods)) {
+			foreach ($mods as $i => &$mod) {
+				if (!($mod instanceof Structures\Mod)) {
+					throw new InvalidArgumentException('mods[' . $i . '] = ' . print_r($mod, true));
+				}
 				$mod = $mod->toArray();
 			}
+		} elseif ($mods instanceof Structures\Mod) {
+			$mods = [$mods->toArray()];
+		} else {
+			throw new InvalidArgumentException('mods = ' . print_r($mods, true));
 		}
-		elseif($mods instanceof Structures\Mod)
-			$mods = array($mods->toArray());
-		else
-			throw new InvalidArgumentException('mods = '.print_r($mods, true));
 
-		return $this->execute(ucfirst(__FUNCTION__), array($override, $mods), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$override, $mods], $multicall);
 	}
 
 	/**
@@ -2330,13 +2270,14 @@ class Connection
 	 * @param bool $multicall
 	 * @return array {bool Override, Structures\Mod[] Mods}
 	 */
-	function getForcedMods($multicall=false)
+	public function getForcedMods($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), function ($v) {
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], function ($v) {
 				$v['Mods'] = Structures\Mod::fromArrayOfArray($v['Mods']);
 				return $v;
 			});
+		}
 		$result = $this->execute(ucfirst(__FUNCTION__));
 		$result['Mods'] = Structures\Mod::fromArrayOfArray($result['Mods']);
 		return $result;
@@ -2352,16 +2293,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setForcedMusic($override, $music, $multicall=false)
+	public function setForcedMusic(bool $override, string $music, $multicall = false)
 	{
-		if(!is_bool($override))
-			throw new InvalidArgumentException('override = '.print_r($override, true));
-		if(!is_string($music))
-			throw new InvalidArgumentException('music = '.print_r($music, true));
-		if(!preg_match('~^.+?://~', $music))
+		if (!preg_match('~^.+?://~', $music)) {
 			$music = $this->secureUtf8($music);
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($override, $music), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$override, $music], $multicall);
 	}
 
 	/**
@@ -2369,10 +2307,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\Music
 	 */
-	function getForcedMusic($multicall=false)
+	public function getForcedMusic($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('Music'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('Music'));
+		}
 		return Structures\Music::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -2387,24 +2326,22 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setForcedSkins($skins, $multicall=false)
+	public function setForcedSkins($skins, $multicall = false)
 	{
-		if(is_array($skins))
-		{
-			foreach($skins as $i => &$skin)
-			{
-				if(!($skin instanceof Structures\ForcedSkin))
-					throw new InvalidArgumentException('skins['.$i.'] = '.print_r($skin, true));
+		if (is_array($skins)) {
+			foreach ($skins as $i => &$skin) {
+				if (!($skin instanceof Structures\ForcedSkin)) {
+					throw new InvalidArgumentException('skins[' . $i . '] = ' . print_r($skin, true));
+				}
 				$skin = $skin->toArray();
 			}
-
+		} elseif ($skins instanceof Structures\ForcedSkin) {
+			$skins = [$skins->toArray()];
+		} else {
+			throw new InvalidArgumentException('skins = ' . print_r($skins, true));
 		}
-		elseif($skins instanceof Structures\ForcedSkin)
-			$skins = array($skins->toArray());
-		else
-			throw new InvalidArgumentException('skins = '.print_r($skins, true));
 
-		return $this->execute(ucfirst(__FUNCTION__), array($skins), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$skins], $multicall);
 	}
 
 	/**
@@ -2412,10 +2349,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\ForcedSkin[]
 	 */
-	function getForcedSkins($multicall=false)
+	public function getForcedSkins($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('ForcedSkin', true));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('ForcedSkin', true));
+		}
 		return Structures\ForcedSkin::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -2425,9 +2363,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function getLastConnectionErrorMessage($multicall=false)
+	public function getLastConnectionErrorMessage($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2439,12 +2377,9 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setRefereePassword($password, $multicall=false)
+	public function setRefereePassword(string $password, $multicall = false)
 	{
-		if(!is_string($password))
-			throw new InvalidArgumentException('password = '.print_r($password, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($password), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$password], $multicall);
 	}
 
 	/**
@@ -2453,9 +2388,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string|bool
 	 */
-	function getRefereePassword($multicall=false)
+	public function getRefereePassword($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2467,12 +2402,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setRefereeMode($mode, $multicall=false)
+	public function setRefereeMode($mode, $multicall = false)
 	{
-		if($mode !== 0 && $mode !== 1)
-			throw new InvalidArgumentException('mode = '.print_r($mode, true));
+		if ($mode !== 0 && $mode !== 1) {
+			throw new InvalidArgumentException('mode = ' . print_r($mode, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($mode), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$mode], $multicall);
 	}
 
 	/**
@@ -2481,9 +2417,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int
 	 */
-	function getRefereeMode($multicall=false)
+	public function getRefereeMode($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2496,12 +2432,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setUseChangingValidationSeed($enable, $multicall=false)
+	public function setUseChangingValidationSeed($enable, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
+		if (!is_bool($enable)) {
+			throw new InvalidArgumentException('enable = ' . print_r($enable, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -2510,9 +2447,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool[] {bool CurrentValue, bool NextValue}
 	 */
-	function getUseChangingValidationSeed($multicall=false)
+	public function getUseChangingValidationSeed($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2522,14 +2459,10 @@ class Connection
 	 * @param int $latency
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setClientInputsMaxLatency($latency, $multicall=false)
+	public function setClientInputsMaxLatency(int $latency, $multicall = false)
 	{
-		if(!is_int($latency))
-			throw new InvalidArgumentException('latency = '.print_r($latency, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($latency), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$latency], $multicall);
 	}
 
 	/**
@@ -2538,9 +2471,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int
 	 */
-	function getClientInputsMaxLatency($multicall=false)
+	public function getClientInputsMaxLatency($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2552,12 +2485,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setWarmUp($enable, $multicall=false)
+	public function setWarmUp($enable, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
+		if (!is_bool($enable)) {
+			throw new InvalidArgumentException('enable = ' . print_r($enable, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -2566,9 +2500,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function getWarmUp($multicall=false)
+	public function getWarmUp($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2576,9 +2510,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function getModeScriptText($multicall=false)
+	public function getModeScriptText($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2589,12 +2523,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setModeScriptText($script, $multicall=false)
+	public function setModeScriptText($script, $multicall = false)
 	{
-		if(!is_string($script))
-			throw new InvalidArgumentException('script = '.print_r($script, true));
+		if (!is_string($script)) {
+			throw new InvalidArgumentException('script = ' . print_r($script, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($script), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$script], $multicall);
 	}
 
 	/**
@@ -2602,10 +2537,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\ScriptInfo
 	 */
-	function getModeScriptInfo($multicall=false)
+	public function getModeScriptInfo($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('ScriptInfo'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('ScriptInfo'));
+		}
 		return Structures\ScriptInfo::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -2614,9 +2550,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return array {mixed <setting name>, ...}
 	 */
-	function getModeScriptSettings($multicall=false)
+	public function getModeScriptSettings($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2627,12 +2563,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setModeScriptSettings($settings, $multicall=false)
+	public function setModeScriptSettings($settings, $multicall = false)
 	{
-		if(!is_array($settings) || !$settings)
-			throw new InvalidArgumentException('settings = '.print_r($settings, true));
+		if (!is_array($settings) || !$settings) {
+			throw new InvalidArgumentException('settings = ' . print_r($settings, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($settings), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$settings], $multicall);
 	}
 
 	/**
@@ -2643,12 +2580,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function sendModeScriptCommands($commands, $multicall=false)
+	public function sendModeScriptCommands($commands, $multicall = false)
 	{
-		if(!is_array($commands) || !$commands)
-			throw new InvalidArgumentException('commands = '.print_r($commands, true));
+		if (!is_array($commands) || !$commands) {
+			throw new InvalidArgumentException('commands = ' . print_r($commands, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($commands), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$commands], $multicall);
 	}
 
 	/**
@@ -2660,14 +2598,16 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setModeScriptSettingsAndCommands($settings, $commands, $multicall=false)
+	public function setModeScriptSettingsAndCommands($settings, $commands, $multicall = false)
 	{
-		if(!is_array($settings) || !$settings)
-			throw new InvalidArgumentException('settings = '.print_r($settings, true));
-		if(!is_array($commands) || !$commands)
-			throw new InvalidArgumentException('commands = '.print_r($commands, true));
+		if (!is_array($settings) || !$settings) {
+			throw new InvalidArgumentException('settings = ' . print_r($settings, true));
+		}
+		if (!is_array($commands) || !$commands) {
+			throw new InvalidArgumentException('commands = ' . print_r($commands, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($settings, $commands), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$settings, $commands], $multicall);
 	}
 
 	/**
@@ -2675,9 +2615,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return array {mixed <variable name>, ...}
 	 */
-	function getModeScriptVariables($multicall=false)
+	public function getModeScriptVariables($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2688,12 +2628,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setModeScriptVariables($variables, $multicall=false)
+	public function setModeScriptVariables($variables, $multicall = false)
 	{
-		if(!is_array($variables) || !$variables)
-			throw new InvalidArgumentException('variables = '.print_r($variables, true));
+		if (!is_array($variables) || !$variables) {
+			throw new InvalidArgumentException('variables = ' . print_r($variables, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($variables), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$variables], $multicall);
 	}
 
 	/**
@@ -2705,34 +2646,23 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function triggerModeScriptEvent($event, $params='', $multicall=false)
+	public function triggerModeScriptEvent(string $event, $params = '', $multicall = false)
 	{
-		if(!is_string($event))
-			throw new InvalidArgumentException('event name must be a string: event = '.print_r($event, true));
+		if (is_string($params)) {
+			return $this->execute(ucfirst(__FUNCTION__), [$event, $params], $multicall);
+		}
 
-		if(is_string($params))
-			return $this->execute(ucfirst(__FUNCTION__), array($event, $params), $multicall);
-
-		if(is_array($params)){
-			foreach($params as $param){
-				if(!is_string($param)){
-					throw new InvalidArgumentException('argument must be a string: param = '.print_r($param, true));
+		if (is_array($params)) {
+			foreach ($params as $param) {
+				if (!is_string($param)) {
+					throw new InvalidArgumentException('argument must be a string: param = ' . print_r($param, true));
 				}
 			}
-			return $this->execute(ucfirst(__FUNCTION__).'Array', array($event, $params), $multicall);
+			return $this->execute(ucfirst(__FUNCTION__) . 'Array', [$event, $params], $multicall);
 		}
 
 		// else
-		throw new InvalidArgumentException('argument must be string or string[]: params = '.print_r($params, true));
-	}
-
-	/**
-	 * @deprecated
-	 * @see triggerModeScriptEvent()
-	 */
-	function triggerModeScriptEventArray($event, $params=array(), $multicall=false)
-	{
-		return $this->triggerModeScriptEvent($event, $params, $multicall);
+		throw new InvalidArgumentException('argument must be string or string[]: params = ' . print_r($params, true));
 	}
 
 	/**
@@ -2740,7 +2670,7 @@ class Connection
 	 * Only available to Admin.
 	 * @param boolean $forceReload
 	 * @param string $filename
-	 * @param string $settings
+	 * @param array $settings
 	 * @param bool $multicall
 	 * @return bool
 	 */
@@ -2820,16 +2750,6 @@ class Connection
 		throw new InvalidArgumentException('argument must be string or string[]: params = '.print_r($params, true));
 	}
 
-
-	/**
-	 * @deprecated
-	 * @see triggerModeScriptEvent()
-	 */
-	function triggerServerPluginEventArray($event, $params=array(), $multicall=false)
-	{
-		return $this->triggerServerPluginEvent($event, $params, $multicall);
-	}
-
 	/**
 	 * Get the script cloud variables of given object.
 	 * Only available to Admin.
@@ -2839,14 +2759,16 @@ class Connection
 	 * @return array {mixed <variable name>, ...}
 	 * @throws InvalidArgumentException
 	 */
-	function getScriptCloudVariables($type, $id, $multicall=false)
+	public function getScriptCloudVariables($type, $id, $multicall = false)
 	{
-		if(!is_string($type))
-			throw new InvalidArgumentException('type = '.print_r($type, true));
-		if(!is_string($id))
-			throw new InvalidArgumentException('id = '.print_r($id, true));
+		if (!is_string($type)) {
+			throw new InvalidArgumentException('type = ' . print_r($type, true));
+		}
+		if (!is_string($id)) {
+			throw new InvalidArgumentException('id = ' . print_r($id, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($type, $id), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$type, $id], $multicall);
 	}
 
 	/**
@@ -2859,16 +2781,19 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setScriptCloudVariables($type, $id, $variables, $multicall=false)
+	public function setScriptCloudVariables($type, $id, $variables, $multicall = false)
 	{
-		if(!is_string($type))
-			throw new InvalidArgumentException('type = '.print_r($type, true));
-		if(!is_string($id))
-			throw new InvalidArgumentException('id = '.print_r($id, true));
-		if(!is_array($variables) || !$variables)
-			throw new InvalidArgumentException('variables = '.print_r($variables, true));
+		if (!is_string($type)) {
+			throw new InvalidArgumentException('type = ' . print_r($type, true));
+		}
+		if (!is_string($id)) {
+			throw new InvalidArgumentException('id = ' . print_r($id, true));
+		}
+		if (!is_array($variables) || !$variables) {
+			throw new InvalidArgumentException('variables = ' . print_r($variables, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($type, $id, $variables), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$type, $id, $variables], $multicall);
 	}
 
 	/**
@@ -2878,12 +2803,13 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function restartMap($dontClearCupScores=false, $multicall=false)
+	public function restartMap($dontClearCupScores = false, $multicall = false)
 	{
-		if(!is_bool($dontClearCupScores))
-			throw new InvalidArgumentException('dontClearCupScores = '.print_r($dontClearCupScores, true));
+		if (!is_bool($dontClearCupScores)) {
+			throw new InvalidArgumentException('dontClearCupScores = ' . print_r($dontClearCupScores, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($dontClearCupScores), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$dontClearCupScores], $multicall);
 	}
 
 	/**
@@ -2893,12 +2819,13 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function nextMap($dontClearCupScores=false, $multicall=false)
+	public function nextMap($dontClearCupScores = false, $multicall = false)
 	{
-		if(!is_bool($dontClearCupScores))
-			throw new InvalidArgumentException('dontClearCupScores = '.print_r($dontClearCupScores, true));
+		if (!is_bool($dontClearCupScores)) {
+			throw new InvalidArgumentException('dontClearCupScores = ' . print_r($dontClearCupScores, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($dontClearCupScores), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$dontClearCupScores], $multicall);
 	}
 
 	/**
@@ -2907,9 +2834,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function autoTeamBalance($multicall=false)
+	public function autoTeamBalance($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2918,9 +2845,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function stopServer($multicall=false)
+	public function stopServer($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2930,9 +2857,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function forceEndRound($multicall=false)
+	public function forceEndRound($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -2945,12 +2872,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setGameInfos($gameInfos, $multicall=false)
+	public function setGameInfos($gameInfos, $multicall = false)
 	{
-		if(!($gameInfos instanceof Structures\GameInfos))
-			throw new InvalidArgumentException('gameInfos = '.print_r($gameInfos, true));
+		if (!($gameInfos instanceof Structures\GameInfos)) {
+			throw new InvalidArgumentException('gameInfos = ' . print_r($gameInfos, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($gameInfos->toArray()), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$gameInfos->toArray()], $multicall);
 	}
 
 	/**
@@ -2959,10 +2887,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\GameInfos
 	 */
-	function getCurrentGameInfo($multicall=false)
+	public function getCurrentGameInfo($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('GameInfos'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('GameInfos'));
+		}
 		return Structures\GameInfos::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -2972,10 +2901,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\GameInfos
 	 */
-	function getNextGameInfo($multicall=false)
+	public function getNextGameInfo($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('GameInfos'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('GameInfos'));
+		}
 		return Structures\GameInfos::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -2985,10 +2915,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\GameInfos[] {Structures\GameInfos CurrentGameInfos, Structures\GameInfos NextGameInfos}
 	 */
-	function getGameInfos($multicall=false)
+	public function getGameInfos($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('GameInfos', true));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('GameInfos', true));
+		}
 		return Structures\GameInfos::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -3002,12 +2933,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setGameMode($gameMode, $multicall=false)
+	public function setGameMode($gameMode, $multicall = false)
 	{
-		if(!is_int($gameMode) || $gameMode < 0 || $gameMode > 6)
-			throw new InvalidArgumentException('gameMode = '.print_r($gameMode, true));
+		if (!is_int($gameMode) || $gameMode < 0 || $gameMode > 6) {
+			throw new InvalidArgumentException('gameMode = ' . print_r($gameMode, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($gameMode), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$gameMode], $multicall);
 	}
 
 	/**
@@ -3016,9 +2948,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int
 	 */
-	function getGameMode($multicall=false)
+	public function getGameMode($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3030,12 +2962,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setChatTime($chatTime, $multicall=false)
+	public function setChatTime($chatTime, $multicall = false)
 	{
-		if(!is_int($chatTime))
-			throw new InvalidArgumentException('chatTime = '.print_r($chatTime, true));
+		if (!is_int($chatTime)) {
+			throw new InvalidArgumentException('chatTime = ' . print_r($chatTime, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($chatTime), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$chatTime], $multicall);
 	}
 
 	/**
@@ -3044,9 +2977,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getChatTime($multicall=false)
+	public function getChatTime($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3059,12 +2992,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setFinishTimeout($timeout, $multicall=false)
+	public function setFinishTimeout($timeout, $multicall = false)
 	{
-		if(!is_int($timeout))
-			throw new InvalidArgumentException('timeout = '.print_r($timeout, true));
+		if (!is_int($timeout)) {
+			throw new InvalidArgumentException('timeout = ' . print_r($timeout, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($timeout), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$timeout], $multicall);
 	}
 
 	/**
@@ -3072,9 +3006,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getFinishTimeout($multicall=false)
+	public function getFinishTimeout($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3087,12 +3021,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setAllWarmUpDuration($duration, $multicall=false)
+	public function setAllWarmUpDuration($duration, $multicall = false)
 	{
-		if(!is_int($duration))
-			throw new InvalidArgumentException('duration = '.print_r($duration, true));
+		if (!is_int($duration)) {
+			throw new InvalidArgumentException('duration = ' . print_r($duration, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($duration), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$duration], $multicall);
 	}
 
 	/**
@@ -3101,9 +3036,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getAllWarmUpDuration($multicall=false)
+	public function getAllWarmUpDuration($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3116,12 +3051,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setDisableRespawn($disable, $multicall=false)
+	public function setDisableRespawn($disable, $multicall = false)
 	{
-		if(!is_bool($disable))
-			throw new InvalidArgumentException('disable = '.print_r($disable, true));
+		if (!is_bool($disable)) {
+			throw new InvalidArgumentException('disable = ' . print_r($disable, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($disable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$disable], $multicall);
 	}
 
 	/**
@@ -3130,9 +3066,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool[] {bool CurrentValue, bool NextValue}
 	 */
-	function getDisableRespawn($multicall=false)
+	public function getDisableRespawn($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3144,12 +3080,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setForceShowAllOpponents($opponents, $multicall=false)
+	public function setForceShowAllOpponents($opponents, $multicall = false)
 	{
-		if(!is_int($opponents))
-			throw new InvalidArgumentException('opponents = '.print_r($opponents, true));
+		if (!is_int($opponents)) {
+			throw new InvalidArgumentException('opponents = ' . print_r($opponents, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($opponents), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$opponents], $multicall);
 	}
 
 	/**
@@ -3157,9 +3094,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int[] {int CurrentValue, int NextValue}
 	 */
-	function getForceShowAllOpponents($multicall=false)
+	public function getForceShowAllOpponents($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3171,13 +3108,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setScriptName($script, $multicall=false)
+	public function setScriptName($script, $multicall = false)
 	{
-		if(!is_string($script))
-			throw new InvalidArgumentException('script = '.print_r($script, true));
+		if (!is_string($script)) {
+			throw new InvalidArgumentException('script = ' . print_r($script, true));
+		}
 		$script = $this->secureUtf8($script);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($script), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$script], $multicall);
 	}
 
 	/**
@@ -3185,10 +3123,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return string[] {string CurrentValue, string NextValue}
 	 */
-	function getScriptName($multicall=false)
+	public function getScriptName($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), array($this, 'stripBom'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], [$this, 'stripBom']);
+		}
 		return $this->stripBom($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -3634,9 +3573,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int
 	 */
-	function getCurrentMapIndex($multicall=false)
+	public function getCurrentMapIndex($multicall = false): int
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3644,9 +3583,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int
 	 */
-	function getNextMapIndex($multicall=false)
+	public function getNextMapIndex($multicall = false): int
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -3654,14 +3593,10 @@ class Connection
 	 * @param int $index
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setNextMapIndex($index, $multicall=false)
+	public function setNextMapIndex(int $index, $multicall = false)
 	{
-		if(!is_int($index))
-			throw new InvalidArgumentException('index = '.print_r($index, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($index), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$index], $multicall);
 	}
 
 	/**
@@ -3669,14 +3604,10 @@ class Connection
 	 * @param string $ident
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function setNextMapIdent($ident, $multicall=false)
+	public function setNextMapIdent(string $ident, $multicall = false)
 	{
-		if(!is_string($ident))
-			throw new InvalidArgumentException('ident = '.print_r($ident, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($ident), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$ident], $multicall);
 	}
 
 	/**
@@ -3684,14 +3615,10 @@ class Connection
 	 * @param int $index
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function jumpToMapIndex($index, $multicall=false)
+	public function jumpToMapIndex(int $index, $multicall = false)
 	{
-		if(!is_int($index))
-			throw new InvalidArgumentException('index = '.print_r($index, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($index), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$index], $multicall);
 	}
 
 	/**
@@ -3699,14 +3626,10 @@ class Connection
 	 * @param string $ident
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function jumpToMapIdent($ident, $multicall=false)
+	public function jumpToMapIdent(string $ident, $multicall = false)
 	{
-		if(!is_string($ident))
-			throw new InvalidArgumentException('ident = '.print_r($ident, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array($ident), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$ident], $multicall);
 	}
 
 	/**
@@ -3714,10 +3637,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\Map
 	 */
-	function getCurrentMapInfo($multicall=false)
+	public function getCurrentMapInfo($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('Map'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('Map'));
+		}
 		return Structures\Map::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -3726,10 +3650,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\Map
 	 */
-	function getNextMapInfo($multicall=false)
+	public function getNextMapInfo($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('Map'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('Map'));
+		}
 		return Structures\Map::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -3740,15 +3665,14 @@ class Connection
 	 * @return Structures\Map
 	 * @throws InvalidArgumentException
 	 */
-	function getMapInfo($filename, $multicall=false)
+	public function getMapInfo(string $filename, $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($filename), $this->structHandler('Map'));
-		return Structures\Map::fromArray($this->execute(ucfirst(__FUNCTION__), array($filename)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$filename], $this->structHandler('Map'));
+		}
+		return Structures\Map::fromArray($this->execute(ucfirst(__FUNCTION__), [$filename]));
 	}
 
 	/**
@@ -3758,13 +3682,11 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function checkMapForCurrentServerParams($filename, $multicall=false)
+	public function checkMapForCurrentServerParams(string $filename, $multicall = false)
 	{
-		if(!is_string($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3773,18 +3695,13 @@ class Connection
 	 * @param int $offset Starting index in the list
 	 * @param bool $multicall
 	 * @return Structures\Map[]
-	 * @throws InvalidArgumentException
 	 */
-	function getMapList($length=-1, $offset=0, $multicall=false)
+	public function getMapList(int $length = -1, int $offset = 0, $multicall = false)
 	{
-		if(!is_int($length))
-			throw new InvalidArgumentException('length = '.print_r($length, true));
-		if(!is_int($offset))
-			throw new InvalidArgumentException('offset = '.print_r($offset, true));
-
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($length, $offset), $this->structHandler('Map', true));
-		return Structures\Map::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($length, $offset)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$length, $offset], $this->structHandler('Map', true));
+		}
+		return Structures\Map::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$length, $offset]));
 	}
 
 	/**
@@ -3793,15 +3710,12 @@ class Connection
 	 * @param string $filename Relative to the Maps path
 	 * @param bool $multicall
 	 * @return bool
-	 * @throws InvalidArgumentException
 	 */
-	function addMap($filename, $multicall=false)
+	public function addMap(string $filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3812,13 +3726,14 @@ class Connection
 	 * @return int Number of maps actually added
 	 * @throws InvalidArgumentException
 	 */
-	function addMapList($filenames, $multicall=false)
+	public function addMapList($filenames, $multicall = false)
 	{
-		if(!is_array($filenames))
-			throw new InvalidArgumentException('filenames = '.print_r($filenames, true));
+		if (!is_array($filenames)) {
+			throw new InvalidArgumentException('filenames = ' . print_r($filenames, true));
+		}
 		$filenames = $this->secureUtf8($filenames);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filenames), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filenames], $multicall);
 	}
 
 	/**
@@ -3829,13 +3744,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function removeMap($filename, $multicall=false)
+	public function removeMap($filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!is_string($filename) || !strlen($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3846,13 +3762,14 @@ class Connection
 	 * @return int Number of maps actually removed
 	 * @throws InvalidArgumentException
 	 */
-	function removeMapList($filenames, $multicall=false)
+	public function removeMapList($filenames, $multicall = false)
 	{
-		if(!is_array($filenames))
-			throw new InvalidArgumentException('filenames = '.print_r($filenames, true));
+		if (!is_array($filenames)) {
+			throw new InvalidArgumentException('filenames = ' . print_r($filenames, true));
+		}
 		$filenames = $this->secureUtf8($filenames);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filenames), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filenames], $multicall);
 	}
 
 	/**
@@ -3863,13 +3780,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function insertMap($filename, $multicall=false)
+	public function insertMap($filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!is_string($filename) || !strlen($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3880,13 +3798,14 @@ class Connection
 	 * @return int Number of maps actually inserted
 	 * @throws InvalidArgumentException
 	 */
-	function insertMapList($filenames, $multicall=false)
+	public function insertMapList($filenames, $multicall = false)
 	{
-		if(!is_array($filenames))
-			throw new InvalidArgumentException('filenames = '.print_r($filenames, true));
+		if (!is_array($filenames)) {
+			throw new InvalidArgumentException('filenames = ' . print_r($filenames, true));
+		}
 		$filenames = $this->secureUtf8($filenames);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filenames), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filenames], $multicall);
 	}
 
 	/**
@@ -3897,13 +3816,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function chooseNextMap($filename, $multicall=false)
+	public function chooseNextMap($filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!is_string($filename) || !strlen($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3914,13 +3834,14 @@ class Connection
 	 * @return int Number of maps actually chosen
 	 * @throws InvalidArgumentException
 	 */
-	function chooseNextMapList($filenames, $multicall=false)
+	public function chooseNextMapList($filenames, $multicall = false)
 	{
-		if(!is_array($filenames))
-			throw new InvalidArgumentException('filenames = '.print_r($filenames, true));
+		if (!is_array($filenames)) {
+			throw new InvalidArgumentException('filenames = ' . print_r($filenames, true));
+		}
 		$filenames = $this->secureUtf8($filenames);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filenames), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filenames], $multicall);
 	}
 
 	/**
@@ -3931,13 +3852,14 @@ class Connection
 	 * @return int Number of maps in the new list
 	 * @throws InvalidArgumentException
 	 */
-	function loadMatchSettings($filename, $multicall=false)
+	public function loadMatchSettings($filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!is_string($filename) || !strlen($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3948,13 +3870,14 @@ class Connection
 	 * @return int Number of maps actually added
 	 * @throws InvalidArgumentException
 	 */
-	function appendPlaylistFromMatchSettings($filename, $multicall=false)
+	public function appendPlaylistFromMatchSettings($filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!is_string($filename) || !strlen($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3965,13 +3888,14 @@ class Connection
 	 * @return int Number of maps in the saved playlist
 	 * @throws InvalidArgumentException
 	 */
-	function saveMatchSettings($filename, $multicall=false)
+	public function saveMatchSettings($filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!is_string($filename) || !strlen($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -3982,13 +3906,14 @@ class Connection
 	 * @return int Number of maps actually inserted
 	 * @throws InvalidArgumentException
 	 */
-	function insertPlaylistFromMatchSettings($filename, $multicall=false)
+	public function insertPlaylistFromMatchSettings($filename, $multicall = false)
 	{
-		if(!is_string($filename) || !strlen($filename))
-			throw new InvalidArgumentException('filename = '.print_r($filename, true));
+		if (!is_string($filename) || !strlen($filename)) {
+			throw new InvalidArgumentException('filename = ' . print_r($filename, true));
+		}
 		$filename = $this->secureUtf8($filename);
 
-		return $this->execute(ucfirst(__FUNCTION__), array($filename), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$filename], $multicall);
 	}
 
 	/**
@@ -4000,18 +3925,22 @@ class Connection
 	 * @return Structures\PlayerInfo[]
 	 * @throws InvalidArgumentException
 	 */
-	function getPlayerList($length=-1, $offset=0, $compatibility=1, $multicall=false)
+	public function getPlayerList($length = -1, $offset = 0, $compatibility = 1, $multicall = false)
 	{
-		if(!is_int($length))
-			throw new InvalidArgumentException('length = '.print_r($length, true));
-		if(!is_int($offset))
-			throw new InvalidArgumentException('offset = '.print_r($offset, true));
-		if(!is_int($compatibility) || $compatibility < 0 || $compatibility > 2)
-			throw new InvalidArgumentException('compatibility = '.print_r($compatibility, true));
+		if (!is_int($length)) {
+			throw new InvalidArgumentException('length = ' . print_r($length, true));
+		}
+		if (!is_int($offset)) {
+			throw new InvalidArgumentException('offset = ' . print_r($offset, true));
+		}
+		if (!is_int($compatibility) || $compatibility < 0 || $compatibility > 2) {
+			throw new InvalidArgumentException('compatibility = ' . print_r($compatibility, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($length, $offset, $compatibility), $this->structHandler('PlayerInfo', true));
-		return Structures\PlayerInfo::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($length, $offset, $compatibility)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$length, $offset, $compatibility], $this->structHandler('PlayerInfo', true));
+		}
+		return Structures\PlayerInfo::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$length, $offset, $compatibility]));
 	}
 
 	/**
@@ -4022,17 +3951,20 @@ class Connection
 	 * @return Structures\PlayerInfo
 	 * @throws InvalidArgumentException
 	 */
-	function getPlayerInfo($player, $compatibility=1, $multicall=false)
+	public function getPlayerInfo($player, $compatibility = 1, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if($compatibility !== 0 && $compatibility !== 1)
-			throw new InvalidArgumentException('compatibility = '.print_r($compatibility, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
+		if ($compatibility !== 0 && $compatibility !== 1) {
+			throw new InvalidArgumentException('compatibility = ' . print_r($compatibility, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($login, $compatibility), $this->structHandler('PlayerInfo'));
-		return Structures\PlayerInfo::fromArray($this->execute(ucfirst(__FUNCTION__), array($login, $compatibility)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$login, $compatibility], $this->structHandler('PlayerInfo'));
+		}
+		return Structures\PlayerInfo::fromArray($this->execute(ucfirst(__FUNCTION__), [$login, $compatibility]));
 	}
 
 	/**
@@ -4042,15 +3974,17 @@ class Connection
 	 * @return Structures\PlayerDetailedInfo
 	 * @throws InvalidArgumentException
 	 */
-	function getDetailedPlayerInfo($player, $multicall=false)
+	public function getDetailedPlayerInfo($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($login), $this->structHandler('PlayerDetailedInfo'));
-		return Structures\PlayerDetailedInfo::fromArray($this->execute(ucfirst(__FUNCTION__), array($login)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$login], $this->structHandler('PlayerDetailedInfo'));
+		}
+		return Structures\PlayerDetailedInfo::fromArray($this->execute(ucfirst(__FUNCTION__), [$login]));
 	}
 
 	/**
@@ -4061,14 +3995,16 @@ class Connection
 	 * @return Structures\PlayerInfo
 	 * @throws InvalidArgumentException
 	 */
-	function getMainServerPlayerInfo($compatibility=1, $multicall=false)
+	public function getMainServerPlayerInfo($compatibility = 1, $multicall = false)
 	{
-		if(!is_int($compatibility))
-			throw new InvalidArgumentException('compatibility = '.print_r($compatibility, true));
+		if (!is_int($compatibility)) {
+			throw new InvalidArgumentException('compatibility = ' . print_r($compatibility, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($compatibility), $this->structHandler('PlayerInfo'));
-		return Structures\PlayerInfo::fromArray($this->execute(ucfirst(__FUNCTION__), array($compatibility)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$compatibility], $this->structHandler('PlayerInfo'));
+		}
+		return Structures\PlayerInfo::fromArray($this->execute(ucfirst(__FUNCTION__), [$compatibility]));
 	}
 
 	/**
@@ -4082,16 +4018,19 @@ class Connection
 	 * @return Structures\PlayerRanking[]
 	 * @throws InvalidArgumentException
 	 */
-	function getCurrentRanking($length=-1, $offset=0, $multicall=false)
+	public function getCurrentRanking($length = -1, $offset = 0, $multicall = false)
 	{
-		if(!is_int($length))
-			throw new InvalidArgumentException('length = '.print_r($length, true));
-		if(!is_int($offset))
-			throw new InvalidArgumentException('offset = '.print_r($offset, true));
+		if (!is_int($length)) {
+			throw new InvalidArgumentException('length = ' . print_r($length, true));
+		}
+		if (!is_int($offset)) {
+			throw new InvalidArgumentException('offset = ' . print_r($offset, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($length, $offset), $this->structHandler('PlayerRanking', true));
-		return Structures\PlayerRanking::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($length, $offset)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$length, $offset], $this->structHandler('PlayerRanking', true));
+		}
+		return Structures\PlayerRanking::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$length, $offset]));
 	}
 
 	/**
@@ -4103,15 +4042,17 @@ class Connection
 	 * @return Structures\PlayerRanking[]
 	 * @throws InvalidArgumentException
 	 */
-	function getCurrentRankingForLogin($players, $multicall=false)
+	public function getCurrentRankingForLogin($players, $multicall = false)
 	{
 		$logins = $this->getLogins($players);
-		if($logins === false)
-			throw new InvalidArgumentException('players = '.print_r($players, true));
+		if ($logins === false) {
+			throw new InvalidArgumentException('players = ' . print_r($players, true));
+		}
 
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array($logins), $this->structHandler('PlayerRanking', true));
-		return Structures\PlayerRanking::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), array($logins)));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [$logins], $this->structHandler('PlayerRanking', true));
+		}
+		return Structures\PlayerRanking::fromArrayOfArray($this->execute(ucfirst(__FUNCTION__), [$logins]));
 	}
 
 	/**
@@ -4119,9 +4060,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int -1: if not in team mode or draw match, 0 or 1 otherwise
 	 */
-	function getCurrentWinnerTeam($multicall=false)
+	public function getCurrentWinnerTeam($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -4134,23 +4075,27 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function forceScores($scores, $silent, $multicall=false)
+	public function forceScores($scores, $silent, $multicall = false)
 	{
-		if(!is_array($scores))
-			throw new InvalidArgumentException('scores = '.print_r($scores, true));
-		foreach($scores as $i => $score)
-		{
-			if(!is_array($score))
-				throw new InvalidArgumentException('score['.$i.'] = '.print_r($score, true));
-			if(!isset($score['PlayerId']) || !is_int($score['PlayerId']))
-				throw new InvalidArgumentException('score['.$i.']["PlayerId"] = '.print_r($score, true));
-			if(!isset($score['Score']) || !is_int($score['Score']))
-				throw new InvalidArgumentException('score['.$i.']["Score"] = '.print_r($score, true));
+		if (!is_array($scores)) {
+			throw new InvalidArgumentException('scores = ' . print_r($scores, true));
 		}
-		if(!is_bool($silent))
-			throw new InvalidArgumentException('silent = '.print_r($silent, true));
+		foreach ($scores as $i => $score) {
+			if (!is_array($score)) {
+				throw new InvalidArgumentException('score[' . $i . '] = ' . print_r($score, true));
+			}
+			if (!isset($score['PlayerId']) || !is_int($score['PlayerId'])) {
+				throw new InvalidArgumentException('score[' . $i . ']["PlayerId"] = ' . print_r($score, true));
+			}
+			if (!isset($score['Score']) || !is_int($score['Score'])) {
+				throw new InvalidArgumentException('score[' . $i . ']["Score"] = ' . print_r($score, true));
+			}
+		}
+		if (!is_bool($silent)) {
+			throw new InvalidArgumentException('silent = ' . print_r($silent, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($scores, $silent), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$scores, $silent], $multicall);
 	}
 
 	/**
@@ -4163,15 +4108,17 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function forcePlayerTeam($player, $team, $multicall=false)
+	public function forcePlayerTeam($player, $team, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if($team !== 0 && $team !== 1)
-			throw new InvalidArgumentException('team = '.print_r($team, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
+		if ($team !== 0 && $team !== 1) {
+			throw new InvalidArgumentException('team = ' . print_r($team, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login, $team), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login, $team], $multicall);
 	}
 
 	/**
@@ -4183,15 +4130,17 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function forceSpectator($player, $mode, $multicall=false)
+	public function forceSpectator($player, $mode, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
-		if(!is_int($mode) || $mode < 0 || $mode > 3)
-			throw new InvalidArgumentException('mode = '.print_r($mode, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
+		if (!is_int($mode) || $mode < 0 || $mode > 3) {
+			throw new InvalidArgumentException('mode = ' . print_r($mode, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login, $mode), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login, $mode], $multicall);
 	}
 
 	/**
@@ -4204,18 +4153,21 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function forceSpectatorTarget($spectator, $target, $camera, $multicall=false)
+	public function forceSpectatorTarget($spectator, $target, $camera, $multicall = false)
 	{
 		$spectatorLogin = $this->getLogin($spectator, true);
-		if($spectatorLogin === false)
-			throw new InvalidArgumentException('player = '.print_r($spectator, true));
+		if ($spectatorLogin === false) {
+			throw new InvalidArgumentException('player = ' . print_r($spectator, true));
+		}
 		$targetLogin = $this->getLogin($target, true);
-		if($targetLogin === false)
-			throw new InvalidArgumentException('target = '.print_r($target, true));
-		if(!is_int($camera) || $camera < -1 || $camera > 2)
-			throw new InvalidArgumentException('camera = '.print_r($camera, true));
+		if ($targetLogin === false) {
+			throw new InvalidArgumentException('target = ' . print_r($target, true));
+		}
+		if (!is_int($camera) || $camera < -1 || $camera > 2) {
+			throw new InvalidArgumentException('camera = ' . print_r($camera, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($spectatorLogin, $targetLogin, $camera), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$spectatorLogin, $targetLogin, $camera], $multicall);
 	}
 
 	/**
@@ -4228,13 +4180,14 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function spectatorReleasePlayerSlot($player, $multicall=false)
+	public function spectatorReleasePlayerSlot($player, $multicall = false)
 	{
 		$login = $this->getLogin($player);
-		if($login === false)
-			throw new InvalidArgumentException('player = '.print_r($player, true));
+		if ($login === false) {
+			throw new InvalidArgumentException('player = ' . print_r($player, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($login), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$login], $multicall);
 	}
 
 	/**
@@ -4246,12 +4199,13 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function manualFlowControlEnable($enable=true, $multicall=false)
+	public function manualFlowControlEnable($enable = true, $multicall = false)
 	{
-		if(!is_bool($enable))
-			throw new InvalidArgumentException('enable = '.print_r($enable, true));
+		if (!is_bool($enable)) {
+			throw new InvalidArgumentException('enable = ' . print_r($enable, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array($enable), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [$enable], $multicall);
 	}
 
 	/**
@@ -4261,9 +4215,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function manualFlowControlProceed($multicall=false)
+	public function manualFlowControlProceed($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -4273,9 +4227,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return int 0: no, 1: yes by the xml-rpc client making the call, 2: yes by some other xml-rpc client
 	 */
-	function manualFlowControlIsEnabled($multicall=false)
+	public function manualFlowControlIsEnabled($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -4286,9 +4240,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string
 	 */
-	function manualFlowControlGetCurTransition($multicall=false)
+	public function manualFlowControlGetCurTransition($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -4297,9 +4251,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return string 'Playing', 'ChangeMap' or 'Finished'
 	 */
-	function checkEndMatchCondition($multicall=false)
+	public function checkEndMatchCondition($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -4308,10 +4262,11 @@ class Connection
 	 * @param bool $multicall
 	 * @return Structures\NetworkStats
 	 */
-	function getNetworkStats($multicall=false)
+	public function getNetworkStats($multicall = false)
 	{
-		if($multicall)
-			return $this->execute(ucfirst(__FUNCTION__), array(), $this->structHandler('NetworkStats'));
+		if ($multicall) {
+			return $this->execute(ucfirst(__FUNCTION__), [], $this->structHandler('NetworkStats'));
+		}
 		return Structures\NetworkStats::fromArray($this->execute(ucfirst(__FUNCTION__)));
 	}
 
@@ -4321,9 +4276,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function startServerLan($multicall=false)
+	public function startServerLan($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -4332,9 +4287,9 @@ class Connection
 	 * @param bool $multicall
 	 * @return bool
 	 */
-	function startServerInternet($multicall=false)
+	public function startServerInternet($multicall = false)
 	{
-		return $this->execute(ucfirst(__FUNCTION__), array(), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [], $multicall);
 	}
 
 	/**
@@ -4348,14 +4303,16 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function joinServerLan($host, $password='', $multicall=false)
+	public function joinServerLan($host, $password = '', $multicall = false)
 	{
-		if(!is_string($host))
-			throw new InvalidArgumentException('host = '.print_r($host, true));
-		if(!is_string($password))
-			throw new InvalidArgumentException('password = '.print_r($password, true));
+		if (!is_string($host)) {
+			throw new InvalidArgumentException('host = ' . print_r($host, true));
+		}
+		if (!is_string($password)) {
+			throw new InvalidArgumentException('password = ' . print_r($password, true));
+		}
 
-		return $this->execute(ucfirst(__FUNCTION__), array(array('Server' => $host, 'ServerPassword' => $password)), $multicall);
+		return $this->execute(ucfirst(__FUNCTION__), [['Server' => $host, 'ServerPassword' => $password]], $multicall);
 	}
 
 	/**
@@ -4369,99 +4326,22 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function joinServerInternet($host, $password='', $multicall=false)
+	public function joinServerInternet($host, $password = '', $multicall = false)
 	{
-		if(!is_string($host))
-			throw new InvalidArgumentException('host = '.print_r($host, true));
-		if(!is_string($password))
-			throw new InvalidArgumentException('password = '.print_r($password, true));
-
-		return $this->execute(ucfirst(__FUNCTION__), array(array('Server' => $host, 'ServerPassword' => $password)), $multicall);
-	}
-
-	/**
-	 * Returns the login of the given player
-	 * @param mixed $player
-	 * @return string|bool
-	 */
-	private function getLogin($player, $allowEmpty=false)
-	{
-		if(is_object($player))
-		{
-			if(property_exists($player, 'login'))
-				$player = $player->login;
-			else
-				return false;
+		if (!is_string($host)) {
+			throw new InvalidArgumentException('host = ' . print_r($host, true));
 		}
-		if(empty($player))
-			return $allowEmpty ? '' : false;
-		if(is_string($player))
-			return $player;
-		return false;
-	}
-
-	/**
-	 * Returns logins of given players
-	 * @param mixed $players
-	 * @return string|bool
-	 */
-	private function getLogins($players, $allowEmpty=false)
-	{
-		if(is_array($players))
-		{
-			$logins = array();
-			foreach($players as $player)
-			{
-				$login = $this->getLogin($player);
-				if($login === false)
-					return false;
-				$logins[] = $login;
-			}
-
-			return implode(',', $logins);
+		if (!is_string($password)) {
+			throw new InvalidArgumentException('password = ' . print_r($password, true));
 		}
-		return $this->getLogin($players, $allowEmpty);
-	}
 
-	/**
-	 * @param string|string[] $str
-	 * @return string|string[]
-	 */
-	private function stripBom($str)
-	{
-		if(is_string($str))
-			return str_replace("\xEF\xBB\xBF", '', $str);
-		return array_map(array($this, 'stripBom'), $str);
-	}
-
-	/**
-	 * @param string|string[] $filename
-	 * @return string|string[]
-	 */
-	private function secureUtf8($filename)
-	{
-		if(is_string($filename))
-		{
-			$filename = $this->stripBom($filename);
-			if(preg_match('/[^\x09\x0A\x0D\x20-\x7E]/', $filename))
-				return "\xEF\xBB\xBF".$filename;
-			return $filename;
-		}
-		return array_map(array($this, 'secureUtf8'), $filename);
-	}
-
-	/**
-	 * @param string $struct
-	 * @param bool $array
-	 * @return callable
-	 */
-	private function structHandler($struct, $array=false)
-	{
-		return array('\\'.__NAMESPACE__.'\Structures\\'.$struct, 'fromArray'.($array ? 'OfArray' : ''));
+		return $this->execute(ucfirst(__FUNCTION__), [['Server' => $host, 'ServerPassword' => $password]], $multicall);
 	}
 }
 
 /**
  * Exception Dedicated to Invalid Argument Error on Request Call
  */
-class InvalidArgumentException extends \Exception {}
+class InvalidArgumentException extends \Exception
+{
+}

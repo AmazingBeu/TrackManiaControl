@@ -46,9 +46,21 @@ class PlayerDetailedInfo extends Player
 	/** @var string */
 	public $broadcasterLogin;
 	/** @var string[] */
-	public $allies = array();
+	public $allies = [];
 	/** @var string */
 	public $clubLink;
+
+	/**
+	 * @return PlayerDetailedInfo
+	 */
+	public static function fromArray($array)
+	{
+		$object = parent::fromArray($array);
+		$object->avatar = FileDesc::fromArray($object->avatar);
+		$object->skins = Skin::fromArrayOfArray($object->skins);
+		$object->ladderStats = LadderStats::fromArray($object->ladderStats);
+		return $object;
+	}
 
 	/**
 	 * @return string[]
@@ -56,17 +68,5 @@ class PlayerDetailedInfo extends Player
 	function getArrayFromPath()
 	{
 		return explode('|', $this->path);
-	}
-
-	/**
-	 * @return PlayerDetailedInfo
-	 */
-	static public function fromArray($array)
-	{
-		$object = parent::fromArray($array);
-		$object->avatar = FileDesc::fromArray($object->avatar);
-		$object->skins = Skin::fromArrayOfArray($object->skins);
-		$object->ladderStats = LadderStats::fromArray($object->ladderStats);
-		return $object;
 	}
 }

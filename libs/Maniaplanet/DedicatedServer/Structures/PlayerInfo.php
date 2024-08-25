@@ -20,7 +20,7 @@ class PlayerInfo extends Player
 	/** @var bool */
 	public $isInOfficialMode;
 	/** @var int */
-	public $ladderScore;
+	public $ladderScore; // TODO CHECK IF EXISTS
 	/** @var int */
 	public $ladderRanking;
 	/** @var int */
@@ -63,26 +63,26 @@ class PlayerInfo extends Player
 	/**
 	 * @return PlayerInfo
 	 */
-	static public function fromArray($array)
+	public static function fromArray($array)
 	{
 		$object = parent::fromArray($array);
 
 		//Detail flags
-		$object->forceSpectator           = $object->flags % 10; // 0, 1 or 2
-		$object->isReferee                = (bool) (intval($object->flags / 10) % 10);
-		$object->isPodiumReady            = (bool) (intval($object->flags / 100) % 10);
-		$object->isUsingStereoscopy       = (bool) (intval($object->flags / 1000) % 10);
-		$object->isManagedByAnOtherServer = (bool) (intval($object->flags / 10000) % 10);
-		$object->isServer                 = (bool) (intval($object->flags / 100000) % 10);
-		$object->hasPlayerSlot            = (bool) (intval($object->flags / 1000000) % 10);
-		$object->isBroadcasting           = (bool) (intval($object->flags / 10000000) % 10);
-		$object->hasJoinedGame            = (bool) (intval($object->flags / 100000000) % 10);
+		$object->forceSpectator = $object->flags % 10; // 0, 1 or 2
+		$object->isReferee = (bool)(intval($object->flags / 10) % 10);
+		$object->isPodiumReady = (bool)(intval($object->flags / 100) % 10);
+		$object->isUsingStereoscopy = (bool)(intval($object->flags / 1000) % 10);
+		$object->isManagedByAnOtherServer = (bool)(intval($object->flags / 10000) % 10);
+		$object->isServer = (bool)(intval($object->flags / 100000) % 10);
+		$object->hasPlayerSlot = (bool)(intval($object->flags / 1000000) % 10);
+		$object->isBroadcasting = (bool)(intval($object->flags / 10000000) % 10);
+		$object->hasJoinedGame = (bool)(intval($object->flags / 100000000) % 10);
 		//Details spectatorStatus
-		$object->spectator                = (bool) ($object->spectatorStatus % 10);
-		$object->temporarySpectator       = (bool) (intval($object->spectatorStatus / 10) % 10);
-		$object->pureSpectator            = (bool) (intval($object->spectatorStatus / 100) % 10);
-		$object->autoTarget               = (bool) (intval($object->spectatorStatus / 1000) % 10);
-		$object->currentTargetId          = intval($object->spectatorStatus / 10000);
+		$object->spectator = (bool)($object->spectatorStatus % 10);
+		$object->temporarySpectator = (bool)(intval($object->spectatorStatus / 10) % 10);
+		$object->pureSpectator = (bool)(intval($object->spectatorStatus / 100) % 10);
+		$object->autoTarget = (bool)(intval($object->spectatorStatus / 1000) % 10);
+		$object->currentTargetId = intval($object->spectatorStatus / 10000);
 
 		return $object;
 	}

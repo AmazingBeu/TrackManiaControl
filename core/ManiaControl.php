@@ -299,7 +299,6 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 			}
 
 			// Delete client
-			Connection::delete($this->getClient());
 			$this->client = null;
 		}
 
@@ -722,7 +721,7 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 		Logger::log("Connecting to Server at {$serverConfig->host}:{$serverConfig->port}...");
 
 		try {
-			$this->client = Connection::factory($serverConfig->host, $serverConfig->port, self::SCRIPT_TIMEOUT, $serverConfig->user, $serverConfig->pass, self::API_VERSION);
+			$this->client = new Connection($serverConfig->host, $serverConfig->port, self::SCRIPT_TIMEOUT, $serverConfig->user, $serverConfig->pass, self::API_VERSION);
 		} catch (TransportException $exception) {
 			$message = "Couldn't connect to the server: '{$exception->getMessage()}'";
 			$this->quit($message, true);
