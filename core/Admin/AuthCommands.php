@@ -68,12 +68,10 @@ class AuthCommands implements CommandListener, UsageInformationAble {
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($commandParts[1]);
 		if (!$target) {
-			$message = $this->maniaControl->getChat()->formatMessage(
-				'Player %s not found!',
-				$commandParts[1]
-			);
-			$this->maniaControl->getChat()->sendError($message, $player);
-			return;
+			// It's not needed to save the player, it will be done by the grantAuthLevel function
+			$target = new Player($this->maniaControl, false);
+			$target->login = $commandParts[1];
+			$target->nickname = $commandParts[1];
 		}
 
 		$success = $this->maniaControl->getAuthenticationManager()->grantAuthLevel($target, $targetAuthLevel);
