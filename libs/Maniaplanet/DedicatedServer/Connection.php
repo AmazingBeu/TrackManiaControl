@@ -2154,7 +2154,7 @@ class Connection
 	 * @return bool
 	 * @throws InvalidArgumentException
 	 */
-	function setServerOptions(\Structures\ServerOptions $options, $multicall = false)
+	function setServerOptions(Structures\ServerOptions $options, $multicall = false)
 	{
 		if ($options->isValid() === false) {
 			throw new InvalidArgumentException('options = ' . print_r($options, true));
