@@ -56,7 +56,7 @@ class AuthCommands implements CommandListener, UsageInformationAble {
 
 		$text         = $chatCallback[1][2];
 		$commandParts = explode(' ', $text);
-		if (!array_key_exists(1, $commandParts)) {
+		if (!array_key_exists(1, $commandParts) || $commandParts[1] === "") {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'Usage Example: %s %s',
 				$commandParts[0],
