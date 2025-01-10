@@ -214,7 +214,7 @@ class MapCommands implements CommandListener, ManialinkPageAnswerListener, Callb
 			return;
 		}
 
-		$params = explode(' ', $chatCallback[1][2], 2);
+		$params = explode(' ', trim($chatCallback[1][2]), 2);
 		if (count($params) < 2) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'Usage example: %s',
