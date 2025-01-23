@@ -56,7 +56,7 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 	/*
 	 * Constants
 	 */
-	const VERSION                     = '0.256';
+	const VERSION                     = '0.258';
 	const ISTRACKMANIACONTROL         = True;
 	const API_VERSION                 = '2038-01-19';
 	const MIN_DEDIVERSION             = '2020-07-01_00_00';
