@@ -190,7 +190,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 
 		}
 		// compile search URL
-		$url = 'https://' . $titlePrefix . ".mania.exchange/api/maps/get_map_info/multi/{$string}";
+		$url = 'https://' . $titlePrefix . "/api/maps/get_map_info/multi/{$string}";
 
 		/*if ($key = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MX_KEY)) {
 			$url .= "&key=" . $key;
@@ -300,7 +300,7 @@ class ManiaExchangeManager implements UsageInformationAble {
 
 		}
 		// compile search URL
-		$url = 'https://' . $titlePrefix . '.mania.exchange/' . 'api/maps/get_map_info/multi/' . $mapId;
+		$url = 'https://' . $titlePrefix . '/api/maps/get_map_info/multi/' . $mapId;
 
 		/*if ($key = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MX_KEY)) {
 			$url .= "&key=" . $key;
