@@ -322,7 +322,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 						$nameLabel->setAction(self::ACTION_OPEN_FOLDER . substr($shortFilePath, 0, -1))->addTooltipLabelFeature($tooltipLabel, 'Open folder ' . $fileName);
 					} else {
 						// File
-						$nameLabel->setAction(self::ACTION_INSPECT_FILE . $fileName)->addTooltipLabelFeature($tooltipLabel, 'Inspect file ' . $fileName);
+						$nameLabel->setAction(self::ACTION_INSPECT_FILE . base64_encode($fileName))->addTooltipLabelFeature($tooltipLabel, 'Inspect file ' . $fileName);
 
 						if ($canAddMaps) {
 							// 'Add' button
@@ -331,7 +331,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 							$addButton->setX($width - 5);
 							$addButton->setSize(4, 4);
 							$addButton->setSubStyle($addButton::SUBSTYLE_NewBullet);
-							$addButton->setAction(self::ACTION_ADD_FILE . $fileName);
+							$addButton->setAction(self::ACTION_ADD_FILE . base64_encode($fileName));
 							$addButton->addTooltipLabelFeature($tooltipLabel, 'Add map ' . $fileName);
 						}
 
@@ -342,7 +342,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 							$eraseButton->setX($width - 10);
 							$eraseButton->setSize(4, 4);
 							$eraseButton->setSubStyle($eraseButton::SUBSTYLE_Erase);
-							$eraseButton->setAction(self::ACTION_ERASE_FILE . $fileName);
+							$eraseButton->setAction(self::ACTION_ERASE_FILE . base64_encode($fileName));
 							$eraseButton->addTooltipLabelFeature($tooltipLabel, 'Erase file ' . $fileName);
 						}
 					}
@@ -457,9 +457,23 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	 */
 	public function handleInspectFile(array $actionCallback, Player $player) {
 		$actionName = $actionCallback[1][2];
-		$fileName   = substr($actionName, strlen(self::ACTION_INSPECT_FILE));
-		// TODO: show inspect file view
-		var_dump($fileName);
+		$fileName   = base64_decode(substr($actionName, strlen(self::ACTION_INSPECT_FILE)));
+		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
+		$filePath   = $folderPath . $fileName;
+
+		$mapsFolder       = $this->maniaControl->getServer()->getDirectory()->getMapsFolder();
+		$relativeFilePath = substr($filePath, strlen($mapsFolder));
+
+		try {
+			$message = '';
+			$infos = $this->maniaControl->getClient()->getMapInfo($relativeFilePath);
+			foreach ($infos as $key => $value) {
+				$message .= '$<$0c0' . $key .':$> '. $value . PHP_EOL;
+			}
+			$this->maniaControl->getChat()->sendChat($message, $player->login, false);
+		} catch (\Throwable $th) {
+			$this->maniaControl->getChat()->sendError("can't fetch map info: ". $th->getMessage(), $player->login);
+		}
 	}
 
 	/**
@@ -470,7 +484,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	 */
 	public function handleAddFile(array $actionCallback, Player $player) {
 		$actionName = $actionCallback[1][2];
-		$fileName   = substr($actionName, strlen(self::ACTION_ADD_FILE));
+		$fileName   = base64_decode(substr($actionName, strlen(self::ACTION_ADD_FILE)));
 		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
 		$filePath   = $folderPath . $fileName;
 
@@ -529,7 +543,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	 */
 	public function handleEraseFile(array $actionCallback, Player $player) {
 		$actionName = $actionCallback[1][2];
-		$fileName   = substr($actionName, strlen(self::ACTION_ERASE_FILE));
+		$fileName   = base64_decode(substr($actionName, strlen(self::ACTION_ERASE_FILE)));
 		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
 		$filePath   = $folderPath . $fileName;
 		if (@unlink($filePath)) {
@@ -652,26 +666,25 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 								$attributes[trim($key)] = trim($value);
 							}
 					
-							$attrNames = ['filename*' => true, 'filename' => false];
-							$filename = null;
-							$isUtf8 = false;
-							foreach ($attrNames as $attrName => $utf8) {
-								if (!empty($attributes[$attrName])) {
-									$fileName = trim($attributes[$attrName]);
-									$isUtf8 = $utf8;
-									break;
+							$fileName = null;
+
+							if (array_key_exists('filename*', $attributes)) {
+								$fileName = trim($attributes['filename*']);
+
+								// remove prefix if needed
+								if (strpos(strtolower($fileName), "utf-8''") === 0) {
+									$fileName = substr($fileName, strlen("utf-8''"));
 								}
+							} else if (array_key_exists('filename', $attributes)) {
+								$fileName = trim($attributes['filename']);
 							}
-	
+
 							if ($fileName !== null) {
-								if ($isUtf8 && strpos(strtolower($fileName), "utf-8''") === 0 && $fileName = substr($fileName, strlen("utf-8''"))) {
-									$filePath = $folderPath . FileUtil::getClearedFileName(rawurldecode($fileName));
-								}
 								if (substr($fileName, 0, 1) === '"' && substr($fileName, -1, 1) === '"') {
-									$filePath = $folderPath . substr($fileName, 1, -1);
-								} else {
-									$filePath = $folderPath . $fileName;
+									$fileName = substr($fileName, 1, -1);
 								}
+
+								$filePath = $folderPath . FileUtil::getClearedFileName($fileName);
 							}
 						}
 	

@@ -59,6 +59,7 @@ abstract class FileUtil {
 		$fileName = Formatter::utf8($fileName);
 		$fileName = preg_replace('/[^0-9A-Za-z\-\+\.\_\ ]/', '', $fileName);
 		$fileName = preg_replace('/ /', '_', $fileName);
+		$fileName = str_replace(["'", "+"], '', $fileName);
 		return $fileName;
 	}
 
