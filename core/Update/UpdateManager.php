@@ -516,7 +516,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 						);
 						$this->maniaControl->getChat()->sendInformation($message, $player);
 					} else {
-						$message = $this->maniaControl->getChat()->formatMesssage(
+						$message = $this->maniaControl->getChat()->formatMessage(
 							'New Nightly Build (%s) available! (Current Build: %s)',
 							$updateData->releaseDate,
 							$buildDate
@@ -524,14 +524,14 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 						$this->maniaControl->getChat()->sendSuccess($message, $player);
 					}
 				} else {
-					$message = $this->maniaControl->getChat()->formatMesssage(
+					$message = $this->maniaControl->getChat()->formatMessage(
 						'New Nightly Build (%s) available!',
 						$updateData->releaseDate
 					);
 					$this->maniaControl->getChat()->sendSuccess($message, $player);
 				}
 			} else {
-				$message = $this->maniaControl->getChat()->formatMesssage(
+				$message = $this->maniaControl->getChat()->formatMessage(
 					'Update for Version %s available!',
 					$updateData->version
 				);
