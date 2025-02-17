@@ -64,7 +64,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 
 		// Settings
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_ENABLE_UPDATECHECK, true);
-		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_AUTO_UPDATE, true);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_AUTO_UPDATE, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_UPDATECHECK_INTERVAL, 1);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_UPDATECHECK_CHANNEL, $this->getUpdateChannels());
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_PERFORM_BACKUPS, true);
