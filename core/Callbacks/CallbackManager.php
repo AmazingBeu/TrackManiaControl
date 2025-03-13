@@ -176,7 +176,7 @@ class CallbackManager implements UsageInformationAble {
 	/**
 	 * Remove the Callback Listener from the given Listeners Array
 	 *
-	 * @param Listening[]      $listeningsArray
+	 * @param Listening[][]      $listeningsArray
 	 * @param CallbackListener $listener
 	 * @return bool
 	 */
