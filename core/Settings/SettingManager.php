@@ -457,6 +457,10 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 					$this->clearStorage();
 				}
 			}
+
+			if ($this->disableCache && $setting->linked && isset($this->storedSettings[$setting->class . $setting->setting])) {
+				unset($this->storedSettings[$setting->class . $setting->setting]);
+			}
 		}
 
 		return true;
