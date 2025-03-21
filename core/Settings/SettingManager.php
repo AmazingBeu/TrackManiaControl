@@ -118,6 +118,15 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 				trigger_error($mysqli->error, E_USER_ERROR);
 			}
 		}
+
+		// Grow the default value
+		$mysqli->query("ALTER TABLE `" . self::TABLE_SETTINGS . "` MODIFY `default` VARCHAR(1000);");
+		if ($mysqli->error) {
+			// If not Duplicate
+			if ($mysqli->errno !== 1060) {
+				trigger_error($mysqli->error, E_USER_ERROR);
+			}
+		}
 		return $result;
 	}
 
