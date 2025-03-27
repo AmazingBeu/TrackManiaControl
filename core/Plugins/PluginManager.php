@@ -400,7 +400,7 @@ class PluginManager {
 			return false;
 		}
 		array_push($this->pluginClasses, $pluginClass);
-		sort($this->pluginClasses);
+		natcasesort($this->pluginClasses);
 		return true;
 	}
 

@@ -158,7 +158,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 		usort($pluginClasses, function ($pluginClassA, $pluginClassB) {
 			/** @var Plugin $pluginClassA */
 			/** @var Plugin $pluginClassB */
-			return strcmp($pluginClassA::getName(), $pluginClassB::getName());
+			return strcasecmp($pluginClassA::getName(), $pluginClassB::getName());
 		});
 
         $repositionnedFrame = new Frame();
@@ -400,7 +400,7 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 				$entry->setPosition($innerWidth - $valueWidth / 2, 0);
 				$entry->setSize($valueWidth, $settingHeight * 0.9);
 				$entry->setTextSize(1);
-				$entry->setMaxLength(1000);
+				$entry->setMaxLength(1000); // Actions are limited to 1024 chars per field
 				$entry->setStyle(Label_Text::STYLE_TextValueSmall);
 				$entry->setName(self::ACTION_PREFIX_SETTING . $setting->index);
 				$entry->setDefault($setting->value);
