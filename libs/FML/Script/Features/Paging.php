@@ -73,7 +73,7 @@ class Paging extends ScriptFeature
      * @param PagingPage[]   $pages   (optional) Pages
      * @param PagingButton[] $buttons (optional) Pageing Buttons
      */
-    public function __construct(Label $label = null, array $pages = null, array $buttons = null)
+    public function __construct(?Label $label = null, ?array $pages = null, ?array $buttons = null)
     {
         if ($label) {
             $this->setLabel($label);

@@ -40,7 +40,7 @@ class RadioButtonGroupFeature extends ScriptFeature
      * @api
      * @param Entry $entry (optional) Hidden Entry
      */
-    public function __construct(Entry $entry = null)
+    public function __construct(?Entry $entry = null)
     {
         if ($entry) {
             $this->setEntry($entry);

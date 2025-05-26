@@ -188,7 +188,7 @@ class Configurator implements CallbackListener, CommandListener, ManialinkPageAn
 	 * @param Player $player
 	 * @return \FML\ManiaLink
 	 */
-	private function buildManialink($menuIdShown = 0, Player $player = null) {
+	private function buildManialink($menuIdShown = 0, ?Player $player = null) {
 		$menuPosX     = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MENU_POSX);
 		$menuPosY     = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MENU_POSY);
 		$menuWidth    = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MENU_WIDTH);

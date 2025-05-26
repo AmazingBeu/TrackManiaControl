@@ -41,7 +41,7 @@ class FrameModel implements Container, Identifiable, Renderable
      * @param Renderable[] $children Children
      * @return static
      */
-    public static function create($modelId = null, array $children = null)
+    public static function create($modelId = null, ?array $children = null)
     {
         return new static($modelId, $children);
     }
@@ -53,7 +53,7 @@ class FrameModel implements Container, Identifiable, Renderable
      * @param string       $modelId  Model id
      * @param Renderable[] $children Children
      */
-    public function __construct($modelId = null, array $children = null)
+    public function __construct($modelId = null, ?array $children = null)
     {
         if ($modelId) {
             $this->setId($modelId);
@@ -176,7 +176,7 @@ class FrameModel implements Container, Identifiable, Renderable
      * @deprecated Use Style
      * @see        Style
      */
-    public function setFormat(Format $format = null)
+    public function setFormat(?Format $format = null)
     {
         $this->format = $format;
         return $this;

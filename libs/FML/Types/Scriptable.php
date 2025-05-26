@@ -45,7 +45,7 @@ interface Scriptable
      * @param string[] $scriptActionParameters (optional) Script action parameters
      * @return static
      */
-    public function setScriptAction($scriptAction, array $scriptActionParameters = null);
+    public function setScriptAction($scriptAction, ?array $scriptActionParameters = null);
 
     /**
      * Get script action parameters
@@ -62,6 +62,6 @@ interface Scriptable
      * @param string[] $scriptActionParameters (optional) Script action parameters
      * @return static
      */
-    public function setScriptActionParameters(array $scriptActionParameters = null);
+    public function setScriptActionParameters(?array $scriptActionParameters = null);
 
 }

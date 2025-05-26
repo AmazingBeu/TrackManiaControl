@@ -227,7 +227,7 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 	 *
 	 * @param ?Setting $setting
 	 */
-	public function updateSettings(Setting $setting = null) {
+	public function updateSettings(?Setting $setting = null) {
 		if (!isset($setting) || !$setting->belongsToClass($this)) return;
 
 		if ($setting->setting === self::SETTING_ENABLE_MX) {
@@ -378,7 +378,7 @@ class MapManager implements CallbackListener, CommunicationListener, UsageInform
 	public function addMapFromMx($mapId, $login, $update = false) {
 		if (is_numeric($mapId)) {
 			// Check if map exists
-			$this->maniaControl->getMapManager()->getMXManager()->fetchMapInfo($mapId, function (MXMapInfo $mapInfo = null) use (
+			$this->maniaControl->getMapManager()->getMXManager()->fetchMapInfo($mapId, function (?MXMapInfo $mapInfo = null) use (
 				&$login, &$update
 			) {
 				if (!$mapInfo || !isset($mapInfo->uploaded)) {

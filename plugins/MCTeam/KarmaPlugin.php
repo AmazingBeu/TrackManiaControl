@@ -79,7 +79,7 @@ class KarmaPlugin implements CallbackListener, TimerListener, Plugin {
 	 * @see \ManiaControl\Plugins\Plugin::prepare()
 	 */
 	public static function prepare(ManiaControl $maniaControl) {
-		$thisClass = get_class();
+		$thisClass = get_called_class();
 		$maniaControl->getSettingManager()->initSetting($thisClass, self::SETTING_MX_KARMA_ACTIVATED, true);
 		$maniaControl->getSettingManager()->initSetting($thisClass, self::SETTING_MX_KARMA_IMPORTING, true);
 		$maniaControl->getSettingManager()->initSetting($thisClass, self::SETTING_WIDGET_DISPLAY_MX, true);
@@ -343,7 +343,7 @@ class KarmaPlugin implements CallbackListener, TimerListener, Plugin {
 	/**
 	 * Fetch the mxKarmaVotes for the current map
 	 */
-	public function getMxKarmaVotes(Player $player = null) {
+	public function getMxKarmaVotes(?Player $player = null) {
 		if (!$this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MX_KARMA_ACTIVATED)) {
 			return;
 		}
@@ -901,7 +901,7 @@ class KarmaPlugin implements CallbackListener, TimerListener, Plugin {
 	 * @param Map $map
 	 * @param bool $forceBuild
 	 */
-	private function buildManialink(Map $map = null, $forceBuild = false) {
+	private function buildManialink(?Map $map = null, $forceBuild = false) {
 		if (!$forceBuild) {
 			return;
 		}
@@ -915,7 +915,7 @@ class KarmaPlugin implements CallbackListener, TimerListener, Plugin {
 		$quadStyle    = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadStyle();
 		$quadSubstyle = $this->maniaControl->getManialinkManager()->getStyleManager()->getDefaultQuadSubstyle();
 
-		$manialink = new ManiaLink(self::MLID_KARMA);
+		$manialink = new ManiaLink(self::MLID_KARMA, 3);
 
 		$frame = new Frame();
 		$manialink->addChild($frame);

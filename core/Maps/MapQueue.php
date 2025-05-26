@@ -115,7 +115,7 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 	 *
 	 * @param Player $admin |null
 	 */
-	public function clearMapQueue(Player $admin = null) {
+	public function clearMapQueue(?Player $admin = null) {
 		if ($admin && !$this->maniaControl->getAuthenticationManager()->checkPermission($admin, self::SETTING_PERMISSION_CLEAR_MAPQUEUE)) {
 			$this->maniaControl->getAuthenticationManager()->sendNotAllowed($admin);
 			return;

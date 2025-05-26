@@ -41,7 +41,7 @@ class Clock extends ScriptFeature
      * @param bool  $showSeconds  (optional) Show the seconds
      * @param bool  $showFullDate (optional) Show the date
      */
-    public function __construct(Label $label = null, $showSeconds = true, $showFullDate = false)
+    public function __construct(?Label $label = null, $showSeconds = true, $showFullDate = false)
     {
         if ($label) {
             $this->setLabel($label);

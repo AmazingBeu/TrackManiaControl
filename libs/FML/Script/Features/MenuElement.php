@@ -32,7 +32,7 @@ class MenuElement
      * @param Control $item    (optional) Item Control in the Menu bar
      * @param Control $control (optional) Toggled Menu Control
      */
-    public function __construct(Control $item = null, Control $control = null)
+    public function __construct(?Control $item = null, ?Control $control = null)
     {
         if ($item) {
             $this->setItem($item);

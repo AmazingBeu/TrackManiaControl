@@ -46,7 +46,7 @@ class PlayerProfile extends ScriptFeature
      * @param Control $control   (optional) Profile Control
      * @param string  $labelName (optional) Script Label name
      */
-    public function __construct($login = null, Control $control = null, $labelName = ScriptLabel::MOUSECLICK, $titleId = "Trackmania")
+    public function __construct($login = null, ?Control $control = null, $labelName = ScriptLabel::MOUSECLICK, $titleId = "Trackmania")
     {
         if ($login) {
             $this->setLogin($login);

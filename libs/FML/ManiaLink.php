@@ -96,7 +96,7 @@ class ManiaLink
      * @param Renderable[] $children    (optional) Children
      * @return static
      */
-    public static function create($maniaLinkId = null, $version = null, $name = null, array $children = null)
+    public static function create($maniaLinkId = null, $version = null, $name = null, ?array $children = null)
     {
         return new static($maniaLinkId, $version, $name, $children);
     }
@@ -110,7 +110,7 @@ class ManiaLink
      * @param string       $name        (optional) Name
      * @param Renderable[] $children    (optional) Children
      */
-    public function __construct($maniaLinkId = null, $version = null, $name = null, array $children = null)
+    public function __construct($maniaLinkId = null, $version = null, $name = null, ?array $children = null)
     {
         if (is_string($version) && (!$name || is_array($name)) && !$children) {
             // backwards-compatibility (version has been introduced later, if it's a string it's supposed to be the name)
@@ -418,7 +418,7 @@ class ManiaLink
      * @param Dico $dico Dictionary
      * @return static
      */
-    public function setDico(Dico $dico = null)
+    public function setDico(?Dico $dico = null)
     {
         $this->dico = $dico;
         return $this;
@@ -445,7 +445,7 @@ class ManiaLink
      * @param Stylesheet $stylesheet Stylesheet
      * @return static
      */
-    public function setStylesheet(Stylesheet $stylesheet = null)
+    public function setStylesheet(?Stylesheet $stylesheet = null)
     {
         $this->stylesheet = $stylesheet;
         return $this;
@@ -489,7 +489,7 @@ class ManiaLink
      * @param Script $script Script
      * @return static
      */
-    public function setScript(Script $script = null)
+    public function setScript(?Script $script = null)
     {
         $this->script = $script;
         return $this;

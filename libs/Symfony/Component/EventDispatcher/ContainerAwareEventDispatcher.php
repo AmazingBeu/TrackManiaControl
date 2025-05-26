@@ -160,7 +160,7 @@ class ContainerAwareEventDispatcher extends EventDispatcher
      *
      * @throws \InvalidArgumentException if the service is not defined
      */
-    public function dispatch($eventName, Event $event = null)
+    public function dispatch($eventName, ?Event $event = null)
     {
         $this->lazyLoad($eventName);
 

@@ -54,7 +54,7 @@ class Tooltip extends ScriptFeature
      * @param bool    $invert         (optional) If the visibility toggling should be inverted
      * @param string  $text           (optional) Text to display if the TooltipControl is a Label
      */
-    public function __construct(Control $hoverControl = null, Control $tooltipControl = null, $stayOnClick = null, $invert = null, $text = null)
+    public function __construct(?Control $hoverControl = null, ?Control $tooltipControl = null, $stayOnClick = null, $invert = null, $text = null)
     {
         if ($hoverControl) {
             $this->setHoverControl($hoverControl);

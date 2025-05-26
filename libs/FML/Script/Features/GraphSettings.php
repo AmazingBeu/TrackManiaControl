@@ -38,7 +38,7 @@ class GraphSettings extends ScriptFeature
      * @api
      * @param Graph $graph (optional) Graph
      */
-    public function __construct(Graph $graph = null)
+    public function __construct(?Graph $graph = null)
     {
         if ($graph) {
             $this->setGraph($graph);

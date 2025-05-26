@@ -35,7 +35,7 @@ class EntrySubmit extends ScriptFeature
      * @param Entry  $entry (optional) Entry Control
      * @param string $url   (optional) Submit url
      */
-    public function __construct(Entry $entry = null, $url = null)
+    public function __construct(?Entry $entry = null, $url = null)
     {
         if ($entry) {
             $this->setEntry($entry);

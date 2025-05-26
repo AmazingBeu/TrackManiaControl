@@ -150,7 +150,7 @@ class Stylesheet
      * @param Mood $mood Mood
      * @return static
      */
-    public function setMood(Mood $mood = null)
+    public function setMood(?Mood $mood = null)
     {
         $this->mood = $mood;
         return $this;

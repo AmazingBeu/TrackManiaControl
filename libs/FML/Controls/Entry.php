@@ -273,7 +273,7 @@ class Entry extends Control implements NewLineable, Scriptable, Styleable, TextF
     /**
      * @see Scriptable::setScriptAction()
      */
-    public function setScriptAction($scriptAction, array $scriptActionParameters = null)
+    public function setScriptAction($scriptAction, ?array $scriptActionParameters = null)
     {
         $this->scriptAction = (string)$scriptAction;
         $this->setScriptActionParameters($scriptActionParameters);
@@ -291,7 +291,7 @@ class Entry extends Control implements NewLineable, Scriptable, Styleable, TextF
     /**
      * @see Scriptable::setScriptActionParameters()
      */
-    public function setScriptActionParameters(array $scriptActionParameters = null)
+    public function setScriptActionParameters(?array $scriptActionParameters = null)
     {
         $this->scriptActionParameters = $scriptActionParameters;
         return $this;

@@ -41,7 +41,7 @@ class ControlScript extends ScriptFeature
      * @param string  $scriptText (optional) Script text
      * @param string  $labelName  (optional) Script Label name
      */
-    public function __construct(Control $control = null, $scriptText = null, $labelName = ScriptLabel::MOUSECLICK)
+    public function __construct(?Control $control = null, $scriptText = null, $labelName = ScriptLabel::MOUSECLICK)
     {
         if ($control) {
             $this->setControl($control);

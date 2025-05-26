@@ -28,7 +28,7 @@ class ExtEventLoop implements LoopInterface
     private $writeListeners = [];
     private $running;
 
-    public function __construct(EventBaseConfig $config = null)
+    public function __construct(?EventBaseConfig $config = null)
     {
         $this->eventBase = new EventBase($config);
         $this->nextTickQueue = new NextTickQueue($this);

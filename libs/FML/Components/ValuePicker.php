@@ -39,7 +39,7 @@ class ValuePicker implements Renderable, ScriptFeatureable
      * @param string   $default (optional) Default value
      * @param Label    $label   (optional) ValuePicker label
      */
-    public function __construct($name = null, array $values = null, $default = null, Label $label = null)
+    public function __construct($name = null, ?array $values = null, $default = null, ?Label $label = null)
     {
         $this->feature = new ValuePickerFeature();
         if ($name) {

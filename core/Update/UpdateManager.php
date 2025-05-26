@@ -130,7 +130,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 	 *
 	 * @param UpdateData $coreUpdateData
 	 */
-	public function setCoreUpdateData(UpdateData $coreUpdateData = null) {
+	public function setCoreUpdateData(?UpdateData $coreUpdateData = null) {
 		$this->coreUpdateData = $coreUpdateData;
 	}
 
@@ -189,7 +189,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 	 *
 	 * @param UpdateData $updateData
 	 */
-	public function handleUpdateCheck(UpdateData $updateData = null) {
+	public function handleUpdateCheck(?UpdateData $updateData = null) {
 		if (!$this->checkUpdateData($updateData)) {
 			// No new update available
 			return;
@@ -218,7 +218,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 	 * @param UpdateData $updateData
 	 * @return bool
 	 */
-	public function checkUpdateData(UpdateData $updateData = null) {
+	public function checkUpdateData(?UpdateData $updateData = null) {
 		if (!$updateData || !$updateData->url) {
 			// Data corrupted
 			return false;
@@ -268,7 +268,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 	 * @param UpdateData $updateData
 	 * @return bool
 	 */
-	public function checkUpdateDataBuildVersion(UpdateData $updateData = null) {
+	public function checkUpdateDataBuildVersion(?UpdateData $updateData = null) {
 		if (!$updateData) {
 			// Data corrupted
 			return false;
@@ -310,7 +310,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 	 * @param Player $player
 	 * @return bool
 	 */
-	public function performCoreUpdate(Player $player = null) {
+	public function performCoreUpdate(?Player $player = null) {
 		if (!$this->coreUpdateData) {
 			$message = 'Update failed: No update Data available!';
 			if ($player) {
@@ -490,7 +490,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 			return;
 		}
 
-		$this->checkCoreUpdateAsync(function (UpdateData $updateData = null) use (&$player) {
+		$this->checkCoreUpdateAsync(function (?UpdateData $updateData = null) use (&$player) {
 			if (!$this->checkUpdateData($updateData)) {
 				$this->maniaControl->getChat()->sendInformation('No Update available!', $player);
 				return;
@@ -563,7 +563,7 @@ class UpdateManager implements CallbackListener, CommandListener, TimerListener,
 	 * @param null $player
 	 */
 	private function checkAndHandleCoreUpdate($player = null) {
-		$this->checkCoreUpdateAsync(function (UpdateData $updateData = null) use (&$player) {
+		$this->checkCoreUpdateAsync(function (?UpdateData $updateData = null) use (&$player) {
 			if (!$updateData) {
 				if ($player) {
 					$this->maniaControl->getChat()->sendError('Update is currently not possible!', $player);

@@ -56,7 +56,7 @@ class ValuePickerFeature extends ScriptFeature
      * @param string[] $values  (optional) Possible values
      * @param string   $default (optional) Default value
      */
-    public function __construct(Label $label = null, Entry $entry = null, array $values = null, $default = null)
+    public function __construct(?Label $label = null, ?Entry $entry = null, ?array $values = null, $default = null)
     {
         if ($label) {
             $this->setLabel($label);

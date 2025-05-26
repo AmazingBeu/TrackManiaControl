@@ -40,7 +40,7 @@ class Menu extends ScriptFeature
      * @param Control $control        (optional) Toggled Menu Control
      * @param bool    $isStartElement (optional) Whether the Menu should start with the given Element
      */
-    public function __construct(Control $item = null, Control $control = null, $isStartElement = true)
+    public function __construct(?Control $item = null, ?Control $control = null, $isStartElement = true)
     {
         if ($item && $control) {
             $this->addItem($item, $control, $isStartElement);
@@ -116,7 +116,7 @@ class Menu extends ScriptFeature
      * @param MenuElement $startElement Start Element
      * @return static
      */
-    public function setStartElement(MenuElement $startElement = null)
+    public function setStartElement(?MenuElement $startElement = null)
     {
         $this->startElement = $startElement;
         if ($startElement && !in_array($startElement, $this->elements, true)) {

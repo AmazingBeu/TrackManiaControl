@@ -52,11 +52,11 @@ class DynamicPointLimitPlugin implements CallbackListener, CommandListener, Plug
 	 * @see \ManiaControl\Plugins\Plugin::prepare()
 	 */
 	public static function prepare(ManiaControl $maniaControl) {
-		$maniaControl->getSettingManager()->initSetting(get_class(), self::SETTING_POINT_LIMIT_MULTIPLIER, 10);
-		$maniaControl->getSettingManager()->initSetting(get_class(), self::SETTING_POINT_LIMIT_OFFSET, 0);
-		$maniaControl->getSettingManager()->initSetting(get_class(), self::SETTING_MIN_POINT_LIMIT, 30);
-		$maniaControl->getSettingManager()->initSetting(get_class(), self::SETTING_MAX_POINT_LIMIT, 200);
-		$maniaControl->getSettingManager()->initSetting(get_class(), self::SETTING_ACCEPT_OTHER_MODES, false);
+		$maniaControl->getSettingManager()->initSetting(get_called_class(), self::SETTING_POINT_LIMIT_MULTIPLIER, 10);
+		$maniaControl->getSettingManager()->initSetting(get_called_class(), self::SETTING_POINT_LIMIT_OFFSET, 0);
+		$maniaControl->getSettingManager()->initSetting(get_called_class(), self::SETTING_MIN_POINT_LIMIT, 30);
+		$maniaControl->getSettingManager()->initSetting(get_called_class(), self::SETTING_MAX_POINT_LIMIT, 200);
+		$maniaControl->getSettingManager()->initSetting(get_called_class(), self::SETTING_ACCEPT_OTHER_MODES, false);
 	}
 
 	/**

@@ -22,7 +22,7 @@ abstract class WebReader {
 	 * @param callable $function
 	 * @return Response
 	 */
-	public static function getUrl($url, callable $function = null) {
+	public static function getUrl($url, ?callable $function = null) {
 		$request  = static::newRequest($url);
 		$response = $request->send();
 		if ($function) {
@@ -73,7 +73,7 @@ abstract class WebReader {
 	 * @param callable $function
 	 * @return Response
 	 */
-	public static function postUrl($url, $content = null, callable $function = null) {
+	public static function postUrl($url, $content = null, ?callable $function = null) {
 		$request = static::newRequest($url);
 		$request->getOptions()->set(CURLOPT_POST, true); // post method
 		if ($content) {

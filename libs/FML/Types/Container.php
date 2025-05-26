@@ -90,6 +90,6 @@ interface Container
      * @deprecated Use Style
      * @see        Style
      */
-    public function setFormat(Format $format = null);
+    public function setFormat(?Format $format = null);
 
 }

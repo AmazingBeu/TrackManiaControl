@@ -27,7 +27,7 @@ class Preload extends ScriptFeature
      * @api
      * @param string[] $imageUrls (optional) Image urls
      */
-    public function __construct(array $imageUrls = null)
+    public function __construct(?array $imageUrls = null)
     {
         if ($imageUrls) {
             $this->setImageUrls($imageUrls);

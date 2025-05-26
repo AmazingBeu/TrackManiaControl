@@ -32,7 +32,7 @@ class PagingButton
      * @param Control $control     (optional) Paging Control
      * @param int     $pagingCount (optional) Number of browsed pages per click
      */
-    public function __construct(Control $control = null, $pagingCount = 1)
+    public function __construct(?Control $control = null, $pagingCount = 1)
     {
         if ($control) {
             $this->setControl($control);

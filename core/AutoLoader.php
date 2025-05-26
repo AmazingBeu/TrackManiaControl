@@ -15,7 +15,7 @@ abstract class AutoLoader {
 	 * Register the Auto Loader
 	 */
 	public static function register() {
-		spl_autoload_register(array(get_class(), 'autoload'));
+		spl_autoload_register(array(get_called_class(), 'autoload'));
 	}
 
 	/**

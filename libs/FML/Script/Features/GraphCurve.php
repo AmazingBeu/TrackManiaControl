@@ -54,7 +54,7 @@ class GraphCurve extends ScriptFeature
      * @param Graph   $graph  (optional) Graph
      * @param array[] $points (optional) Points
      */
-    public function __construct(Graph $graph = null, array $points = null)
+    public function __construct(?Graph $graph = null, ?array $points = null)
     {
         if ($graph) {
             $this->setGraph($graph);
@@ -200,7 +200,7 @@ class GraphCurve extends ScriptFeature
      * @param float[] $color (optional) Color
      * @return static
      */
-    public function setColor(array $color = null)
+    public function setColor(?array $color = null)
     {
         $this->color = $color;
         return $this;

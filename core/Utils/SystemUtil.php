@@ -107,6 +107,16 @@ class SystemUtil {
 			Logger::log($message . 'FOUND!');
 		}
 
+		// Check for Xml
+		$message = 'Checking for installed xml ... ';
+		if (!extension_loaded('SimpleXML')) {
+			Logger::log($message . 'NOT FOUND!');
+			Logger::log(" -- You don't have xml installed! Check: https://www.php.net/manual/en/xml.setup.php");
+			$success = false;
+		} else {
+			Logger::log($message . 'FOUND!');
+		}
+
 		if (!$success) {
 			// Missing requirements
 			self::quit();

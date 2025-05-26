@@ -37,7 +37,7 @@ class EventDispatcher implements EventDispatcherInterface
      *
      * @api
      */
-    public function dispatch($eventName, Event $event = null)
+    public function dispatch($eventName, ?Event $event = null)
     {
         if (null === $event) {
             $event = new Event();

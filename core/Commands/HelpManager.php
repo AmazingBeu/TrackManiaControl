@@ -161,7 +161,7 @@ class HelpManager implements CommandListener, CallbackListener, ManialinkPageAns
 	 * @param Player $player
 	 * @return string
 	 */
-	private function parseHelpList(array $commands, $isHelpAll = false, Player $player = null) {
+	private function parseHelpList(array $commands, $isHelpAll = false, ?Player $player = null) {
 		$showCommands      = array();
 		$registeredMethods = array();
 		$message           = '';

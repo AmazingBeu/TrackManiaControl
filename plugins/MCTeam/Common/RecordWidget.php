@@ -39,7 +39,7 @@ class RecordWidget {
 	 * @param \ManiaControl\Players\Player|null $player
 	 * @return \FML\Controls\Frame
 	 */
-	public function generateRecordLineFrame($record, Player $player = null) {
+	public function generateRecordLineFrame($record, ?Player $player = null) {
 		$width           = $this->width;
 		$lineHeight      = $this->lineHeight;
 		$largeNumberDiff = 0;
@@ -92,6 +92,7 @@ class RecordWidget {
 			$recordFrame->addChild($quad);
 			$quad->setStyles(Quad_Bgs1InRace::STYLE, Quad_Bgs1InRace::SUBSTYLE_BgCardList);
 			$quad->setSize($width, $lineHeight);
+			$quad->setZ(-1);
 		}
 
 		return $recordFrame;
@@ -105,7 +106,7 @@ class RecordWidget {
 	 * @param \ManiaControl\Players\Player|null $player
 	 * @return \FML\Controls\Frame
 	 */
-	public function generateRecordsFrame($records, $limit, Player $player = null) {
+	public function generateRecordsFrame($records, $limit, ?Player $player = null) {
 		$lineHeight = $this->lineHeight;
 
 		$frame = new Frame();

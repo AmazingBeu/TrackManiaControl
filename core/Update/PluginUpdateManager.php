@@ -68,7 +68,7 @@ class PluginUpdateManager implements CallbackListener, CommandListener, TimerLis
 	 *
 	 * @param Player $player
 	 */
-	public function checkPluginsUpdate(Player $player = null) {
+	public function checkPluginsUpdate(?Player $player = null) {
 		$message = 'Checking Plugins for newer Versions...';
 		if ($player) {
 			$this->maniaControl->getChat()->sendInformation($message, $player);
@@ -165,7 +165,7 @@ class PluginUpdateManager implements CallbackListener, CommandListener, TimerLis
 	 *
 	 * @param Player $player
 	 */
-	public function performPluginsUpdate(Player $player = null) {
+	public function performPluginsUpdate(?Player $player = null) {
 		$pluginsUpdates = $this->getPluginsUpdates();
 		if (empty($pluginsUpdates)) {
 			$message = 'There are no Plugin Updates available!';
@@ -241,7 +241,7 @@ class PluginUpdateManager implements CallbackListener, CommandListener, TimerLis
 	 * @param Player           $player
 	 * @param bool             $update
 	 */
-	private function installPlugin(PluginUpdateData $pluginUpdateData, Player $player = null, $update = false) {
+	private function installPlugin(PluginUpdateData $pluginUpdateData, ?Player $player = null, $update = false) {
 		if ($player && !$this->maniaControl->getAuthenticationManager()->checkPermission($player, InstallMenu::SETTING_PERMISSION_INSTALL_PLUGINS))
 		{
 			$this->maniaControl->getAuthenticationManager()->sendNotAllowed($player);

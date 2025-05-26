@@ -38,7 +38,7 @@ class CheckBox implements Renderable, ScriptFeatureable
      * @param bool   $default (optional) Default value
      * @param Quad   $quad    (optional) CheckBox quad
      */
-    public function __construct($name = null, $default = null, Quad $quad = null)
+    public function __construct($name = null, $default = null, ?Quad $quad = null)
     {
         $this->feature = new CheckBoxFeature();
         if ($name) {

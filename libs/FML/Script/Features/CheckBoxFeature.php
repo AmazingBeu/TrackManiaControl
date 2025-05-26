@@ -66,7 +66,7 @@ class CheckBoxFeature extends ScriptFeature
      * @param Entry $entry   (optional) Hidden Entry
      * @param bool  $default (optional) Default value
      */
-    public function __construct(Quad $quad = null, Entry $entry = null, $default = null)
+    public function __construct(?Quad $quad = null, ?Entry $entry = null, $default = null)
     {
         if ($quad) {
             $this->setQuad($quad);

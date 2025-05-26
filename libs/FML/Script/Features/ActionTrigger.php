@@ -41,7 +41,7 @@ class ActionTrigger extends ScriptFeature
      * @param Control $control    (optional) Action Control
      * @param string  $labelName  (optional) Script label name
      */
-    public function __construct($actionName = null, Control $control = null, $labelName = ScriptLabel::MOUSECLICK)
+    public function __construct($actionName = null, ?Control $control = null, $labelName = ScriptLabel::MOUSECLICK)
     {
         if ($actionName) {
             $this->setActionName($actionName);
@@ -96,7 +96,7 @@ class ActionTrigger extends ScriptFeature
      * @param Control $control Action Control
      * @return static
      */
-    public function setControl(Control $control = null)
+    public function setControl(?Control $control = null)
     {
         if ($control) {
             $control->checkId();

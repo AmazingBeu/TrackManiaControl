@@ -83,7 +83,7 @@ class DedimaniaPlugin implements CallbackListener, CallQueueListener, CommandLis
 	public static function prepare(ManiaControl $maniaControl) {
 		$servers = $maniaControl->getServer()->getAllServers();
 		foreach ($servers as $server) {
-			$maniaControl->getSettingManager()->initSetting(get_class(), self::SETTING_DEDIMANIA_CODE . $server->login . '$l', '');
+			$maniaControl->getSettingManager()->initSetting(get_called_class(), self::SETTING_DEDIMANIA_CODE . $server->login . '$l', '');
 		}
 	}
 
@@ -156,7 +156,7 @@ class DedimaniaPlugin implements CallbackListener, CallQueueListener, CommandLis
 
 		$this->recordWidget = new RecordWidget($this->maniaControl);
 		
-		if ($this->maniaControl->getServer()->getGameMode() == 0) {
+		if (true/*$this->maniaControl->getServer()->getGameMode() == 0*/) {
 			$gameMode = $this->maniaControl->getClient()->getScriptName()['CurrentValue'];
 			$this->isMultilap = ($gameMode == 'Laps.Script.txt' || $this->maniaControl->getMapManager()->getCurrentMap()->nbLaps > 0);
 			$this->isRounds = ($gameMode == 'Rounds.Script.txt');			

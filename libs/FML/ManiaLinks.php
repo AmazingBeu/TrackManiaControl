@@ -29,7 +29,7 @@ class ManiaLinks
      * @param ManiaLink[] $children ManiaLink children
      * @return static
      */
-    public static function create(array $children = null)
+    public static function create(?array $children = null)
     {
         return new static($children);
     }
@@ -40,7 +40,7 @@ class ManiaLinks
      * @api
      * @param ManiaLink[] $children ManiaLink children
      */
-    public function __construct(array $children = null)
+    public function __construct(?array $children = null)
     {
         if ($children) {
             $this->setChildren($children);
@@ -162,7 +162,7 @@ class ManiaLinks
      * @param CustomUI $customUI CustomUI object
      * @return static
      */
-    public function setCustomUI(CustomUI $customUI = null)
+    public function setCustomUI(?CustomUI $customUI = null)
     {
         $this->customUI = $customUI;
         return $this;

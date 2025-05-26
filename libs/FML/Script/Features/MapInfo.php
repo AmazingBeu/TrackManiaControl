@@ -35,7 +35,7 @@ class MapInfo extends ScriptFeature
      * @param Control $control   (optional) Map Info Control
      * @param string  $labelName (optional) Script Label name
      */
-    public function __construct(Control $control = null, $labelName = ScriptLabel::MOUSECLICK)
+    public function __construct(?Control $control = null, $labelName = ScriptLabel::MOUSECLICK)
     {
         if ($control) {
             $this->setControl($control);

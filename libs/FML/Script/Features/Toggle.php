@@ -54,8 +54,8 @@ class Toggle extends ScriptFeature
      * @param bool    $onlyHide        (optional) If it should only hide the Control but not toggle
      */
     public function __construct(
-        Control $togglingControl = null,
-        Control $toggledControl = null,
+        ?Control $togglingControl = null,
+        ?Control $toggledControl = null,
         $labelName = ScriptLabel::MOUSECLICK,
         $onlyShow = false,
         $onlyHide = false
