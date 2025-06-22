@@ -483,6 +483,11 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	 * @param Player $player
 	 */
 	public function handleAddFile(array $actionCallback, Player $player) {
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_ADD_MAP)) {
+			$this->maniaControl->getAuthenticationManager()->sendNotAllowed($player);
+			return;
+		}
+
 		$actionName = $actionCallback[1][2];
 		$fileName   = base64_decode(substr($actionName, strlen(self::ACTION_ADD_FILE)));
 		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
@@ -542,6 +547,11 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	 * @param Player $player
 	 */
 	public function handleEraseFile(array $actionCallback, Player $player) {
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_ERASE_MAP)) {
+			$this->maniaControl->getAuthenticationManager()->sendNotAllowed($player);
+			return;
+		}
+
 		$actionName = $actionCallback[1][2];
 		$fileName   = base64_decode(substr($actionName, strlen(self::ACTION_ERASE_FILE)));
 		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
@@ -569,6 +579,11 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 	 * @param Player $player
 	 */
 	public function handleCreateFolder(array $actionCallback, Player $player) {
+		if (!$this->maniaControl->getAuthenticationManager()->checkPermission($player, MapManager::SETTING_PERMISSION_ADD_MAP)) {
+			$this->maniaControl->getAuthenticationManager()->sendNotAllowed($player);
+			return;
+		}
+
 		$name = trim($actionCallback[1][3][0]["Value"]);
 
 		var_dump($actionCallback);
