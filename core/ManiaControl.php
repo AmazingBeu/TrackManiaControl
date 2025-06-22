@@ -547,7 +547,7 @@ class ManiaControl implements CallbackListener, CommandListener, TimerListener, 
 	 * @param Player $player
 	 */
 	public function commandVersion(array $chatCallback, Player $player) {
-		$message = 'This server is using TrackManiaControl v' . ManiaControl::VERSION . '!';
+		$message = 'This server is using TrackManiaControl v' . ManiaControl::VERSION . ' with PHP '. phpversion() .'!';
 		$this->getChat()->sendInformation($message, $player);
 	}
 
