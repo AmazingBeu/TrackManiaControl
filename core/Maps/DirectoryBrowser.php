@@ -15,6 +15,7 @@ use FML\Controls\Quads\Quad_UIConstruction_Buttons;
 use FML\Controls\Quads\Quad_UIConstructionBullet_Buttons;
 use FML\ManiaLink;
 use FML\Script\Features\Paging;
+use ManiaControl\Admin\AuthenticationManager;
 use ManiaControl\Files\AsyncHttpRequest;
 use ManiaControl\Files\FileUtil;
 use ManiaControl\Logger;
@@ -562,6 +563,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				$fileName
 			);
 			$this->maniaControl->getChat()->sendSuccess($message, $player);
+			Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') erased the map file "'. $filePath .'"');
 			$this->showManiaLink($player);
 		} else {
 			$message = $this->maniaControl->getChat()->formatMessage(
@@ -593,13 +595,13 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		if (mkdir($folderPath . $name, 755, true)) {
 			$message = "Successfully created directory ".  $name;
 			$this->maniaControl->getChat()->sendSuccess($message, $player);
-			Logger::log($message . " by " . $player->nickname);
+			Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') created the folder "'. $folderPath .'"');
 
 			$this->showManiaLink($player, $name);
 		} else {
 			$message = "Failed to create directory ".  $name;
 			$this->maniaControl->getChat()->sendError($message, $player);
-			Logger::logError($message . " by " . $player->nickname);
+			Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when creating the folder "'. $folderPath .'".');
 
 			$this->showManiaLink($player);
 		}
@@ -622,7 +624,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 				if (!$file || $error) {
 					$message = "Impossible to download the file: " .  $error;
 					$this->maniaControl->getChat()->sendError($message, $player);
-					Logger::logError($message);
+					Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error during the download of the zip file "'. $url .'": '. $error);
 					return;
 				}
 				$filePath = "";
@@ -640,13 +642,13 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 					if ($open === true) {
 						$zip->extractTo($folderPath);
 						$zip->close();
-						$message = "Succesfully extracted zip archive from ". $url;
+						$message = "Successfully extracted zip archive from ". $url;
 						$this->maniaControl->getChat()->sendSuccess($message, $player);
-						Logger::log($message . " by " . $player->nickname);
+						Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') downloaded the zip file "'. $url .'"');
 					} else {
 						$message = "Cannot extract archive from ". $url;
 						$this->maniaControl->getChat()->sendError($message, $player);
-						Logger::logError($message . " by " . $player->nickname);
+						Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloading the zip file "'. $url .'": Cannot extract the archive');
 					}
 					// Clean up the temporary file
 					unlink($tempFile);
@@ -706,7 +708,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 						if (!$this->isMapFileName($filePath)) {
 							$message = "File is not a map: " . $fileName;
 							$this->maniaControl->getChat()->sendError($message, $player);
-							Logger::logError($message);
+							Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloadeding the map file "'. $fileName .'": File is not a map');
 							return;
 						}
 					} else {
@@ -733,13 +735,13 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 						if (!$bytes || $bytes <= 0) {
 							$message = "Failed to write file " . $filePath;
 							$this->maniaControl->getChat()->sendError($message, $player);
-							Logger::logError($message . " by " . $player->nickname);
+							Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloadeding the map file "'. $fileName .'": Failed to write the file');
 							return;
 						}
 
-						$message = "Succesfully downloaded the map  ". $fileName;
+						$message = "Successfully downloaded the map  ". $fileName;
 						$this->maniaControl->getChat()->sendSuccess($message, $player);
-						Logger::log($message . " by " . $player->nickname);
+						Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') downloaded the map file "'. $filePath .'"');
 					}
 				}
 
