@@ -636,6 +636,8 @@ class PluginMenu implements CallbackListener, ConfiguratorMenu, ManialinkPageAns
 				$setting->value = $settingData['Value'];
 			}
 			$this->maniaControl->getSettingManager()->saveSetting($setting);
+			Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'. $player->nickname . '" ('. $player->login .') changed the setting "'. $setting->class . '\\\\' . $setting->setting .'" to "'. $setting->value .'"');
+
 		}
 
 		$this->maniaControl->getChat()->sendSuccess('Plugin Settings saved!', $player);

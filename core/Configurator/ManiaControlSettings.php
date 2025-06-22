@@ -15,6 +15,7 @@ use FML\Script\Script;
 use ManiaControl\Admin\AuthenticationManager;
 use ManiaControl\Callbacks\CallbackListener;
 use ManiaControl\Callbacks\CallbackManager;
+use ManiaControl\Logger;
 use ManiaControl\ManiaControl;
 use ManiaControl\Players\Player;
 use ManiaControl\Settings\Setting;
@@ -528,6 +529,7 @@ class ManiaControlSettings implements ConfiguratorMenu, CallbackListener {
 				$setting->value = $settingData['Value'];
 			}
 			$this->maniaControl->getSettingManager()->saveSetting($setting);
+			Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'. $player->nickname . '" ('. $player->login .') changed the setting "'. $setting->class . '\\\\' . $setting->setting .'" to "'. $setting->value .'"');
 		}
 
 		$this->maniaControl->getChat()->sendSuccess('Settings saved!', $player);

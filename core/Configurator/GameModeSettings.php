@@ -618,6 +618,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 
 			// Trigger own callback
 			$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_GAMEMODESETTING_CHANGED, $settingName, $settingValue);
+			Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') changed the gamemode setting "'. $settingName .'" to "'. $settingValue .'"');
 
 			$settingIndex++;
 		}
@@ -627,7 +628,6 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 
 		$chatMessage .= '!';
 		$this->maniaControl->getChat()->sendInformation($chatMessage);
-		Logger::logInfo($chatMessage, true);
 		return true;
 	}
 

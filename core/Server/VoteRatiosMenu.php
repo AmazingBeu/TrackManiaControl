@@ -10,6 +10,7 @@ use ManiaControl\Admin\AuthenticationManager;
 use ManiaControl\Callbacks\CallbackListener;
 use ManiaControl\Callbacks\TimerListener;
 use ManiaControl\Configurator\ConfiguratorMenu;
+use ManiaControl\Logger;
 use ManiaControl\ManiaControl;
 use ManiaControl\Players\Player;
 use Maniaplanet\DedicatedServer\Structures\VoteRatio;
@@ -166,6 +167,7 @@ class VoteRatiosMenu implements CallbackListener, ConfiguratorMenu, TimerListene
 		$success = $this->maniaControl->getClient()->setCallVoteRatios($newVoteRatios);
 		if ($success) {
 			$this->maniaControl->getChat()->sendSuccess('Vote Ratios saved!', $player);
+			Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') changed the Vote Ratios');
 		} else {
 			$this->maniaControl->getChat()->sendError('Vote Ratios saving failed!', $player);
 		}

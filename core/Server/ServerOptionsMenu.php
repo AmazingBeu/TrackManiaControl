@@ -418,6 +418,7 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 		$success = $this->applyNewServerOptions($newServerOptions, $player);
 		if ($success) {
 			$this->maniaControl->getChat()->sendSuccess('Server Options saved!', $player);
+			Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'. $player->nickname . '" ('. $player->login .') changed Server Options');
 		} else {
 			$this->maniaControl->getChat()->sendError('Server Options saving failed!', $player);
 		}
