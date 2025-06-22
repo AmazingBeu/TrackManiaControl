@@ -535,7 +535,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 			$map
 		);
 		$this->maniaControl->getChat()->sendSuccess($message);
-		Logger::logInfo($message, true);
+		Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') added the map file "'. $filePath .'"');
 
 		// Queue requested Map
 		$this->maniaControl->getMapManager()->getMapQueue()->addMapToMapQueue($player, $map);
