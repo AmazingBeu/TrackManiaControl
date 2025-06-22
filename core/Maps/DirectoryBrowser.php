@@ -557,6 +557,17 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		$fileName   = base64_decode(substr($actionName, strlen(self::ACTION_ERASE_FILE)));
 		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
 		$filePath   = $folderPath . $fileName;
+
+		$maps = $this->maniaControl->getMapManager()->getMaps();
+		$mapsFolder = $this->maniaControl->getServer()->getDirectory()->getMapsFolder();
+		$filteredMaps = array_filter($maps, function ($item) use ($mapsFolder, $filePath) {
+			return ($mapsFolder . $item->fileName === $filePath);
+		});
+		foreach ($filteredMaps as $map) {
+			Logger::log('Map "'. $filePath .'" loaded by the server, removing it from the playlist before erasing the file');
+			$this->maniaControl->getMapManager()->removeMap($player, $map->uid);
+		}
+
 		if (@unlink($filePath)) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'Erased %s!',
