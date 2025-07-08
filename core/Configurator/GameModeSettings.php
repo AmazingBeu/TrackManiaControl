@@ -50,6 +50,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 	const DESCRIPTION_HIDDEN = '<hidden>';
 
 	const SETTING_HIDE_SETTINGS_WITH_DESCRIPTION_HIDDEN = 'Hide Settings with Description "' . self::DESCRIPTION_HIDDEN . '"';
+	const SETTING_SEND_SETTINGS_CHAT_ONLY_TO_ADMINS		= 'Only send GameMode-Settings changes in the chat to admins';
 	const SETTING_LOAD_DEFAULT_SETTINGS_STARTUP         = 'Load Stored GameMode-Settings on Startup';
 	const SETTING_LOAD_DEFAULT_SETTINGS_MAP_BEGIN       = 'Load Stored GameMode-Settings on Map-Begin';
 	const SETTING_PERMISSION_CHANGE_MODE_SETTINGS       = 'Change GameMode-Settings';
@@ -78,6 +79,7 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 
 		// Settings
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_HIDE_SETTINGS_WITH_DESCRIPTION_HIDDEN, true);
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SEND_SETTINGS_CHAT_ONLY_TO_ADMINS, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_LOAD_DEFAULT_SETTINGS_STARTUP, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_LOAD_DEFAULT_SETTINGS_MAP_BEGIN, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SORT_SETTINGS, true);
@@ -627,7 +629,14 @@ class GameModeSettings implements ConfiguratorMenu, CallbackListener, Communicat
 		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_GAMEMODESETTINGS_CHANGED);
 
 		$chatMessage .= '!';
-		$this->maniaControl->getChat()->sendInformation($chatMessage);
+
+		$sendSettingsToAdminsOnly = $this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_SETTINGS_CHAT_ONLY_TO_ADMINS);
+		if ($sendSettingsToAdminsOnly) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($chatMessage);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($chatMessage);
+		}
+		
 		return true;
 	}
 
