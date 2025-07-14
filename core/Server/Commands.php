@@ -192,7 +192,7 @@ class Commands implements CallbackListener, CommandListener, ManialinkPageAnswer
 
 		$extension = 10;
 
-		$params = explode(' ', $chat[1][2]);
+		$params = explode(' ', trim($callback[1][2]));
 		if (count($params) >= 2) {
 			$extension = $params[1];
 		}
@@ -331,7 +331,7 @@ class Commands implements CallbackListener, CommandListener, ManialinkPageAnswer
 			return;
 		}
 		// Check for delayed shutdown
-		$params = explode(' ', $chat[1][2]);
+		$params = explode(' ', trim($chat[1][2]));
 		if (count($params) < 2) {
 			$this->shutdownServer($player->login);
 			return;
@@ -378,7 +378,7 @@ class Commands implements CallbackListener, CommandListener, ManialinkPageAnswer
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2], 2);
+		$params = explode(' ', trim($chat[1][2]), 2);
 		if (count($params) < 2) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'Usage example: %s',
