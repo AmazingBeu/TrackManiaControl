@@ -69,6 +69,10 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 	const SETTING_PERMISSION_KICK_PLAYER       = 'Kick Player';
 	const SETTING_PERMISSION_BAN_PLAYER        = 'Ban Player';
 
+	/*
+	 * Settings Constants
+	 */
+	const SETTING_SEND_MESSAGES_TO_ADMINS_ONLY = 'Send chat messages to admin only';
 
 	/*
 	 * Private properties
@@ -92,6 +96,10 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_FORCE_PLAYER_PLAY, AuthenticationManager::AUTH_LEVEL_MODERATOR);
 		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_FORCE_PLAYER_TEAM, AuthenticationManager::AUTH_LEVEL_MODERATOR);
 		$this->maniaControl->getAuthenticationManager()->definePermissionLevel(self::SETTING_PERMISSION_FORCE_PLAYER_SPEC, AuthenticationManager::AUTH_LEVEL_MODERATOR);
+
+		// Settings
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY, false);
+
 
 		// Echo Warn Command (Usage: sendEcho json_encode("player" => "loginName")
 		$this->maniaControl->getEchoManager()->registerEchoListener(self::ECHO_WARN_PLAYER, $this, function ($params) {
@@ -186,6 +194,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 		}
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return false;
 		}
 
@@ -241,7 +250,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 		}
 
 		if ($message) {
-			$this->maniaControl->getChat()->sendInformation($message);
+			if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+				$this->maniaControl->getChat()->sendInformationToAdmins($message);
+			} else {
+				$this->maniaControl->getChat()->sendInformation($message);
+			}
 			Logger::logInfo($message, true);
 		}
 
@@ -270,6 +283,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return false;
 		}
 
@@ -312,7 +326,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 				);
 			}
 
-			$this->maniaControl->getChat()->sendInformation($message);
+			if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+				$this->maniaControl->getChat()->sendInformationToAdmins($message);
+			} else {
+				$this->maniaControl->getChat()->sendInformation($message);
+			}
 		}
 
 		return true;
@@ -344,9 +362,16 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 
-		if (!$target || $target->isSpectator) {
+		if (!$target) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return false;
 		}
+
+		if ($target->isSpectator) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player is already spectator', $adminLogin);
+			return false;
+		}
+
 
 		try {
 			$this->maniaControl->getClient()->forceSpectator($target->login, $spectatorState);
@@ -406,6 +431,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return false;
 		}
 
@@ -434,7 +460,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			);
 		}
 
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::logInfo($message, true);
 
 		return true;
@@ -460,6 +490,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return false;
 		}
 
@@ -493,7 +524,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			);
 		}
 
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::logInfo($message, true);
 
 		return true;
@@ -519,6 +554,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return false;
 		}
 
@@ -596,7 +632,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			);
 		}
 
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::log($message, true);
 
 		return true;
@@ -624,6 +664,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			if ($calledByAdmin) $this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return false;
 		}
 
@@ -662,7 +703,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			);
 		}
 
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::logInfo($message, true);
 
 		return true;
@@ -686,6 +731,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			$this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return;
 		}
 
@@ -710,7 +756,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			$admin,
 			$target
 		);
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::logInfo($message, true);
 	}
 
@@ -730,6 +780,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$target) {
+			$this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return;
 		}
 
@@ -752,7 +803,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			$admin,
 			$target
 		);
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::logInfo($message, true);
 	}
 
@@ -781,6 +836,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 		$admin  = $this->maniaControl->getPlayerManager()->getPlayer($adminLogin);
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$admin || !$target) {
+			$this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return;
 		}
 
@@ -807,7 +863,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			$admin,
 			$target
 		);
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::logInfo($message, true);
 	}
 
@@ -822,6 +882,7 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 		$admin  = $this->maniaControl->getPlayerManager()->getPlayer($adminLogin);
 		$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 		if (!$admin || !$target) {
+			$this->maniaControl->getChat()->sendError('Player not found', $adminLogin);
 			return;
 		}
 
@@ -847,7 +908,11 @@ class PlayerActions implements EchoListener, CommunicationListener, UsageInforma
 			$admin,
 			$target
 		);
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_SEND_MESSAGES_TO_ADMINS_ONLY)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 		Logger::logInfo($message, true);
 	}
 }
