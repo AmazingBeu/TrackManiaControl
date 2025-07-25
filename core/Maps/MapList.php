@@ -210,12 +210,15 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 		$headFrame->setY($height / 2 - 5);
 		$posX = -$width / 2;
 
+		$mainFieldTotalWidth = $width - 45;
+
 		$labelLine = new LabelLine($headFrame);
 		$labelLine->addLabelEntryText('Id', $posX + 5);
 		$labelLine->addLabelEntryText('Mx Id', $posX + 10);
 		$labelLine->addLabelEntryText('Map Name', $posX + 20);
-		$labelLine->addLabelEntryText('Author', $width / 2 - 56);
-		$labelLine->addLabelEntryText('Actions', $width / 2 - 16);
+		$labelLine->addLabelEntryText('Map Uid', $posX + 20 + $mainFieldTotalWidth * 0.4);
+		$labelLine->addLabelEntryText('Author', $posX + 20 + $mainFieldTotalWidth * 0.4 + $mainFieldTotalWidth * 0.35);
+		$labelLine->addLabelEntryText('Actions', $posX + $width - 16);
 		$labelLine->setY(-7);
 		$labelLine->render();
 
@@ -285,7 +288,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				$mxQuad->setSize(3, 3);
 				$mxQuad->setImageUrl($mxIcon);
 				$mxQuad->setImageFocusUrl($mxIconHover);
-				$mxQuad->setX($width / 2 - 63);
+				$mxQuad->setX($posX + $width - 16);
 				$mxQuad->setUrl($map->mx->pageurl);
 				$mxQuad->setZ(0.01);
 				$description = 'View ' . $map->getEscapedName() . ' on Mania-Exchange';
@@ -297,7 +300,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 					$mxQuad->setSize(3, 3);
 					$mxQuad->setImageUrl($mxIconGreen);
 					$mxQuad->setImageFocusUrl($mxIconGreenHover);
-					$mxQuad->setX($width / 2 - 60);
+					$mxQuad->setX($posX + $width - 19);
 					$mxQuad->setUrl($map->mx->pageurl);
 					$mxQuad->setZ(0.01);
 					$description = 'Update for ' . $map->getEscapedName() . ' available on Mania-Exchange!';
@@ -312,15 +315,16 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 
 			// Display Maps
 			$labelLine = new LabelLine($mapFrame);
-			$labelLine->addLabelEntryText($mapListId, $posX + 5, 5);
-			$labelLine->addLabelEntryText($mxId, $posX + 10, 10);
-			$labelLine->addLabelEntryText(Formatter::stripDirtyCodes($map->name), $posX + 20,  $width - 20 - 56 - 5);
+			$labelLine->addLabelEntryText($mapListId, $posX + 5, 4);
+			$labelLine->addLabelEntryText($mxId, $posX + 10, 9);
+			$labelLine->addLabelEntryText(Formatter::stripDirtyCodes($map->name), $posX + 20, $mainFieldTotalWidth * 0.4 - 5);
+			$labelLine->addLabelEntryText($map->uid, $posX + 20 + $mainFieldTotalWidth * 0.4, $mainFieldTotalWidth * 0.35 - 8);
 			
 			$label = new Label_Text();
 			$mapFrame->addChild($label);
 			$label->setText($map->authorNick);
-			$label->setX($width / 2 - 56);
-			$label->setSize(47, 0);
+			$label->setX($posX + 20 + $mainFieldTotalWidth * 0.4 + $mainFieldTotalWidth * 0.35);
+			$label->setSize($mainFieldTotalWidth * 0.25, 0);
 			$label->setAction(MapCommands::ACTION_SHOW_AUTHOR . $map->authorLogin);
 			$description = 'Click to checkout all maps by $<' . $map->authorLogin . '$>!';
 			$label->addTooltipLabelFeature($descriptionLabel, $description);
@@ -328,13 +332,47 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 
 			$labelLine->render();
 
+			// Copy Map Uid
+			$label = new Label();
+			$mapFrame->addChild($label);
+			$label->setX($posX + 20 + $mainFieldTotalWidth * 0.4 + $mainFieldTotalWidth * 0.35 - 3);
+			$label->setSize(3., 3.);
+			$label->setText('$28d');
+			$label->setTextSize(.8);
+			$label->setAreaColor('00000000');
+			$label->setUrl('https://trackmania.io/#/leaderboard/'. $map->uid);
+			$description = 'Open map leaderboard on Trackmania.io';
+			$label->addTooltipLabelFeature($descriptionLabel, $description);
+
+			// Copy Map Uid
+			$quad = new Quad();
+			$mapFrame->addChild($quad);
+			$quad->setX($posX + 20 + $mainFieldTotalWidth * 0.4 + $mainFieldTotalWidth * 0.35 - 6);
+			$quad->setSize(3., 3.);
+			$quad->setStyle('UICommon64_1');
+			$quad->setSubStyle('Copy_light');
+			$quad->addClipboardFeature($map->uid);
+			$description = 'Copy Map Uid';
+			$quad->addTooltipLabelFeature($descriptionLabel, $description);
+
+			// Copy Author Login
+			$quad = new Quad();
+			$mapFrame->addChild($quad);
+			$quad->setX($posX + $width - 23);
+			$quad->setSize(3., 3.);
+			$quad->setStyle('UICommon64_1');
+			$quad->setSubStyle('Copy_light');
+			$quad->addClipboardFeature($map->authorLogin);
+			$description = 'Copy Author login';
+			$quad->addTooltipLabelFeature($descriptionLabel, $description);
+
 			// TODO action detailed map info including mx info
 
 			// Map-Queue-Map-Label
 			if (isset($queuedMaps[$map->uid])) {
 				$label = new Label_Text();
 				$mapFrame->addChild($label);
-				$label->setX($width / 2 - 13);
+				$label->setX($posX + $width - 13);
 				$label->setZ(0.2);
 				$label->setTextSize(1.5);
 				$label->setText($queuedMaps[$map->uid]);
@@ -378,7 +416,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				// remove map button
 				$removeButton = new Label_Button();
 				$mapFrame->addChild($removeButton);
-				$removeButton->setX($width / 2 - 5);
+				$removeButton->setX($posX + $width - 5);
 				$removeButton->setZ(0.2);
 				$removeButton->setSize(3, 3);
 				$removeButton->setTextSize(1);
@@ -395,7 +433,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				// Switch to button
 				$switchLabel = new Label_Button();
 				$mapFrame->addChild($switchLabel);
-				$switchLabel->setX($width / 2 - 9);
+				$switchLabel->setX($posX + $width - 9);
 				$switchLabel->setZ(0.2);
 				$switchLabel->setSize(3, 3);
 				$switchLabel->setTextSize(2);
@@ -413,7 +451,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 					// Switch Map Voting for Admins
 					$switchQuad = new Quad_UIConstruction_Buttons();
 					$mapFrame->addChild($switchQuad);
-					$switchQuad->setX($width / 2 - 17);
+					$switchQuad->setX($posX + $width - 21);
 					$switchQuad->setZ(0.2);
 					$switchQuad->setSubStyle($switchQuad::SUBSTYLE_Validate_Step2);
 					$switchQuad->setSize(3.8, 3.8);
@@ -424,7 +462,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 					// Switch Map Voting for Player
 					$switchLabel = new Label_Button();
 					$mapFrame->addChild($switchLabel);
-					$switchLabel->setX($width / 2 - 7);
+					$switchLabel->setX($posX + $width - 7);
 					$switchLabel->setZ(0.2);
 					$switchLabel->setSize(3, 3);
 					$switchLabel->setTextSize(2);

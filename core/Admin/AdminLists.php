@@ -3,8 +3,10 @@
 namespace ManiaControl\Admin;
 
 use FML\Controls\Frame;
+use FML\Controls\Label;
 use FML\Controls\Labels\Label_Button;
 use FML\Controls\Labels\Label_Text;
+use FML\Controls\Quad;
 use FML\Controls\Quads\Quad_BgRaceScore2;
 use FML\Controls\Quads\Quad_BgsPlayerCard;
 use FML\Controls\Quads\Quad_UIConstruction_Buttons;
@@ -20,6 +22,7 @@ use ManiaControl\Manialinks\LabelLine;
 use ManiaControl\Manialinks\ManialinkManager;
 use ManiaControl\Manialinks\ManialinkPageAnswerListener;
 use ManiaControl\Players\Player;
+use ManiaControl\Utils\Formatter;
 
 /**
  * Widget Class listing Authorized Players
@@ -118,11 +121,14 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 		$frame->addChild($headFrame);
 		$headFrame->setY($posY - 5);
 
+		$mainFieldWidth = (($width - 45) / 3) - 2;
+
 		$labelLine = new LabelLine($headFrame);
 		$labelLine->addLabelEntryText('Id', $posX + 5);
 		$labelLine->addLabelEntryText('Nickname', $posX + 18);
-		$labelLine->addLabelEntryText('Login', $posX + 70);
-		$labelLine->addLabelEntryText('Actions', $posX + 120);
+		$labelLine->addLabelEntryText('Login', $posX + 18 + $mainFieldWidth + 2);
+		$labelLine->addLabelEntryText('Location', $posX + 18 + ($mainFieldWidth + 2) * 2);
+		$labelLine->addLabelEntryText('Actions', $posX + $width - 18);
 		$labelLine->render();
 
 		$index     = 1;
@@ -151,10 +157,13 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 				$lineQuad->setZ(-0.1);
 			}
 
+			$path = $admin->getProvince();
+
 			$labelLine = new LabelLine($playerFrame);
 			$labelLine->addLabelEntryText($index, $posX + 5, 13);
-			$labelLine->addLabelEntryText($admin->nickname, $posX + 18, 52);
-			$labelLine->addLabelEntryText($admin->login, $posX + 70, 48);
+			$labelLine->addLabelEntryText($admin->nickname, $posX + 18, $mainFieldWidth - 10);
+			$labelLine->addLabelEntryText($admin->login, $posX + 18 + $mainFieldWidth + 2, $mainFieldWidth - 6);
+			$labelLine->addLabelEntryText($path, $posX + 18 + ($mainFieldWidth + 2) * 2 + 5, $mainFieldWidth - 2, '', true);
 			$labelLine->render();
 
 			// Level Quad
@@ -174,6 +183,52 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 			$description = $this->maniaControl->getAuthenticationManager()->getAuthLevelName($admin) . " " . $admin->nickname;
 			$rightLabel->addTooltipLabelFeature($descriptionLabel, $description);
 
+			// Copy admin name
+			$quad = new Quad();
+			$playerFrame->addChild($quad);
+			$quad->setX($posX + 18 + $mainFieldWidth - 3);
+			$quad->setSize(3., 3.);
+			$quad->setStyle('UICommon64_1');
+			$quad->setSubStyle('Copy_light');
+			$quad->addClipboardFeature($admin->nickname);
+			$description = 'Copy player name';
+			$quad->addTooltipLabelFeature($descriptionLabel, $description);
+
+			// Trackmania.io button
+			$label = new Label();
+			$playerFrame->addChild($label);
+			$label->setX($posX + 18 + ($mainFieldWidth + 2) * 2 - 3);
+			$label->setSize(3., 3.);
+			$label->setText('$28d');
+			$label->setTextSize(.8);
+			$label->setAreaColor('00000000');
+			$label->setUrl('https://trackmania.io/#/player/'. $admin->login);
+			$description = 'Open player profile on Trackmania.io';
+			$label->addTooltipLabelFeature($descriptionLabel, $description);
+
+			// Copy admin login
+			$quad = new Quad();
+			$playerFrame->addChild($quad);
+			$quad->setX($posX + 18 + ($mainFieldWidth + 2) * 2 - 6);
+			$quad->setSize(3., 3.);
+			$quad->setStyle('UICommon64_1');
+			$quad->setSubStyle('Copy_light');
+			$quad->addClipboardFeature($admin->login);
+			$description = 'Copy player login';
+			$quad->addTooltipLabelFeature($descriptionLabel, $description);
+
+			$countryCode = Formatter::mapCountry($admin->getCountry());
+			if ($countryCode !== 'OTH') {
+				// Nation Quad
+				$countryQuad = new Quad();
+				$playerFrame->addChild($countryQuad);
+				$countryQuad->setImageUrl("file://ZoneFlags/Login/{$admin->login}/country");
+				$countryQuad->setX($posX + 18 + ($mainFieldWidth + 2) * 2 + 2);
+				$countryQuad->setSize(4, 4);
+
+				$countryQuad->addTooltipLabelFeature($descriptionLabel, '$<' . $admin->nickname . '$> from ' . $admin->path);
+			}
+
 			//Revoke Button
 			if ($admin->authLevel > 0
 			    && $this->maniaControl->getAuthenticationManager()->checkRight($player, $admin->authLevel + 1)
@@ -188,7 +243,7 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 				$quad = new Quad_BgsPlayerCard();
 				$playerFrame->addChild($quad);
 				$quad->setZ(11);
-				$quad->setX($posX + 130);
+				$quad->setX($posX + $width - 12.5);
 				$quad->setSubStyle($quad::SUBSTYLE_BgPlayerCardBig);
 				$quad->setSize($quadWidth, $quadHeight);
 				$quad->setAction(self::ACTION_REVOKE_RIGHTS . "." . $admin->login);
@@ -196,7 +251,7 @@ class AdminLists implements ManialinkPageAnswerListener, CallbackListener, Usage
 				//Label
 				$label = new Label_Button();
 				$playerFrame->addChild($label);
-				$label->setX($posX + 130);
+				$label->setX($posX + $width - 12.5);
 				$quad->setZ(12);
 				$label->setStyle($style);
 				$label->setTextSize(1);

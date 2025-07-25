@@ -380,6 +380,15 @@ class ServerOptionsMenu implements CallbackListener, ConfiguratorMenu, TimerList
 						}
 					}");
 					$optionsFrame->addChild($checkBox);
+
+					// Copy player name
+					$quad = new Quad();
+					$quad->setX($width - $width * 0.3 - 7);
+					$quad->setSize(3., 3.);
+					$quad->setStyle('UICommon64_1');
+					$quad->setSubStyle('Copy_light');
+					$quad->addClipboardFeature($value);
+					$optionsFrame->addChild($quad);
 				}
 			}
 

@@ -3,6 +3,7 @@
 namespace ManiaControl\Commands;
 
 use FML\Controls\Frame;
+use FML\Controls\Quad;
 use FML\Controls\Quads\Quad_BgsPlayerCard;
 use FML\Controls\Quads\Quad_UIConstruction_Buttons;
 use FML\ManiaLink;
@@ -232,7 +233,7 @@ class HelpManager implements CommandListener, CallbackListener, ManialinkPageAns
 
 		$labelLine = new LabelLine($headFrame);
 		$labelLine->addLabelEntryText('Command', $posX + 5);
-		$labelLine->addLabelEntryText('Description', $posX + 50);
+		$labelLine->addLabelEntryText('Description', $posX + 5 + $width / 3 + 5);
 		$labelLine->render();
 
 		$index     = 1;
@@ -261,9 +262,26 @@ class HelpManager implements CommandListener, CallbackListener, ManialinkPageAns
 			}
 
 			$labelLine = new LabelLine($playerFrame);
-			$labelLine->addLabelEntryText($command['Name'], $posX + 5, 45);
-			$labelLine->addLabelEntryText($command['Description'], $posX + 50, $width / 2 - $posX + 50);
+			$labelLine->addLabelEntryText($command['Name'], $posX + 5, $width / 3 - 5);
+			$labelLine->addLabelEntryText($command['Description'], $posX + 5 + $width / 3 + 5, $width / 3 * 2 - 15);
 			$labelLine->render();
+
+			$clipboardValue = '/';
+			if ($command['IsAdminCommand']) {
+				$clipboardValue .= '/';
+			}
+			$clipboardValue .= explode('|', $command['Name'])[0] . ' ';
+
+			// Copy command
+			$playerQuad = new Quad();
+			$playerFrame->addChild($playerQuad);
+			$playerQuad->setX($posX + 5 + $width / 3);
+			$playerQuad->setSize(3., 3.);
+			$playerQuad->setStyle('UICommon64_1');
+			$playerQuad->setSubStyle('Copy_light');
+			$playerQuad->addClipboardFeature($clipboardValue);
+			$description = 'Copy Command';
+			$playerQuad->addTooltipLabelFeature($descriptionLabel, $description);
 
 			$posY -= 4;
 			$index++;
@@ -284,9 +302,9 @@ class HelpManager implements CommandListener, CallbackListener, ManialinkPageAns
 	public function registerCommand($name, $adminCommand = false, $description = '', $method = '') {
 		// TODO replace with new class Command
 		if ($adminCommand) {
-			array_push($this->adminCommands, array("Name" => $name, "Description" => $description, "Method" => $method));
+			array_push($this->adminCommands, array("Name" => $name, "Description" => $description, "Method" => $method, "IsAdminCommand" => true));
 		} else {
-			array_push($this->playerCommands, array("Name" => $name, "Description" => $description, "Method" => $method));
+			array_push($this->playerCommands, array("Name" => $name, "Description" => $description, "Method" => $method, "IsAdminCommand" => false));
 		}
 	}
 } 
