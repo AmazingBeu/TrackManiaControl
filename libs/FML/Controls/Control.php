@@ -3,6 +3,7 @@
 namespace FML\Controls;
 
 use FML\Script\Features\ActionTrigger;
+use FML\Script\Features\Clipboard;
 use FML\Script\Features\ControlScript;
 use FML\Script\Features\MapInfo;
 use FML\Script\Features\PlayerProfile;
@@ -916,6 +917,21 @@ abstract class Control implements Identifiable, Renderable, ScriptFeatureable
     {
         $tooltip = new Tooltip($this, $tooltipLabel, $stayOnClick, $invert, $text);
         $this->addScriptFeature($tooltip);
+        return $this;
+    }
+
+    /**
+     * Add a custom Control Script text part
+     *
+     * @api
+     * @param string $scriptText Script text
+     * @param string $label      (optional) Script label name
+     * @return static
+     */
+    public function addClipboardFeature(mixed $value, ?Label $tooltipLabel = null)
+    {
+        $clipboard = new Clipboard($this, $value, $tooltipLabel);
+        $this->addScriptFeature($clipboard);
         return $this;
     }
 
