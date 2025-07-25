@@ -736,58 +736,63 @@ class PlayerList implements ManialinkPageAnswerListener, CallbackListener, Timer
 					$this->maniaControl->getPlayerManager()->getPlayerActions()->revokeAuthLevel($adminLogin, $targetLogin);
 					break;
 				case self::ACTION_FORCE_SPEC_VOTE:
-					/** @var $votesPlugin CustomVotesPlugin */
+					/** @var ?CustomVotesPlugin $votesPlugin  */
 					$votesPlugin = $this->maniaControl->getPluginManager()->getPlugin(self::DEFAULT_CUSTOM_VOTE_PLUGIN);
+					if ($votesPlugin !== null) {
+						$admin  = $this->maniaControl->getPlayerManager()->getPlayer($adminLogin);
+						$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 
-					$admin  = $this->maniaControl->getPlayerManager()->getPlayer($adminLogin);
-					$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
+						$startMessage = $admin->getEscapedNickname() . '$s started a vote to force $<' . $target->nickname . '$> into spectator!';
 
-					$startMessage = $admin->getEscapedNickname() . '$s started a vote to force $<' . $target->nickname . '$> into spectator!';
+						$votesPlugin->defineVote('forcespec', 'Force ' . $target->getEscapedNickname() . ' Spec', true, $startMessage);
 
-					$votesPlugin->defineVote('forcespec', 'Force ' . $target->getEscapedNickname() . ' Spec', true, $startMessage);
+						$votesPlugin->startVote($admin, 'forcespec', function ($result) use (&$votesPlugin, &$target) {
+							$message = $this->maniaControl->getChat()->formatMessage(
+								'Vote successful -> %s forced to Spectator!',
+								$target
+							);
+							$this->maniaControl->getChat()->sendSuccess($message);
+							$votesPlugin->undefineVote('forcespec');
 
-					$votesPlugin->startVote($admin, 'forcespec', function ($result) use (&$votesPlugin, &$target) {
-						$message = $this->maniaControl->getChat()->formatMessage(
-							'Vote successful -> %s forced to Spectator!',
-							$target
-						);
-						$this->maniaControl->getChat()->sendSuccess($message);
-						$votesPlugin->undefineVote('forcespec');
+							try {
+								$this->maniaControl->getClient()->forceSpectator($target->login, PlayerActions::SPECTATOR_BUT_KEEP_SELECTABLE);
+								$this->maniaControl->getClient()->spectatorReleasePlayerSlot($target->login);
+							} catch (PlayerStateException $e) {
+							} catch (UnknownPlayerException $e) {
+							}
+						});
+					}
 
-						try {
-							$this->maniaControl->getClient()->forceSpectator($target->login, PlayerActions::SPECTATOR_BUT_KEEP_SELECTABLE);
-							$this->maniaControl->getClient()->spectatorReleasePlayerSlot($target->login);
-						} catch (PlayerStateException $e) {
-						} catch (UnknownPlayerException $e) {
-						}
-					});
+					
 					break;
 				case self::ACTION_KICK_PLAYER_VOTE:
-					/** @var $votesPlugin CustomVotesPlugin */
+					/** @var ?CustomVotesPlugin $votesPlugin  */
 					$votesPlugin = $this->maniaControl->getPluginManager()->getPlugin(self::DEFAULT_CUSTOM_VOTE_PLUGIN);
 
-					$admin  = $this->maniaControl->getPlayerManager()->getPlayer($adminLogin);
-					$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
+					if ($votesPlugin !== null) {
+						$admin  = $this->maniaControl->getPlayerManager()->getPlayer($adminLogin);
+						$target = $this->maniaControl->getPlayerManager()->getPlayer($targetLogin);
 
-					$startMessage = $admin->getEscapedNickname() . '$s started a vote to kick $<' . $target->nickname . '$>!';
+						$startMessage = $admin->getEscapedNickname() . '$s started a vote to kick $<' . $target->nickname . '$>!';
 
 
-					$votesPlugin->defineVote('kick', 'Kick ' . $target->getEscapedNickname(), true, $startMessage);
+						$votesPlugin->defineVote('kick', 'Kick ' . $target->getEscapedNickname(), true, $startMessage);
 
-					$votesPlugin->startVote($admin, 'kick', function ($result) use (&$votesPlugin, &$target) {
-						$message = $this->maniaControl->getChat()->formatMessage(
-							'Vote successful -> %s got kicked!',
-							$target
-						);
-						$this->maniaControl->getChat()->sendSuccess($message);
-						$votesPlugin->undefineVote('kick');
+						$votesPlugin->startVote($admin, 'kick', function ($result) use (&$votesPlugin, &$target) {
+							$message = $this->maniaControl->getChat()->formatMessage(
+								'Vote successful -> %s got kicked!',
+								$target
+							);
+							$this->maniaControl->getChat()->sendSuccess($message);
+							$votesPlugin->undefineVote('kick');
 
-						$message = '$39FYou got kicked due to a Public Vote!';
-						try {
-							$this->maniaControl->getClient()->kick($target->login, $message);
-						} catch (UnknownPlayerException $e) {
-						}
-					});
+							$message = '$39FYou got kicked due to a Public Vote!';
+							try {
+								$this->maniaControl->getClient()->kick($target->login, $message);
+							} catch (UnknownPlayerException $e) {
+							}
+						});
+					}
 					break;
 			}
 		} else if (count($actionArray) == 2) {
