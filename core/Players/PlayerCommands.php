@@ -132,7 +132,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2], 3);
+		$params = explode(' ', trim($chat[1][2]), 3);
 		if (count($params) <= 1) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -162,7 +162,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2], 3);
+		$params = explode(' ', trim($chat[1][2]), 3);
 		if (count($params) <= 1) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -192,7 +192,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2], 3);
+		$params = explode(' ', trim($chat[1][2]), 3);
 		if (count($params) <= 1) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -218,7 +218,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chatCallback[1][2], 3);
+		$params = explode(' ', trim($chatCallback[1][2]), 3);
 		if (count($params) <= 1) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -244,7 +244,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2]);
+		$params = explode(' ', trim($chat[1][2]));
 		if (count($params) <= 1) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -275,7 +275,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2]);
+		$params = explode(' ', trim($chat[1][2]));
 		if (!isset($params[1])) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -307,7 +307,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2]);
+		$params = explode(' ', trim($chat[1][2]));
 		if (!isset($params[1])) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -333,7 +333,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$params = explode(' ', $chat[1][2]);
+		$params = explode(' ', trim($chat[1][2]));
 		if (!isset($params[1])) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -360,7 +360,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 		}
 
 		$amount       = 1;
-		$messageParts = explode(' ', $chatCallback[1][2]);
+		$messageParts = explode(' ', trim($chatCallback[1][2]));
 		if (isset($messageParts[1]) && is_numeric($messageParts[1])) {
 			$amount = intval($messageParts[1]);
 		}
@@ -403,7 +403,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$commandParts = explode(' ', $chatCallback[1][2]);
+		$commandParts = explode(' ', trim($chatCallback[1][2]));
 		if (count($commandParts) <= 1) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
@@ -429,7 +429,7 @@ class PlayerCommands implements CommandListener, ManialinkPageAnswerListener, Ca
 			return;
 		}
 
-		$commandParts = explode(' ', $chatCallback[1][2]);
+		$commandParts = explode(' ', trim($chatCallback[1][2]));
 		if (count($commandParts) <= 1) {
 			$message = $this->maniaControl->getChat()->formatMessage(
 				'No Login given! Example: %s',
