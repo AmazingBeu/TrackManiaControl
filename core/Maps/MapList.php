@@ -313,6 +313,19 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 				}
 			}
 
+			// Display Karma bar
+			$karmaGauge = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildKarmaGauge(
+				$map,
+				17,
+				10
+			);
+			$karmaGaugeWidth = 0.;
+			if ($karmaGauge) {
+				$mapFrame->addChild($karmaGauge);
+				$karmaGauge->setX($posX + $width - 25);
+				$karmaGaugeWidth = 12.;
+			}
+
 			// Display Maps
 			$labelLine = new LabelLine($mapFrame);
 			$labelLine->addLabelEntryText($mapListId, $posX + 5, 4);
@@ -324,7 +337,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 			$mapFrame->addChild($label);
 			$label->setText($map->authorNick);
 			$label->setX($posX + 20 + $mainFieldTotalWidth * 0.4 + $mainFieldTotalWidth * 0.35);
-			$label->setSize($mainFieldTotalWidth * 0.25, 0);
+			$label->setSize($mainFieldTotalWidth * 0.25 - $karmaGaugeWidth, 0);
 			$label->setAction(MapCommands::ACTION_SHOW_AUTHOR . $map->authorLogin);
 			$description = 'Click to checkout all maps by $<' . $map->authorLogin . '$>!';
 			$label->addTooltipLabelFeature($descriptionLabel, $description);
@@ -358,7 +371,7 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 			// Copy Author Login
 			$quad = new Quad();
 			$mapFrame->addChild($quad);
-			$quad->setX($posX + $width - 23);
+			$quad->setX($posX + $width - 23 - $karmaGaugeWidth);
 			$quad->setSize(3., 3.);
 			$quad->setStyle('UICommon64_1');
 			$quad->setSubStyle('Copy_light');
@@ -472,17 +485,6 @@ class MapList implements ManialinkPageAnswerListener, CallbackListener {
 					$description = 'Start Map-Switch Vote: ' . $map->getEscapedName();
 					$switchLabel->addTooltipLabelFeature($descriptionLabel, $description);
 				}
-			}
-
-			// Display Karma bar
-			$karmaGauge = $this->maniaControl->getManialinkManager()->getElementBuilder()->buildKarmaGauge(
-				$map,
-				20,
-				10
-			);
-			if ($karmaGauge) {
-				$mapFrame->addChild($karmaGauge);
-				$karmaGauge->setX($posX + 120);
 			}
 
 			$posY -= 4;
