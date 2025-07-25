@@ -35,6 +35,7 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 	const SETTING_MAPLIMIT_PLAYER           = 'Maximum maps per player in the Map-Queue (-1 = unlimited)';
 	const SETTING_MAPLIMIT_ADMIN            = 'Maximum maps per admin (Admin+) in the Map-Queue (-1 = unlimited)';
 	const SETTING_MESSAGE_FORMAT            = 'Message Format';
+	const SETTING_MESSAGE_TO_ADMINS         = 'Send chat messages to admins only';
 	const SETTING_BUFFERSIZE                = 'Size of the Map-Queue buffer (recently played maps)';
 	const SETTING_PERMISSION_ADD_TO_QUEUE   = 'Add map to queue';
 	const SETTING_PERMISSION_CLEAR_MAPQUEUE = 'Clear MapQueue';
@@ -72,6 +73,7 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAPLIMIT_PLAYER, 1);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MAPLIMIT_ADMIN, -1);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MESSAGE_FORMAT, '$fa0');
+		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_MESSAGE_TO_ADMINS, false);
 		$this->maniaControl->getSettingManager()->initSetting($this, self::SETTING_BUFFERSIZE, 10);
 
 		// Permissions
@@ -136,7 +138,11 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 				"{$messagePrefix}{$title} %s cleared the Map-Queue!",
 				$admin
 			);
-			$this->maniaControl->getChat()->sendInformation($message);
+			if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MESSAGE_TO_ADMINS)) {
+				$this->maniaControl->getChat()->sendInformationToAdmins($message);
+			} else {
+				$this->maniaControl->getChat()->sendInformation($message);
+			}
 			Logger::logInfo($message, true);
 		}
 
@@ -265,7 +271,11 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 			$messagePrefix . '%s has been added to the Map-Queue by the Server.',
 			$map
 		);
-		$this->maniaControl->getChat()->sendInformation($message);
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MESSAGE_TO_ADMINS)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 
 		// Trigger callback
 		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_MAPQUEUE_CHANGED, array('add', $this->queuedMaps[$uid]));
@@ -357,7 +367,12 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 			$map,
 			$player
 		);
-		$this->maniaControl->getChat()->sendInformation($message);
+
+		if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MESSAGE_TO_ADMINS)) {
+			$this->maniaControl->getChat()->sendInformationToAdmins($message);
+		} else {
+			$this->maniaControl->getChat()->sendInformation($message);
+		}
 
 		// Trigger callback
 		$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_MAPQUEUE_CHANGED, array('add', $this->queuedMaps[$uid]));
@@ -388,7 +403,11 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 				$map,
 				$player
 			);
-			$this->maniaControl->getChat()->sendInformation($message);
+			if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MESSAGE_TO_ADMINS)) {
+				$this->maniaControl->getChat()->sendInformationToAdmins($message);
+			} else {
+				$this->maniaControl->getChat()->sendInformation($message);
+			}
 		}
 
 		// Trigger callback
@@ -446,7 +465,11 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 					$map,
 					$player
 				);
-				$this->maniaControl->getChat()->sendInformation($message);
+				if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MESSAGE_TO_ADMINS)) {
+					$this->maniaControl->getChat()->sendInformationToAdmins($message);
+				} else {
+					$this->maniaControl->getChat()->sendInformation($message);
+				}
 			}
 		}
 
@@ -468,7 +491,11 @@ class MapQueue implements CallbackListener, CommandListener, UsageInformationAbl
 				$map,
 				$player
 			);
-			$this->maniaControl->getChat()->sendInformation($message);
+			if ($this->maniaControl->getSettingManager()->getSettingValue($this, self::SETTING_MESSAGE_TO_ADMINS)) {
+				$this->maniaControl->getChat()->sendInformationToAdmins($message);
+			} else {
+				$this->maniaControl->getChat()->sendInformation($message);
+			}
 		}
 
 		try {
