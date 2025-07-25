@@ -71,6 +71,9 @@ class Clipboard extends ScriptFeature
         }
 
         $this->control = $control;
+        if ($this->control instanceof Scriptable) {
+            $this->control->setScriptEvents(true);
+        }
 
         if ($this->value !== null) {
             $this->setValue($this->value);
