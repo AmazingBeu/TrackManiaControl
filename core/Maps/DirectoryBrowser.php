@@ -469,7 +469,7 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 			$message = '';
 			$infos = $this->maniaControl->getClient()->getMapInfo($relativeFilePath);
 			foreach ($infos as $key => $value) {
-				$message .= '$<$0c0' . $key .':$> '. $value . PHP_EOL;
+				$message .= '$<$0c0' . $key .':$> $<'. $value .'$>'. PHP_EOL;
 			}
 			$this->maniaControl->getChat()->sendChat($message, $player->login, false);
 		} catch (\Throwable $th) {
