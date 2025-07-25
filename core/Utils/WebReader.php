@@ -47,8 +47,7 @@ abstract class WebReader {
 		        ->set(CURLOPT_USERAGENT, 'ManiaControl v' . ManiaControl::VERSION)// user-agent
 		        ->set(CURLOPT_RETURNTRANSFER, true)// return instead of output content
 		        ->set(CURLOPT_AUTOREFERER, true)// follow redirects
-		        ->set(CURLOPT_SSL_VERIFYPEER, false)
-				->set(CURLOPT_HEADER, true);;
+		        ->set(CURLOPT_SSL_VERIFYPEER, false);
 		return $request;
 	}
 

@@ -629,137 +629,156 @@ class DirectoryBrowser implements ManialinkPageAnswerListener {
 		if ($url === "") return;
 		$folderPath = $player->getCache($this, self::CACHE_FOLDER_PATH);
 		if (filter_var($url, FILTER_VALIDATE_URL)) {
-			
-			$asyncHttpRequest = new AsyncHttpRequest($this->maniaControl, $url);
-			$asyncHttpRequest->setCallable(function ($file, $error, $headers) use ($url, $folderPath, $player) {
-				if (!$file || $error) {
-					$message = "Impossible to download the file: " .  $error;
-					$this->maniaControl->getChat()->sendError($message, $player);
-					Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error during the download of the zip file "'. $url .'": '. $error);
-					return;
-				}
-				$filePath = "";
 
-				$finfo = new finfo(FILEINFO_MIME_TYPE);
-				if ($finfo->buffer($file) === "application/zip") {
-					$zip = new ZipArchive();
+			try {
+				$tempFile = tempnam(sys_get_temp_dir(), 'map_');
+				$fp = fopen($tempFile, 'w+');
 
-					// Create a temporary file
-					$tempFile = tempnam(sys_get_temp_dir(), 'zip');
-					file_put_contents($tempFile, $file);
+				$this->maniaControl->getChat()->sendSuccess('Starting download...', $player);
 
-					$open = $zip->open($tempFile);
-
-					if ($open === true) {
-						$zip->extractTo($folderPath);
-						$zip->close();
-						$message = "Successfully extracted zip archive from ". $url;
-						$this->maniaControl->getChat()->sendSuccess($message, $player);
-						Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') downloaded the zip file "'. $url .'"');
-					} else {
-						$message = "Cannot extract archive from ". $url;
+				$asyncHttpRequest = new AsyncHttpRequest($this->maniaControl, $url);
+				$asyncHttpRequest->setHandle($fp);
+				$asyncHttpRequest->setCallable(function ($file, $error, $headers) use ($url, $folderPath, $tempFile, $fp,  $player) {
+					// closing file handle
+					fclose($fp);
+					if ($error) {
+						$message = "Impossible to download the file: " .  $error;
 						$this->maniaControl->getChat()->sendError($message, $player);
-						Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloading the zip file "'. $url .'": Cannot extract the archive');
+						Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error during the download of the zip file "'. $url .'": '. $error);
+						return;
 					}
-					// Clean up the temporary file
-					unlink($tempFile);
-				} else {
-					$fileName = "";
+					$filePath = "";
 
-					$contentdispositionheader = "";
-					foreach ($headers as $key => $value) {
-						if (strtolower($key) === "content-disposition") {
-							$contentdispositionheader = urldecode($value);
-							break;
-						}
-					}
-	
-					if ($contentdispositionheader !== "") {
-						$value = $contentdispositionheader;
-	
-						if (strpos($value, ';') !== false) {
-							
-							list($type, $attr_parts) = explode(';', $value, 2);
+					$finfo = new finfo(FILEINFO_MIME_TYPE);
 					
-							$attr_parts = explode(';', $attr_parts);
-							$attributes = array();
-					
-							foreach ($attr_parts as $part) {
-								if (strpos($part, '=') === false) {
-									continue;
-								}
-					
-								list($key, $value) = explode('=', $part, 2);
-					
-								$attributes[trim($key)] = trim($value);
-							}
-					
-							$fileName = null;
+					if ($finfo->file($tempFile) === "application/zip") {
+						$zip = new ZipArchive();
 
-							if (array_key_exists('filename*', $attributes)) {
-								$fileName = trim($attributes['filename*']);
+						$open = $zip->open($tempFile);
 
-								// remove prefix if needed
-								if (strpos(strtolower($fileName), "utf-8''") === 0) {
-									$fileName = substr($fileName, strlen("utf-8''"));
-								}
-							} else if (array_key_exists('filename', $attributes)) {
-								$fileName = trim($attributes['filename']);
-							}
-
-							if ($fileName !== null) {
-								if (substr($fileName, 0, 1) === '"' && substr($fileName, -1, 1) === '"') {
-									$fileName = substr($fileName, 1, -1);
-								}
-
-								$filePath = $folderPath . FileUtil::getClearedFileName($fileName);
-							}
-						}
-	
-						if (!$this->isMapFileName($filePath)) {
-							$message = "File is not a map: " . $fileName;
+						if ($open === true) {
+							$zip->extractTo($folderPath);
+							$zip->close();
+							$message = "Successfully extracted zip archive from ". $url;
+							$this->maniaControl->getChat()->sendSuccess($message, $player);
+							Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') downloaded the zip file "'. $url .'"');
+						} else {
+							$message = "Cannot extract archive from ". $url;
 							$this->maniaControl->getChat()->sendError($message, $player);
-							Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloadeding the map file "'. $fileName .'": File is not a map');
-							return;
+							Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloading the zip file "'. $url .'": Cannot extract the archive');
 						}
+						// Clean up the temporary file
+						unlink($tempFile);
 					} else {
-						$path = parse_url($url, PHP_URL_PATH);
-	
-						// extracted basename
-						$fileName = basename($path);
-	
-						if (!$this->isMapFileName($fileName)) {
-							$fileName .= ".Map.Gbx";
-						}
-						$filePath = $folderPath . $fileName;
-					}
-	
-					if ($filePath != "") {
-						if (file_exists($filePath)) {
-							$index = 1;
-							while (file_exists(substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx")) {
-								$index++;
+						$fileName = "";
+
+						$contentdispositionheader = "";
+						foreach ($headers as $key => $value) {
+							if (strtolower($key) === "content-disposition") {
+								$contentdispositionheader = urldecode($value);
+								break;
 							}
-							$filePath = substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx";
 						}
-						$bytes = file_put_contents($filePath, $file);
-						if (!$bytes || $bytes <= 0) {
-							$message = "Failed to write file " . $filePath;
-							$this->maniaControl->getChat()->sendError($message, $player);
-							Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloadeding the map file "'. $fileName .'": Failed to write the file');
-							return;
-						}
+		
+						if ($contentdispositionheader !== "") {
+							$value = $contentdispositionheader;
+		
+							if (strpos($value, ';') !== false) {
+								
+								list($type, $attr_parts) = explode(';', $value, 2);
+						
+								$attr_parts = explode(';', $attr_parts);
+								$attributes = array();
+						
+								foreach ($attr_parts as $part) {
+									if (strpos($part, '=') === false) {
+										continue;
+									}
+						
+									list($key, $value) = explode('=', $part, 2);
+						
+									$attributes[trim($key)] = trim($value);
+								}
+						
+								$fileName = null;
 
-						$message = "Successfully downloaded the map  ". $fileName;
-						$this->maniaControl->getChat()->sendSuccess($message, $player);
-						Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') downloaded the map file "'. $filePath .'"');
+								if (array_key_exists('filename*', $attributes)) {
+									$fileName = trim($attributes['filename*']);
+
+									// remove prefix if needed
+									if (strpos(strtolower($fileName), "utf-8''") === 0) {
+										$fileName = substr($fileName, strlen("utf-8''"));
+									}
+								} else if (array_key_exists('filename', $attributes)) {
+									$fileName = trim($attributes['filename']);
+								}
+
+								if ($fileName !== null) {
+									if (substr($fileName, 0, 1) === '"' && substr($fileName, -1, 1) === '"') {
+										$fileName = substr($fileName, 1, -1);
+									}
+
+									$filePath = $folderPath . FileUtil::getClearedFileName($fileName);
+								}
+							}
+		
+							if (!$this->isMapFileName($filePath)) {
+								$message = "File is not a map: " . $fileName;
+								$this->maniaControl->getChat()->sendError($message, $player);
+								Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloadeding the map file "'. $fileName .'": File is not a map');
+
+								// Clean up the temporary file
+								unlink($tempFile);
+			
+								return;
+							}
+						} else {
+							$path = parse_url($url, PHP_URL_PATH);
+		
+							// extracted basename
+							$fileName = basename($path);
+		
+							if (!$this->isMapFileName($fileName)) {
+								$fileName .= ".Map.Gbx";
+							}
+							$filePath = $folderPath . $fileName;
+						}
+		
+						if ($filePath != "") {
+							if (file_exists($filePath)) {
+								$index = 1;
+								while (file_exists(substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx")) {
+									$index++;
+								}
+								$filePath = substr($filePath, 0, -8) . "-" . $index . ".Map.Gbx";
+							}
+
+							$renamed = rename($tempFile, $filePath);
+							if (!$renamed) {
+								$message = "Failed to write file " . $filePath;
+								$this->maniaControl->getChat()->sendError($message, $player);
+								Logger::logError(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') encountered an error when downloadeding the map file "'. $fileName .'": Failed to write the file');
+
+								// Clean up the temporary file
+								unlink($tempFile);
+
+								return;
+							}
+
+							$message = "Successfully downloaded the map  ". $fileName;
+							$this->maniaControl->getChat()->sendSuccess($message, $player);
+							Logger::log(AuthenticationManager::getAuthLevelName($player->authLevel) .' "'.  $player->nickname . '" ('. $player->login .') downloaded the map file "'. $filePath .'"');
+						}
 					}
-				}
 
-				$this->showManiaLink($player);
-			});
+					$this->showManiaLink($player);
+				});
 
-			$asyncHttpRequest->getData();
+				$asyncHttpRequest->getData();
+			} catch (\Throwable $th) {
+				Logger::logError('Error when downloading file: '. $th->getMessage());
+				$this->maniaControl->getChat()->sendError('Error when downloading file: '. $th->getMessage(), $player);
+			}
 		}
 	}
 }

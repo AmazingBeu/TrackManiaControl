@@ -19,18 +19,7 @@ class Response
         $this->ch = $request->getHandle();
         
         if ($content != null) {
-            $header_size = $this->getInfo(CURLINFO_HEADER_SIZE);
-
-            foreach (explode("\r\n", substr($content, 0, $header_size)) as $value) {
-                if(false !== ($matches = explode(':', $value, 2))) {
-                    if (count($matches) === 2) {
-                        $headers_arr["{$matches[0]}"] = trim($matches[1]);
-                    }
-                }                
-            }
-            $this->headers = $headers_arr;
-
-            $this->content = substr($content, $header_size);
+            $this->content = $content;
         }
     }
     
@@ -87,6 +76,17 @@ class Response
     public function hasError()
     {
         return isset($this->error);
+    }
+
+    /**
+     * Sets headers
+     * 
+     * @param array $error headers to set
+     * @return void
+     */
+    public function setHeaders(array $headers)
+    {
+        $this->headers = $headers;
     }
 
     /**

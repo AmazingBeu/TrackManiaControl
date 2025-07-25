@@ -6,7 +6,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 class Request extends EventDispatcher implements RequestInterface
 {
     /**
-     * @var resource cURL handler
+     * @var \CurlHandle cURL handler
      */
     protected $ch;
     
@@ -19,6 +19,11 @@ class Request extends EventDispatcher implements RequestInterface
      * @var Options Object containing options for current request
      */
     protected $options = null;
+
+    /**
+     * @var array Response Headers feed by the CURLOPT_HEADERFUNCTION callback
+     */
+    protected $responseHeaders;
     
     /**
      * Create new cURL handle
@@ -30,6 +35,35 @@ class Request extends EventDispatcher implements RequestInterface
         if ($url !== null) {
             $this->getOptions()->set(CURLOPT_URL, $url);
         }
+
+        $this->getOptions()->set(CURLOPT_HEADERFUNCTION, function($ch, $headerLine) {
+            $len = strlen($headerLine);
+            
+            // Handle HTTP status lines (e.g., HTTP/1.1 200 OK)
+            if (preg_match('/^HTTP\/\d\.\d\s+\d+/', $headerLine)) {
+                $this->responseHeaders = []; // Reset on redirect or multiple responses
+            }
+
+            $parts = explode(':', $headerLine, 2);
+            if (count($parts) === 2) {
+                $key = strtolower(trim($parts[0]));
+                $value = trim($parts[1]);
+                
+                // Handle multiple headers with same name
+                if (!isset($this->responseHeaders[$key])) {
+                    $this->responseHeaders[$key] = $value;
+                } else {
+                    if (is_array($this->responseHeaders[$key])) {
+                        $this->responseHeaders[$key][] = $value;
+                    } else {
+                        $this->responseHeaders[$key] = [$this->responseHeaders[$key], $value];
+                    }
+                }
+            }
+
+            return $len;
+        });
+
         $this->ch = curl_init();
     }
     
@@ -72,7 +106,7 @@ class Request extends EventDispatcher implements RequestInterface
     /**
      * Returns cURL raw resource
      * 
-     * @return resource    cURL handle
+     * @return \CurlHandle    cURL handle
      */
     public function getHandle()
     {
@@ -88,6 +122,16 @@ class Request extends EventDispatcher implements RequestInterface
     public function getUID()
     {
         return (int)$this->ch;
+    }
+
+    /**
+     * Get the response headers
+     *
+     * @return array
+     */
+    public function getResponseHeaders()
+    {
+        return $this->responseHeaders;
     }
     
     /**
@@ -108,6 +152,7 @@ class Request extends EventDispatcher implements RequestInterface
         $content = curl_exec($this->ch);
         
         $response = new Response($this, $content);
+        $response->setHeaders($this->responseHeaders);
         $errorCode = curl_errno($this->ch);
         if ($errorCode !== CURLE_OK) {
             $response->setError(new Error(curl_error($this->ch), $errorCode));

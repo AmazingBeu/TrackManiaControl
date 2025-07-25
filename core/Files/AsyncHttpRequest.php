@@ -36,6 +36,7 @@ class AsyncHttpRequest implements UsageInformationAble {
 	private $contentType = 'text/xml; charset=UTF-8;';
 	private $timeout     = 60;
 	private $headers     = array();
+	private $handle      = null;
 
 	public function __construct($maniaControl, $url) {
 		$this->maniaControl = $maniaControl;
@@ -57,8 +58,7 @@ class AsyncHttpRequest implements UsageInformationAble {
 		        ->set(CURLOPT_USERAGENT, 'ManiaControl v' . ManiaControl::VERSION)// user-agent
 		        ->set(CURLOPT_RETURNTRANSFER, true)//
 		        ->set(CURLOPT_FOLLOWLOCATION, true)// support redirect
-		        ->set(CURLOPT_SSL_VERIFYPEER, false)
-				->set(CURLOPT_HEADER, true);
+		        ->set(CURLOPT_SSL_VERIFYPEER, false);
 		return $request;
 	}
 
@@ -76,8 +76,14 @@ class AsyncHttpRequest implements UsageInformationAble {
 		array_push($this->headers, 'Accept-Charset: utf-8');
 
 		$request = $this->newRequest($this->url, $this->timeout);
-		$request->getOptions()->set(CURLOPT_AUTOREFERER, true)// accept link reference
-		        ->set(CURLOPT_HTTPHEADER, $this->headers); // headers
+		$request->getOptions()
+			->set(CURLOPT_AUTOREFERER, true)// accept link reference
+			->set(CURLOPT_HTTPHEADER, $this->headers); // headers
+
+		if ($this->handle !== null) {
+			$request->getOptions()
+				->set(CURLOPT_FILE, $this->handle);
+		}
 
 		$this->processRequest($request);
 	}
@@ -286,5 +292,23 @@ class AsyncHttpRequest implements UsageInformationAble {
 	 */
 	public function setTimeout($timeout) {
 		$this->timeout = $timeout;
+	}
+
+	/**
+	 * Gets the File Resource handle
+	 *
+	 * @return int
+	 */
+	public function getHandle() {
+		return $this->handle;
+	}
+
+	/**
+	 * Sets the File Resource handle
+	 *
+	 * @param int $handle
+	 */
+	public function setHandle($handle) {
+		$this->handle = $handle;
 	}
 }
