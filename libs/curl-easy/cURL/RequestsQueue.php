@@ -115,9 +115,7 @@ class RequestsQueue extends EventDispatcher implements RequestsQueueInterface, \
 			$event           = new Event();
 			$event->request  = $request;
 			$event->response = new Response($request, curl_multi_getcontent($request->getHandle()));
-			if ($event->request->getResponseHeaders() !== null) {
-				$event->response->setHeaders($event->request->getResponseHeaders());
-			}
+			$event->response->setHeaders($event->request->getResponseHeaders());
 			if ($result !== CURLE_OK) {
 				$event->response->setError(new Error(curl_error($request->getHandle()), $result));
 			}

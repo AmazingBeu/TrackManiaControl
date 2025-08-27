@@ -81,10 +81,10 @@ class Response
     /**
      * Sets headers
      * 
-     * @param array $error headers to set
+     * @param array|null $headers headers to set
      * @return void
      */
-    public function setHeaders(array $headers)
+    public function setHeaders(?array $headers)
     {
         $this->headers = $headers;
     }
