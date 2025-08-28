@@ -2,6 +2,8 @@
 
 namespace ManiaControl\Database;
 
+use ManiaControl\Callbacks\CallbackListener;
+use ManiaControl\Callbacks\Callbacks;
 use ManiaControl\Callbacks\TimerListener;
 use ManiaControl\Logger;
 use ManiaControl\ManiaControl;
@@ -13,7 +15,7 @@ use ManiaControl\ManiaControl;
  * @copyright 2014-2020 ManiaControl Team
  * @license   http://www.gnu.org/licenses/ GNU General Public License, Version 3
  */
-class Database implements TimerListener {
+class Database implements CallbackListener, TimerListener {
 	/*
 	 * Public properties
 	 */
@@ -56,12 +58,14 @@ class Database implements TimerListener {
 			return;
 		}
 		$this->getMysqli()->set_charset("utf8");
+		$this->reduceLockWaitTimeout();
 
 		$this->initDatabase();
 //		$this->optimizeTables();
 
 		// Register Method which checks the Database Connection every 5 seconds
 		$this->maniaControl->getTimerManager()->registerTimerListening($this, 'checkConnection', 5000);
+		$this->maniaControl->getCallbackManager()->registerCallbackListener(Callbacks::AFTERINIT, $this, 'handleAfterInit');
 
 		// Children
 		$this->migrationHelper = new MigrationHelper($maniaControl);
@@ -202,6 +206,24 @@ class Database implements TimerListener {
 	}
 
 	/**
+	 * Reduce session lock wait timeout value to between 5 and 10 seconds
+	 * designed to be used during the initialization to prevent maniacontrol to be stuck when launched in parallel with other instances
+	 */
+	public function reduceLockWaitTimeout() {
+		// limit session lock during initialization
+		$this->getMysqli()->query("SET SESSION lock_wait_timeout = ". rand(5, 10) .";");
+	}
+
+	/**
+	 * Reset session lock wait timeout value to the default one
+	 * designed to be used during the initialization to prevent maniacontrol to be stuck when launched in parallel with other instances
+	 */
+	public function resetLockWaitTimeout() {
+		// limit session lock during initialization
+		$this->getMysqli()->query("SET SESSION lock_wait_timeout = @@GLOBAL.lock_wait_timeout;");
+	}
+
+	/**
 	 * Return the database config
 	 *
 	 * @return Config
@@ -226,6 +248,10 @@ class Database implements TimerListener {
 		if (!$this->getMysqli() || !$this->getMysqli()->query('DO 1')) {
 			$this->maniaControl->quit('The MySQL Server has gone away!', true);
 		}
+	}
+
+	public function handleAfterInit() {
+		$this->resetLockWaitTimeout();
 	}
 
 	/**
