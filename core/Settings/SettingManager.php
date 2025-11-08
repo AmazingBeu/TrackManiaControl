@@ -653,11 +653,21 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		$className = ClassUtil::getClass($object);
 		$mysqli    = $this->maniaControl->getDatabase()->getMysqli();
 		// LIMIT is required to keep unlinked setting
-		$settingStatement = $mysqli->prepare("SELECT * FROM (SELECT * FROM `" . self::TABLE_SETTINGS . "` 
-												WHERE class = ? AND (`serverIndex` = ? OR `serverIndex` = 0)
-												ORDER BY `serverIndex` DESC 
-												LIMIT 9999999) 
-												as t GROUP BY `setting` ORDER BY `priority` ASC, `setting`;");
+
+		$settingStatement = $mysqli->prepare("
+			SELECT s.*
+			FROM `" . self::TABLE_SETTINGS . "` AS s
+			JOIN (
+				SELECT setting, MAX(serverIndex) AS maxServerIndex
+				FROM `" . self::TABLE_SETTINGS . "`
+				WHERE class = ? AND (serverIndex = ? OR serverIndex = 0)
+				GROUP BY setting
+			) AS x
+			ON s.setting = x.setting AND s.serverIndex = x.maxServerIndex
+			WHERE s.class = ? AND (s.serverIndex = ? OR s.serverIndex = 0)
+			ORDER BY s.priority ASC, s.setting;
+		");
+
 		if ($mysqli->error) {
 			trigger_error($mysqli->error);
 			return null;
@@ -668,7 +678,7 @@ class SettingManager implements CallbackListener, UsageInformationAble {
 		} else {
 			$serverIndex = $serverInfo->index;
 		}
-		$settingStatement->bind_param('si', $className, $serverIndex);
+		$settingStatement->bind_param('sisi', $className, $serverIndex, $className, $serverIndex);
 		if (!$settingStatement->execute()) {
 			trigger_error('Error executing MySQL query: ' . $settingStatement->error);
 		}
