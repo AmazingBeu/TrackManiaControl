@@ -23,7 +23,7 @@ class Connection
 
 	/** @var int[] */
 	private static $levels = [
-		null => -1,
+		'' => -1,
 		'User' => 0,
 		'Admin' => 1,
 		'SuperAdmin' => 2
@@ -60,7 +60,7 @@ class Connection
 		if (!is_string($user) || !isset(self::$levels[$user])) {
 			throw new InvalidArgumentException('user = ' . print_r($user, true));
 		}
-		if (self::$levels[$this->user] >= self::$levels[$user]) {
+		if ($this->user !== null && self::$levels[$this->user] >= self::$levels[$user]) {
 			return true;
 		}
 

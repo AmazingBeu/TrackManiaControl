@@ -21,12 +21,12 @@ class ScriptInclude
     /**
      * @var string $file File name
      */
-    protected $file = null;
+    protected $file = '';
 
     /**
      * @var string $namespace Namespace
      */
-    protected $namespace = null;
+    protected $namespace = '';
 
     /**
      * Construct a new Script Include
@@ -35,14 +35,10 @@ class ScriptInclude
      * @param string $file      (optional) File name
      * @param string $namespace (optional) Namespace
      */
-    public function __construct($file = null, $namespace = null)
+    public function __construct(string $file = '', string $namespace = '')
     {
-        if ($file) {
-            $this->setFile($file);
-        }
-        if ($namespace) {
-            $this->setNamespace($namespace);
-        }
+        $this->setFile($file);
+        $this->setNamespace($namespace);
     }
 
     /**

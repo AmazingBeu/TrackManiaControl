@@ -60,8 +60,9 @@ class Script
      * @param string               $namespace Include namespace
      * @return static
      */
-    public function setScriptInclude($file, $namespace = null)
+    public function setScriptInclude(string|ScriptInclude $file, string $namespace = '')
     {
+        
         if ($file instanceof ScriptInclude) {
             $scriptInclude = $file;
         } else {

@@ -109,7 +109,7 @@ class ScriptManager implements UsageInformationAble {
 	 * @param boolean $status
 	 */
 	private function setPauseStatus($status) {
-		$status = (boolean) $status;
+		$status = (bool) $status;
 		if ($this->modeUsesPause != $status) {
 			$this->modeUsesPause = $status;
 			$this->maniaControl->getCallbackManager()->triggerCallback(self::CB_PAUSE_STATUS_CHANGED, $status);

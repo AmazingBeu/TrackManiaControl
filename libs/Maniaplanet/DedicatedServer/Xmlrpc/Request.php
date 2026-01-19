@@ -180,11 +180,11 @@ if (extension_loaded('xmlrpc')) {
 					return (bool)(int)$elt;
 				case 'i4':
 				case 'int':
-					return (int)$elt;
+					return (int) $elt;
 				case 'double':
-					return (double)$elt;
+					return (float) $elt;
 				case 'string':
-					return (string)$elt;
+					return (string) $elt;
 				case 'base64':
 					return new Base64(base64_decode($elt));
 				case 'dateTime.iso8601':

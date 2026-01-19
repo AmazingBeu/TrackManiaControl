@@ -99,7 +99,11 @@ class Request extends EventDispatcher implements RequestInterface
 	 */
 	public function __destruct() {
 		if (isset($this->ch)) {
-			curl_close($this->ch);
+			 if (PHP_VERSION_ID >= 80000) {
+                unset($this->ch);
+            } else {
+                curl_close($this->ch);
+            }
 		}
 	}
     
