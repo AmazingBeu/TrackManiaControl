@@ -211,6 +211,10 @@ class StatisticManager implements UsageInformationAble {
 		$mysqli = $this->maniaControl->getDatabase()->getMysqli();
 		$statId = $this->getStatId($statName);
 
+		if ($statId === null) {
+			return array();
+		}
+
 		$query = "SELECT `playerId`, `serverIndex`, `value` FROM `" . self::TABLE_STATISTICS . "`
 				WHERE `statId` = {$statId} ";
 		if ($minValue >= 0) {
@@ -227,7 +231,7 @@ class StatisticManager implements UsageInformationAble {
 		$result = $mysqli->query($query);
 		if (!$result) {
 			trigger_error($mysqli->error);
-			return null;
+			return array();
 		}
 
 		$stats = array();
