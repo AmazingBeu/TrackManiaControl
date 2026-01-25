@@ -255,6 +255,9 @@ class PluginManager {
 	 */
 	public function isPluginActive($pluginClass) {
 		$pluginClass = $this->getPluginClass($pluginClass);
+		if ($pluginClass === null) {
+			return false;
+		}
 		return isset($this->activePlugins[$pluginClass]);
 	}
 
