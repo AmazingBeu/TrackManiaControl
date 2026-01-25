@@ -124,7 +124,6 @@ class Clipboard extends ScriptFeature
 
         $scriptText = "
 if (Event.Control.ControlId == {$controlId}) {
-    log(\"clipboard \"^ Event.Control.DataAttributeExists({$datasetProperty}));
     if (System != Null && Event.Control.DataAttributeExists({$datasetProperty})) {
         System.ClipboardSet(Event.Control.DataAttributeGet({$datasetProperty}));
     }
