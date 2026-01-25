@@ -174,7 +174,7 @@ abstract class Formatter implements UsageInformationAble {
 		                 'Australia'                => 'AUS', 'Austria' => 'AUT', 'Azerbaijan' => 'AZE', 'Bahamas' => 'BAH', 'Bahrain' => 'BRN', 'Bangladesh' => 'BAN', 'Barbados' => 'BAR',
 		                 'Belarus'                  => 'BLR', 'Belgium' => 'BEL', 'Belize' => 'BIZ', 'Benin' => 'BEN', 'Bermuda' => 'BER', 'Bhutan' => 'BHU', 'Bolivia' => 'BOL',
 		                 'Bosnia&Herzegovina'       => 'BIH', 'Botswana' => 'BOT', 'Brazil' => 'BRA', 'Brunei' => 'BRU', 'Bulgaria' => 'BUL', 'Burkina Faso' => 'BUR', 'Burundi' => 'BDI',
-		                 'Cambodia'                 => 'CAM', 'Cameroon' => 'CAR', // actually CMR
+		                 'Cambodia'                 => 'CAM', 'Cameroon' => 'CMR',
 		                 'Canada'                   => 'CAN', 'Cape Verde' => 'CPV', 'Central African Republic' => 'CAF', 'Chad' => 'CHA', 'Chile' => 'CHI', 'China' => 'CHN',
 		                 'Chinese Taipei'           => 'TPE', 'Colombia' => 'COL', 'Congo' => 'CGO', 'Costa Rica' => 'CRC', 'Croatia' => 'CRO', 'Cuba' => 'CUB', 'Cyprus' => 'CYP',
 		                 'Czech Republic'           => 'CZE', 'Czech republic' => 'CZE', 'Czechia' => 'CZE', 'DR Congo' => 'COD', 'Denmark' => 'DEN', 'Djibouti' => 'DJI', 'Dominica' => 'DMA',
@@ -185,18 +185,17 @@ abstract class Formatter implements UsageInformationAble {
 		                 'Iran'                     => 'IRI', 'Iraq' => 'IRQ', 'Ireland' => 'IRL', 'Israel' => 'ISR', 'Italy' => 'ITA', 'Ivory Coast' => 'CIV', 'Jamaica' => 'JAM', 'Japan' => 'JPN',
 		                 'Jordan'                   => 'JOR', 'Kazakhstan' => 'KAZ', 'Kenya' => 'KEN', 'Kiribati' => 'KIR', 'South Korea' => 'KOR', 'Korea' => 'KOR', 'Kuwait' => 'KUW', 'Kyrgyzstan' => 'KGZ', 'Laos' => 'LAO',
 		                 'Latvia'                   => 'LAT', 'Lebanon' => 'LIB', 'Lesotho' => 'LES', 'Liberia' => 'LBR', 'Libya' => 'LBA', 'Liechtenstein' => 'LIE', 'Lithuania' => 'LTU',
-		                 'Luxembourg'               => 'LUX', 'Macedonia' => 'MKD', 'Malawi' => 'MAW', 'Malaysia' => 'MAS', 'Mali' => 'MLI', 'Malta' => 'MLT', 'Mauritania' => 'MTN',
+		                 'Luxembourg'               => 'LUX', 'Macedonia' => 'MKD', 'North Macedonia' => 'MKD', 'Malawi' => 'MAW', 'Malaysia' => 'MAS', 'Mali' => 'MLI', 'Malta' => 'MLT', 'Mauritania' => 'MTN',
 		                 'Mauritius'                => 'MRI', 'Mexico' => 'MEX', 'Moldova' => 'MDA', 'Monaco' => 'MON', 'Mongolia' => 'MGL', 'Montenegro' => 'MNE', 'Morocco' => 'MAR',
 		                 'Mozambique'               => 'MOZ', 'Myanmar' => 'MYA', 'Namibia' => 'NAM', 'Nauru' => 'NRU', 'Nepal' => 'NEP', 'Netherlands' => 'NED', 'New Zealand' => 'NZL',
 		                 'Nicaragua'                => 'NCA', 'Niger' => 'NIG', 'Nigeria' => 'NGR', 'Norway' => 'NOR', 'Oman' => 'OMA', 'Other Countries' => 'OTH', 'Pakistan' => 'PAK',
 		                 'Palau'                    => 'PLW', 'Palestine' => 'PLE', 'Panama' => 'PAN', 'Paraguay' => 'PAR', 'Peru' => 'PER', 'Philippines' => 'PHI', 'Poland' => 'POL',
-		                 'Portugal'                 => 'POR', 'Puerto Rico' => 'PUR', 'Qatar' => 'QAT', 'Romania' => 'ROM',        // actually ROU
-		                 'Russia'                   => 'RUS', 'Rwanda' => 'RWA', 'Samoa' => 'SAM', 'San Marino' => 'SMR', 'Saudi Arabia' => 'KSA', 'Senegal' => 'SEN', 'Serbia' => 'SCG',
-		                 // actually SRB
+		                 'Portugal'                 => 'POR', 'Puerto Rico' => 'PUR', 'Qatar' => 'QAT', 'Romania' => 'ROU',
+		                 'Russia'                   => 'RUS', 'Rwanda' => 'RWA', 'Samoa' => 'SAM', 'San Marino' => 'SMR', 'Saudi Arabia' => 'KSA', 'Senegal' => 'SEN', 'Serbia' => 'SRB',
 		                 'Sierra Leone'             => 'SLE', 'Singapore' => 'SIN', 'Slovakia' => 'SVK', 'Slovenia' => 'SLO', 'Somalia' => 'SOM', 'South Africa' => 'RSA', 'Spain' => 'ESP',
-		                 'Sri Lanka'                => 'SRI', 'Sudan' => 'SUD', 'Suriname' => 'SUR', 'Swaziland' => 'SWZ', 'Sweden' => 'SWE', 'Switzerland' => 'SUI', 'Syria' => 'SYR',
+		                 'Sri Lanka'                => 'SRI', 'Sudan' => 'SUD', 'Suriname' => 'SUR', 'Swaziland' => 'SWZ', 'Eswatini' => 'SWZ', 'Sweden' => 'SWE', 'Switzerland' => 'SUI', 'Syria' => 'SYR',
 		                 'Taiwan'                   => 'TWN', 'Tajikistan' => 'TJK', 'Tanzania' => 'TAN', 'Thailand' => 'THA', 'Togo' => 'TOG', 'Tonga' => 'TGA', 'Trinidad and Tobago' => 'TRI',
-		                 'Tunisia'                  => 'TUN', 'Turkey' => 'TUR', 'Turkmenistan' => 'TKM', 'Tuvalu' => 'TUV', 'Uganda' => 'UGA', 'Ukraine' => 'UKR', 'United Arab Emirates' => 'UAE',
+		                 'Tunisia'                  => 'TUN', 'Türkiye' => 'TUR', 'Turkmenistan' => 'TKM', 'Tuvalu' => 'TUV', 'Uganda' => 'UGA', 'Ukraine' => 'UKR', 'United Arab Emirates' => 'UAE',
 		                 'United Kingdom'           => 'GBR', 'United States of America' => 'USA', 'United States' => 'USA', 'Uruguay' => 'URU', 'Uzbekistan' => 'UZB', 'Vanuatu' => 'VAN',
 		                 'Venezuela'                => 'VEN', 'Vietnam' => 'VIE', 'Yemen' => 'YEM', 'Zambia' => 'ZAM', 'Zimbabwe' => 'ZIM', 'Vatican City' => 'VAT', 'Bosnia and Herzegovina' => 'BIH', 'Saint Lucia' => 'LCA');
 		if (array_key_exists($country, $nations)) {
