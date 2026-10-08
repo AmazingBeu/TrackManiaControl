@@ -654,6 +654,7 @@ class StatisticManager implements UsageInformationAble {
 			return false;
 		}
 		$statement->close();
+		$this->storeStatMetaData();
 		return true;
 	}
 }
